@@ -42,6 +42,10 @@ react {
     //   A list of extra flags to pass to the 'bundle' commands.
     //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
     // extraPackagerArgs = []
+    project.ext.vectoricons = [
+        iconFontNames: ['MaterialCommunityIcons.ttf', 'FontAwesome.ttf', 'AntDesign.ttf', "MaterialIcons.ttf"] // Add other font files as needed
+    ]
+    apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
     /* Hermes Commands */
     //   The hermes compiler command to run. By default it is 'hermesc'
@@ -78,12 +82,31 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace "com.newtias"
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' // pilih sesuai kebutuhan
+            universalApk false // set ke true kalau ingin juga bikin 1 apk besar semua ABI
+        }
+    }
+
+    // Optional: tambahkan ini untuk memberi nama file output per ABI
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+            if (abi != null) {
+                output.outputFileName = "${variant.name}-${abi}.apk"
+            }
+        }
+    }
     defaultConfig {
         applicationId "com.newtias"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        missingDimensionStrategy 'react-native-camera', 'general' 
     }
     signingConfigs {
         debug {
@@ -116,4 +139,5 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+     
 }
