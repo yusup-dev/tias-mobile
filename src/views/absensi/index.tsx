@@ -1,19 +1,10 @@
-import {useMutation, useQuery} from '@tanstack/react-query';
-import {useEffect, useState} from 'react';
+import {useMutation} from '@tanstack/react-query';
+import {useState} from 'react';
 import {
-  Image,
-  Pressable,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  CodeField,
-  Cursor,
-  useBlurOnFulfill,
-  useClearByFocusCell,
-} from 'react-native-confirmation-code-field';
 import {
   responsiveFontSize,
   responsiveWidth,
@@ -24,14 +15,9 @@ import ValidateComponent from './validate';
 import SwitchToggle from 'react-native-switch-toggle';
 import CameraScanBarcode from '../../component/camera/index';
 import Geolocation from 'react-native-geolocation-service';
+
 const AbsensiComponent = (props: any) => {
-  const CELL_COUNT = 6;
   const [value, setValue] = useState('');
-  const ref = useBlurOnFulfill({value, cellCount: CELL_COUNT});
-  const [props_, getCellOnLayoutHandler] = useClearByFocusCell({
-    value,
-    setValue,
-  });
   const [dataMatkul, setDataMatkul] = useState<{
     matkul: string;
     pertemuan: string;
@@ -46,18 +32,28 @@ const AbsensiComponent = (props: any) => {
     token: '',
   });
   const [validateData, setValidateData] = useState(false);
-  const {mutate, isLoading} = useMutation({
+  const [onSwitch, setOnSwitch] = useState(false);
+  const [modalQuery, setModalQuery] = useState({
+    visible: false,
+    title: '',
+    desc: {
+      buttonCancel: 'Cancel',
+      buttonDone: 'Done',
+      title: 'Are you sure?',
+    },
+  });
+
+  const {mutate} = useMutation({
     mutationFn: get_pembelajaran,
-    onSuccess: (succ: any) => {
-      console.log({succ});
-      if (succ.data.length) {
+    onSuccess: (succ: any, variables: any) => {
+      if (Array.isArray(succ?.data) && succ.data.length) {
         const {pertemuan, dosen, matkul, kelas} = succ.data[0];
         setDataMatkul({
           dosen: dosen.nama,
           pertemuan: pertemuan,
           matkul: matkul.name,
           kelas: kelas,
-          token: value,
+          token: variables?.token ?? value,
         });
         setValidateData(true);
       } else {
@@ -73,64 +69,90 @@ const AbsensiComponent = (props: any) => {
         });
       }
     },
-  });
-  const [onSwitch, setOnSwitch] = useState(false);
-  const [modalQuery, setModalQuery] = useState({
-    visible: false,
-    title: '',
-    desc: {
-      buttonCancel: 'Cancel',
-      buttonDone: 'Done',
-      title: 'Are you sure?',
+
+    onError: (error: any) => {
+      console.log()
+      console.log("=== ERROR API ABSENSI ===");
+      console.log("error", error);
+      console.log("error response data", error?.response?.data); // Menampilkan detail pesan error dari backend
+      console.log("error message", error?.message);
+
+      setModalQuery({
+        title: 'Gagal Memuat',
+        visible: true,
+        desc: {
+          buttonCancel: 'Tutup',
+          buttonDone: '',
+          title: error?.response?.data?.message || error?.message || 'Terjadi kesalahan pada server (Error 500). Silakan coba lagi.',
+        },
+      });
+      
+      // Reset input agar bisa scan ulang
+      setValue(''); 
     },
   });
-  const [hasPermission, setHasPermission] = useState(false);
+
   const getLatLon = () => {
-    return new Promise((resolve: any, reject: any) => {
-      Geolocation.requestAuthorization('whenInUse')
-        .then(result => {
-          console.log({result});
-          if (result == 'granted') {
-            setHasPermission(true);
-            return Geolocation.getCurrentPosition(
-              position => {
-                let d_lat = position.coords.latitude;
-                let d_lng = position.coords.longitude;
-                console.log({position});
-                return resolve({
-                  status: true,
-                  lat: d_lat,
-                  long: d_lng,
-                });
-              },
-              error => {
-                return resolve({
-                  status: false,
-                  code: error.code,
-                  message: error.message,
-                });
-              },
-              {enableHighAccuracy: false, timeout: 15000, maximumAge: 10000},
-            );
-          }
-        })
-        .catch(error => {
-          return resolve({
-            status: false,
-            code: error.code,
-            message: error.message,
+    return new Promise<{status: boolean; lat?: number; long?: number; message?: string}>(
+      (resolve, _reject) => {
+        Geolocation.requestAuthorization('whenInUse')
+          .then(result => {
+            if (result === 'granted') {
+              Geolocation.getCurrentPosition(
+                position => {
+                  resolve({
+                    status: true,
+                    lat: position.coords.latitude,
+                    long: position.coords.longitude,
+                  });
+                },
+                error => {
+                  resolve({status: false, message: error.message});
+                },
+                {enableHighAccuracy: false, timeout: 15000, maximumAge: 10000},
+              );
+            } else {
+              resolve({status: false, message: 'Izin lokasi tidak diberikan.'});
+            }
+          })
+          .catch(error => {
+            resolve({status: false, message: error?.message ?? 'Gagal akses lokasi.'});
           });
-        });
-    });
+      },
+    );
   };
-  useEffect(() => {
-    getLatLon();
-  }, []);
-  const submit = () => {
+
+  const submit = (token: string) => {
+    if (!token) {
+      return;
+    }
     mutate({
-      token: value,
+      token: token,
     });
   };
+
+const handleScanToken = (token: string) => {
+    // 1. Tangkap hasil asli dari kamera
+    console.log("=== HASIL SCAN QR ASLI ===");
+    console.log("Teks dari QR Code:", token);
+    
+
+    // 2. Bersihkan dari spasi atau enter yang tidak sengaja terbawa
+    let cleanToken = token.trim();
+    console.log("Teks dari clean:", cleanToken);
+
+    // 3. (Opsional) Cek apakah isinya URL. Jika ya, ambil token di bagian paling belakang
+    if (cleanToken.includes('http') || cleanToken.includes('/')) {
+      const parts = cleanToken.split('/');
+      cleanToken = parts[parts.length - 1]; // Mengambil teks setelah garis miring terakhir
+      console.log("Token setelah diekstrak dari URL:", cleanToken);
+    }
+
+    // 4. Lanjut proses ke state dan API
+    setValue(cleanToken);
+    submit(cleanToken);
+  };
+
   if (validateData) {
     return (
       <ValidateComponent
@@ -150,7 +172,7 @@ const AbsensiComponent = (props: any) => {
         }}>
         <View
           style={{
-            backgroundColor: '#6A5BE2',
+            backgroundColor: '#15613F',
             paddingHorizontal: responsiveWidth(3),
             paddingVertical: responsiveWidth(5),
             flexDirection: 'row',
@@ -199,12 +221,8 @@ const AbsensiComponent = (props: any) => {
               borderRadius: 20,
               borderColor: 'white',
               borderWidth: 1,
-
-              // position: 'absolute',
-              // paddingLeft: 5,
             }}
             rightContainerStyle={{
-              // backgroundColor: 'red',
               width: responsiveWidth(20),
               height: 25,
               justifyContent: 'center',
@@ -213,7 +231,6 @@ const AbsensiComponent = (props: any) => {
               right: 0,
             }}
             leftContainerStyle={{
-              // backgroundColor: 'red',
               width: responsiveWidth(20),
               height: 25,
               justifyContent: 'center',
@@ -225,7 +242,7 @@ const AbsensiComponent = (props: any) => {
           />
         </View>
         <View style={{}}>
-          <CameraScanBarcode />
+          <CameraScanBarcode onScanSuccess={handleScanToken} />
         </View>
         <View
           style={{
@@ -239,12 +256,10 @@ const AbsensiComponent = (props: any) => {
           <Text>Jika kamu tidak bisa scan, tekan tombol dibawah</Text>
           <TouchableOpacity
             onPress={() => {
-              // console.log({props: props.navigation});
               props.navigation.push('absensi.formcode');
             }}
             style={{
               backgroundColor: '#6A5BE2',
-              // paddingHorizontal: responsiveWidth(10),
               paddingVertical: responsiveWidth(4),
               borderRadius: responsiveWidth(2),
               width: responsiveWidth(70),
@@ -259,10 +274,28 @@ const AbsensiComponent = (props: any) => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            onPress={() => {
+              props.navigation.push('absensi.face', {token: value});
+            }}
+            style={{
+              backgroundColor: '#15613F',
+              paddingVertical: responsiveWidth(4),
+              borderRadius: responsiveWidth(2),
+              width: responsiveWidth(70),
+              marginBottom: responsiveWidth(3),
+              alignItems: 'center',
+            }}>
+            <Text
+              style={{
+                color: 'white',
+              }}>
+              Absensi wajah
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={{
               backgroundColor: 'white',
               width: responsiveWidth(70),
-              // paddingHorizontal: responsiveWidth(10),
               paddingVertical: responsiveWidth(4),
               borderRadius: responsiveWidth(2),
               alignItems: 'center',
@@ -276,65 +309,6 @@ const AbsensiComponent = (props: any) => {
             </Text>
           </TouchableOpacity>
         </View>
-        {/* <View
-          style={{
-            flex: 1,
-            justifyContent: 'space-around',
-            flexDirection: 'column',
-          }}>
-          <CodeField
-            ref={ref}
-            value={value}
-            cellCount={CELL_COUNT}
-            onChangeText={setValue}
-            rootStyle={styles.codeFieldRoot}
-            keyboardType="numeric"
-            renderCell={({index, symbol, isFocused}) => (
-              <Text
-                key={index}
-                style={[styles.cell, isFocused && styles.focusCell]}
-                onLayout={getCellOnLayoutHandler(index)}>
-                {symbol || (isFocused ? <Cursor /> : null)}
-              </Text>
-            )}
-          />
-          <View>
-            {value.length == CELL_COUNT ? (
-              <TouchableOpacity
-                onPress={submit}
-                style={{
-                  backgroundColor: '#6A5BE2',
-                  paddingVertical: responsiveWidth(3),
-                  marginHorizontal: responsiveWidth(5),
-                  borderRadius: responsiveWidth(3),
-                }}>
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    color: 'white',
-                  }}>
-                  Submit
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <Pressable
-                style={{
-                  backgroundColor: '#E9e9e9',
-                  paddingVertical: responsiveWidth(3),
-                  marginHorizontal: responsiveWidth(5),
-                  borderRadius: responsiveWidth(3),
-                }}>
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    color: 'white',
-                  }}>
-                  Submit
-                </Text>
-              </Pressable>
-            )}
-          </View>
-        </View> */}
 
         <DialogComponent
           visible={modalQuery.visible}
@@ -352,25 +326,4 @@ const AbsensiComponent = (props: any) => {
     );
   }
 };
-const styles = StyleSheet.create({
-  root: {flex: 1, padding: 20},
-  title: {textAlign: 'center', fontSize: 30},
-  codeFieldRoot: {
-    // marginTop: responsiveWidth(40),
-    paddingHorizontal: responsiveWidth(6),
-  },
-  cell: {
-    width: 40,
-    height: 40,
-    lineHeight: 38,
-    fontSize: 24,
-    borderWidth: 2,
-    borderColor: '#00000030',
-    textAlign: 'center',
-    borderRadius: responsiveWidth(3),
-  },
-  focusCell: {
-    borderColor: '#000',
-  },
-});
 export default AbsensiComponent;

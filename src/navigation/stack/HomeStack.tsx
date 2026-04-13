@@ -4,7 +4,6 @@ import {MenuComponent} from '../../views/home/index';
 import DetailChallange from '../../views/home/menu/detailChallange';
 
 const Stack = createStackNavigator();
-console.log(Stack);
 function HomeStack() {
   return (
     <Stack.Navigator

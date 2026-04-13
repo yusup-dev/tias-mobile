@@ -7,29 +7,50 @@ export type UserType = {
   full_name?: string;
   role_id?: number;
 };
+
 type Store = {
   token: string;
   user: any;
   auth: boolean;
+  rememberMe: boolean;
 };
+
 type Action = {
   setToken: (token: string) => void;
   setUser: (user: any) => void;
   setAuthentication: (auth: boolean) => void;
+  setRememberMe: (rememberMe: boolean) => void;
 };
+
 export const useTokenStore = create<Store & Action>()(
   persist(
     set => ({
       token: '',
       user: {},
       auth: false,
-      setToken: token => set(state => ({token: token})),
-      setUser: user => set(state => ({user: user})),
-      setAuthentication: auth => set(state => ({auth: auth})),
+      rememberMe: false,
+      setToken: token => set(() => ({token})),
+      setUser: user => set(() => ({user})),
+      setAuthentication: auth => set(() => ({auth})),
+      setRememberMe: rememberMe => set(() => ({rememberMe})),
     }),
     {
       name: 'auth',
+      version: 1,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState: any) => {
+        return {
+          token: persistedState?.token ?? '',
+          user: persistedState?.user ?? {},
+          rememberMe: persistedState?.rememberMe ?? false,
+          auth: false,
+        };
+      },
+      partialize: state => ({
+        token: state.token,
+        user: state.user,
+        rememberMe: state.rememberMe,
+      }),
     },
   ),
 );

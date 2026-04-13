@@ -1,9 +1,9 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import AbsensiComponent from '../views/absensi/index';
 import FormCodeComponent from '../views/absensi/formCode';
+import {AttendanceFaceScreen} from '../features/attendance-face';
 
 const Stack = createStackNavigator();
-console.log(Stack);
 function AbsensiStack() {
   return (
     <Stack.Navigator
@@ -24,6 +24,7 @@ function AbsensiStack() {
           title: 'test2',
         }}
       />
+      <Stack.Screen name="absensi.face" component={AttendanceFaceScreen} />
     </Stack.Navigator>
   );
 }

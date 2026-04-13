@@ -22,18 +22,13 @@ import {useMutation} from '@tanstack/react-query';
 import {login} from '../services/auth/index';
 import {useTokenStore} from '../store/auth';
 import {DialogComponent} from '../component/dialog';
-import axios from 'axios';
 import {LogoUika} from '../../assets/svg';
 
 const Login = () => {
   const [check, setCheck] = useState(false);
-  const [visible, setVisible] = useState(false);
-
   const [formLogin, setFormLogin] = useState({
-    // email: 'azisprtm08@gmail.com',
     email: '',
     password: {
-      // value: 'Azisprtm123*',
       value: '',
       secure: true,
     },
@@ -47,21 +42,18 @@ const Login = () => {
       title: 'Are you sure?',
     },
   });
-  const {setAuthentication, setToken, setUser} = useTokenStore();
+  const {setAuthentication, setToken, setUser, setRememberMe} = useTokenStore();
 
-  const {mutate, isIdle, isLoading} = useMutation({
+  const {mutate, isLoading} = useMutation({
     mutationFn: login,
-    onError: err => {
-      console.log({err});
-    },
+    onError: () => {},
     onSuccess: (succ: any) => {
-      console.log({succ});
       if (succ.message === 'Login Success.') {
         setUser(succ?.data);
         setToken(succ?.data?.token);
+        setRememberMe(check);
         setAuthentication(true);
       } else {
-        console.log({succ});
         setModalQuery({
           title: 'Alert',
           visible: true,
@@ -76,7 +68,7 @@ const Login = () => {
   });
   const submit = () => {
     mutate({
-      email: formLogin.email,
+      email: formLogin.email.trim(),
       password: formLogin.password.value,
     });
   };
@@ -105,7 +97,6 @@ const Login = () => {
             source={require('../../assets/login/ikhwan.png')}
             resizeMode="cover"
             style={{
-              // backgroundColor: 'red',
               height: responsiveHeight(40),
               width: responsiveWidth(50),
             }}
@@ -137,7 +128,6 @@ const Login = () => {
           zIndex: 2,
           bottom: -responsiveWidth(40),
         }}>
-        {/* header */}
         <View
           style={{
             flexDirection: 'row',
@@ -150,7 +140,7 @@ const Login = () => {
               fontWeight: '600',
               fontSize: responsiveFontSize(3),
             }}>
-            Sign Up
+            Sign In
           </Text>
           <Image
             source={LogoUika}
@@ -161,7 +151,6 @@ const Login = () => {
             }}
           />
         </View>
-        {/* form */}
         <View
           style={{
             marginTop: responsiveWidth(2),
@@ -179,7 +168,7 @@ const Login = () => {
               style={{
                 justifyContent: 'center',
               }}>
-              <Icon name="logout" size={25} color="gray" />
+              <Icon name="email" size={25} color="gray" />
             </View>
 
             <TextInput
@@ -192,7 +181,6 @@ const Login = () => {
                 });
               }}
               style={{
-                // backgroundColor: 'red',
                 flex: 1,
                 marginLeft: responsiveWidth(2),
               }}
@@ -220,7 +208,7 @@ const Login = () => {
             </View>
 
             <TextInput
-              placeholder="Please put your email"
+              placeholder="Please put your password"
               secureTextEntry={formLogin.password.secure}
               style={{
                 flex: 1,

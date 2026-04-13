@@ -5,18 +5,12 @@ const APP_PERMISSION = {
   ANDROID: [
     PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
     PERMISSIONS.ANDROID.CAMERA,
-    PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
-    PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
-    // PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
     PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION,
-
-    PERMISSIONS.ANDROID.CALL_PHONE,
   ],
   IOS: [
     PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
     PERMISSIONS.IOS.CAMERA,
     PERMISSIONS.IOS.PHOTO_LIBRARY,
-    PERMISSIONS.ANDROID.CALL_PHONE,
   ],
 };
 export default class Permission {
@@ -34,59 +28,30 @@ export default class Permission {
 
     if (!isAllGranted) {
       if (Platform.OS === 'android') {
-        let req = await request(APP_PERMISSION.ANDROID[0]);
-        results.push({
-          name: APP_PERMISSION.ANDROID[0],
-          result: req,
-        });
-
-        req = await request(APP_PERMISSION.ANDROID[1]);
-        results.push({
-          name: APP_PERMISSION.ANDROID[1],
-          result: req,
-        });
-
-        req = await request(APP_PERMISSION.ANDROID[2]);
-        results.push({
-          name: APP_PERMISSION.ANDROID[2],
-          result: req,
-        });
-
-        req = await request(APP_PERMISSION.ANDROID[3]);
-        results.push({
-          name: APP_PERMISSION.ANDROID[3],
-          result: req,
-        });
-        req = await request(APP_PERMISSION.ANDROID[4]);
-        results.push({
-          name: APP_PERMISSION.ANDROID[4],
-          result: req,
-        });
+        for (const permission of APP_PERMISSION.ANDROID) {
+          const req = await request(permission);
+          results.push({
+            name: permission,
+            result: req,
+          });
+        }
       } else if (Platform.OS === 'ios') {
-        let req = await request(APP_PERMISSION.IOS[0]);
-        results.push({
-          name: APP_PERMISSION.IOS[0],
-          result: req,
-        });
-
-        req = await request(APP_PERMISSION.IOS[1]);
-        results.push({
-          name: APP_PERMISSION.IOS[1],
-          result: req,
-        });
-
-        req = await request(APP_PERMISSION.IOS[2]);
-        results.push({
-          name: APP_PERMISSION.IOS[2],
-          result: req,
-        });
+        for (const permission of APP_PERMISSION.IOS) {
+          const req = await request(permission);
+          results.push({
+            name: permission,
+            result: req,
+          });
+        }
       }
+    }
 
-      checks = await this.checkAll();
-      isAllGranted = true;
-      for (let e of checks) {
-        isAllGranted = e.result === Permission.RESULTS_LIST.GRANTED;
-        if (!isAllGranted) break;
+    checks = await this.checkAll();
+    isAllGranted = true;
+    for (let e of checks) {
+      isAllGranted = e.result === Permission.RESULTS_LIST.GRANTED;
+      if (!isAllGranted) {
+        break;
       }
     }
 

@@ -15,7 +15,6 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 // import Login from './src/login/index';
 // import {MenuComponent} from './src/views/home/index';
 import {SafeAreaView} from 'react-native';
-import Login from './src/views/login';
 import AppNavigation from './src/navigation/navigate';
 // import AppNavigation from './src/navigation/navigate';
 // import Login from 'src/views/login';

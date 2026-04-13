@@ -1,5 +1,5 @@
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -25,41 +25,44 @@ const ValidateComponent = ({
     token: string;
   };
 }) => {
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   const getLatLon = () => {
-    return new Promise((resolve: any, reject: any) => {
-      Geolocation.requestAuthorization('whenInUse')
-        .then(result => {
-          if (result == 'granted') {
-            return Geolocation.getCurrentPosition(
-              position => {
-                let d_lat = position.coords.latitude;
-                let d_lng = position.coords.longitude;
-                console.log({position});
-                return resolve({
-                  status: true,
-                  lat: d_lat,
-                  long: d_lng,
-                });
-              },
-              error => {
-                return resolve({
-                  status: false,
-                  code: error.code,
-                  message: error.message,
-                });
-              },
-              {enableHighAccuracy: false, timeout: 15000, maximumAge: 10000},
-            );
-          }
-        })
-        .catch(error => {
-          return resolve({
-            status: false,
-            code: error.code,
-            message: error.message,
+    return new Promise<{status: boolean; lat?: number; long?: number; message?: string}>(
+      (resolve, _reject) => {
+        Geolocation.requestAuthorization('whenInUse')
+          .then(result => {
+            if (result === 'granted') {
+              Geolocation.getCurrentPosition(
+                position => {
+                  resolve({
+                    status: true,
+                    lat: position.coords.latitude,
+                    long: position.coords.longitude,
+                  });
+                },
+                error => {
+                  resolve({status: false, message: error.message});
+                },
+                {enableHighAccuracy: false, timeout: 15000, maximumAge: 10000},
+              );
+            } else {
+              resolve({status: false, message: 'Izin lokasi tidak diberikan.'});
+            }
+          })
+          .catch(error => {
+            resolve({status: false, message: error?.message ?? 'Gagal akses lokasi.'});
           });
-        });
-    });
+      },
+    );
   };
   const {user} = useTokenStore();
   const [modalQuery, setModalQuery] = useState({
@@ -85,8 +88,8 @@ const ValidateComponent = ({
             title: `Anda Berhasil Melakukan Absensi di mata kuliah ${dataMatkul.matkul}`,
           },
         });
-        setTimeout(() => {
-          props.navigation.jumpTo('Home');
+        timeoutRef.current = setTimeout(() => {
+          props?.navigation?.navigate('Home');
         }, 2000);
       } else {
         setModalQuery({
@@ -104,7 +107,7 @@ const ValidateComponent = ({
   return (
     <View
       style={{
-        backgroundColor: '#7366E3',
+        backgroundColor: '#15613F',
         flex: 1,
       }}>
       <Text
@@ -218,7 +221,7 @@ const ValidateComponent = ({
               }}
               style={[
                 {
-                  backgroundColor: '#7366E3',
+                  backgroundColor: '#15613F',
                   paddingHorizontal: responsiveWidth(2),
                   paddingVertical: responsiveWidth(3),
                   borderRadius: responsiveWidth(3),

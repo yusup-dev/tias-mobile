@@ -14,18 +14,14 @@ export type LoginRequest = {
 };
 export async function login(data: any): Promise<any> {
   try {
-    console.log({data});
     const response = await axios.post('auth/login', data, {
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
     });
-    console.log(response);
     return response.data;
   } catch (error: any) {
-    console.log('ERROR:', error.message);
-    console.log('DETAIL:', error.response?.data || error);
-    console.log({error});
+    throw error;
   }
 }

@@ -11,6 +11,7 @@ import HomeStack from './stack/HomeStack';
 import ProfileStack from './stack/ProfileStack';
 import {useTokenStore} from '../store/auth';
 import DosenStack from './stack/DosenStack';
+import CbtStack from './cbtStack';
 const Tab = createBottomTabNavigator();
 const MahasiswaComponent = () => (
   <>
@@ -54,6 +55,15 @@ const MahasiswaComponent = () => (
           title: 'kuliah',
           tabBarLabel: 'Kuliah',
           tabBarIcon: ({color, size}) => <Icon size={size} name="school" />,
+        }}
+      />
+      <Tab.Screen
+        name="CBT"
+        component={CbtStack}
+        options={{
+          title: 'cbt',
+          tabBarLabel: 'CBT',
+          tabBarIcon: ({color, size}) => <Icon size={size} name="clipboard" />,
         }}
       />
       <Tab.Screen
@@ -118,6 +128,15 @@ const DosenComponent = () => (
         }}
       />
       <Tab.Screen
+        name="CBT"
+        component={CbtStack}
+        options={{
+          title: 'cbt',
+          tabBarLabel: 'CBT',
+          tabBarIcon: ({color, size}) => <Icon size={size} name="clipboard" />,
+        }}
+      />
+      <Tab.Screen
         name="Profile"
         component={ProfileStack}
         options={{
@@ -132,12 +151,11 @@ const DosenComponent = () => (
   </>
 );
 const BottomTabsComponent = () => {
-  const {auth, user, setAuthentication, setToken, setUser} = useTokenStore();
-  console.log({user: user.role});
+  const {user} = useTokenStore();
 
   return (
     <>
-      {user.role == 'Mahasiswa' ? <MahasiswaComponent /> : <DosenComponent />}
+      {user?.role === 'Mahasiswa' ? <MahasiswaComponent /> : <DosenComponent />}
     </>
   );
 };

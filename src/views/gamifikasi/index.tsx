@@ -1,5 +1,5 @@
-import {useQuery} from '@tanstack/react-query';
-import {useEffect, useState} from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -14,469 +14,372 @@ import {
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
 
-import {ribuanCast} from '../../helper/ribuan';
-import {profile} from '../../services/auth/profile';
+import { ribuanCast } from '../../helper/ribuan';
+import { profile } from '../../services/auth/profile';
 import StaggeredList from '@mindinventory/react-native-stagger-view';
 import LinearGradient from 'react-native-linear-gradient';
-const ListStatistik = ({data}: {data: any}) => {
+
+// --- KOMPONEN LIST STATISTIK ---
+const ListStatistik = ({ data }: { data: any }) => {
+  // Menggunakan array untuk mempersingkat kode agar tidak berulang
+  const stats = [
+    { id: 1, label: 'Pendidikan', value: data?.data?.point_pendidikan, color: '#4ADE80' }, // Hijau
+    { id: 2, label: 'Publikasi', value: data?.data?.point_publikasi, color: '#60A5FA' }, // Biru
+    { id: 3, label: 'Penelitian', value: data?.data?.point_penelitian, color: '#F472B6' }, // Merah Muda
+    { id: 4, label: 'Pengabdian', value: data?.data?.point_pengabdian, color: '#FBBF24' }, // Kuning
+    { id: 5, label: 'Kompetensi', value: data?.data?.point_kompetensi, color: '#A78BFA' }, // Ungu
+    { id: 6, label: 'Penunjang', value: data?.data?.point_penunjang, color: '#FB923C' }, // Oranye
+  ];
+
   return (
     <ScrollView
-      contentContainerStyle={{
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginTop: responsiveWidth(5),
-      }}
+      contentContainerStyle={styles.statistikContainer}
       showsHorizontalScrollIndicator={false}
       horizontal={true}>
-      <View style={style.card}>
-        <Text
-          style={{
-            fontWeight: '800',
-          }}>
-          {data?.data?.point_pendidikan
-            ? ribuanCast(data?.data?.point_pendidikan)
-            : 0}
-        </Text>
-        <Text
-          style={{
-            marginTop: responsiveWidth(1),
-          }}>
-          Pendidikan
-        </Text>
-        <View
-          style={{
-            width: responsiveWidth(25),
-            marginTop: responsiveWidth(2),
-            backgroundColor: 'red',
-            height: responsiveWidth(0.8),
-          }}></View>
-      </View>
-      <View style={style.card}>
-        <Text
-          style={{
-            fontWeight: '800',
-          }}>
-          {data?.data?.point_publikasi
-            ? ribuanCast(data?.data?.point_publikasi || 0)
-            : 0}
-        </Text>
-        <Text
-          style={{
-            marginTop: responsiveWidth(1),
-          }}>
-          Publikasi
-        </Text>
-        <View
-          style={{
-            width: responsiveWidth(25),
-            marginTop: responsiveWidth(2),
-            backgroundColor: 'red',
-            height: responsiveWidth(0.8),
-          }}></View>
-      </View>
-      <View style={style.card}>
-        <Text
-          style={{
-            fontWeight: '800',
-          }}>
-          {data?.data?.point_penelitian
-            ? ribuanCast(data?.data?.point_penelitian || 0)
-            : 0}
-        </Text>
-        <Text
-          style={{
-            marginTop: responsiveWidth(1),
-          }}>
-          Penelitian
-        </Text>
-        <View
-          style={{
-            width: responsiveWidth(25),
-            marginTop: responsiveWidth(2),
-            backgroundColor: 'red',
-            height: responsiveWidth(0.8),
-          }}></View>
-      </View>
-      <View style={style.card}>
-        <Text
-          style={{
-            fontWeight: '800',
-          }}>
-          {data?.data?.point_pengabdian
-            ? ribuanCast(data?.data?.point_pengabdian || 0)
-            : 0}
-        </Text>
-        <Text
-          style={{
-            marginTop: responsiveWidth(1),
-          }}>
-          Pengabdian
-        </Text>
-        <View
-          style={{
-            width: responsiveWidth(25),
-            marginTop: responsiveWidth(2),
-            backgroundColor: 'red',
-            height: responsiveWidth(0.8),
-          }}></View>
-      </View>
-      <View style={style.card}>
-        <Text
-          style={{
-            fontWeight: '800',
-          }}>
-          {data?.data?.point_kompetensi
-            ? ribuanCast(data?.data?.point_kompetensi || 0)
-            : 0}
-        </Text>
-        <Text
-          style={{
-            marginTop: responsiveWidth(1),
-          }}>
-          Kompetensi
-        </Text>
-        <View
-          style={{
-            width: responsiveWidth(25),
-            marginTop: responsiveWidth(2),
-            backgroundColor: 'red',
-            height: responsiveWidth(0.8),
-          }}></View>
-      </View>
-      <View style={style.card}>
-        <Text
-          style={{
-            fontWeight: '800',
-          }}>
-          {data?.data?.point_penunjang
-            ? ribuanCast(data?.data?.point_penunjang || 0)
-            : 0}
-        </Text>
-        <Text
-          style={{
-            marginTop: responsiveWidth(1),
-          }}>
-          Penunjang
-        </Text>
-        <View
-          style={{
-            width: responsiveWidth(25),
-            marginTop: responsiveWidth(2),
-            backgroundColor: 'red',
-            height: responsiveWidth(0.8),
-          }}></View>
-      </View>
+      {stats.map((item) => (
+        <View key={item.id} style={styles.statistikCard}>
+          <Text style={styles.statistikValue}>
+            {item.value ? ribuanCast(item.value) : 0}
+          </Text>
+          <Text style={styles.statistikLabel}>{item.label}</Text>
+          <View style={[styles.statistikProgress, { backgroundColor: item.color }]} />
+        </View>
+      ))}
     </ScrollView>
   );
 };
 
+// --- KOMPONEN UTAMA GAMIFIKASI ---
 const Gamifikasi = () => {
-  const {data, isLoading}: {data: any; isLoading: Boolean} = useQuery({
+  const { data, isSuccess, isError, error }: { data: any; isSuccess: boolean; isError: boolean; error: any } = useQuery({
     queryKey: ['profile', {}],
-    queryFn: () => {
-      return profile();
-    },
-    onSuccess: result => {
-      //   console.log({result});
-    },
-    onError: result => {
-      console.log({result});
-    },
+    queryFn: () => profile(),
   });
-  const [listKategori, setListKategori] = useState([
+
+  useEffect(() => {
+    if (isError) {
+      console.log({ result: error });
+    }
+  }, [isError, error]);
+
+  const [listKategori] = useState([
     {
       id: 1,
-      title: 'LENCANA',
+      title: 'Lencana',
       deskripsi: 'Koleksi semua lencana',
       width: responsiveWidth(43),
       height: responsiveHeight(20),
-      backgroundColor: '#FDD6DA',
+      backgroundColor: '#FEE2E2', // Merah muda pastel
       image: require('../../../assets/lencana/icon-lencana.png'),
     },
     {
       id: 2,
       title: 'Pencapaian',
-      deskripsi: 'Koleksi semua lencana',
+      deskripsi: 'Lihat progresmu',
       width: responsiveWidth(43),
-      height: responsiveHeight(30),
-      backgroundColor: '#FCF1D5',
+      height: responsiveHeight(28),
+      backgroundColor: '#FEF3C7', // Kuning pastel
       image: require('../../../assets/lencana/icon-acara.png'),
     },
     {
       id: 3,
       title: 'Misi',
-      deskripsi: 'Koleksi semua lencana',
+      deskripsi: 'Selesaikan tugas harian',
       width: responsiveWidth(43),
-      height: responsiveHeight(20),
-      backgroundColor: '#D6EFFD',
+      height: responsiveHeight(22),
+      backgroundColor: '#E0F2FE', // Biru pastel
       image: require('../../../assets/lencana/icon-misi.png'),
     },
     {
       id: 4,
       title: 'Acara',
-      deskripsi: 'Koleksi semua lencana',
+      deskripsi: 'Ikuti event spesial',
       width: responsiveWidth(43),
       height: responsiveHeight(20),
-      backgroundColor: '#F3D6FD',
+      backgroundColor: '#F3E8FF', // Ungu pastel
       image: require('../../../assets/lencana/icon-acara.png'),
     },
     {
       id: 5,
       title: 'Aktivitas',
-      deskripsi: 'Koleksi semua lencana',
+      deskripsi: 'Log aktivitas terbaru',
       width: responsiveWidth(43),
-      height: responsiveHeight(20),
-      backgroundColor: '#FCF1D5',
+      height: responsiveHeight(24),
+      backgroundColor: '#FEF3C7',
       image: require('../../../assets/lencana/icon-aktivitas.png'),
     },
     {
       id: 6,
       title: 'Ulasan',
-      deskripsi: 'Koleksi semua lencana',
+      deskripsi: 'Beri penilaian',
       width: responsiveWidth(43),
       height: responsiveHeight(20),
-      backgroundColor: '#FDD6DA',
+      backgroundColor: '#FEE2E2',
       image: require('../../../assets/lencana/icon-ulasan.png'),
     },
     {
       id: 7,
       title: 'Statistik',
-      deskripsi: 'Koleksi semua lencana',
+      deskripsi: 'Analisis performamu',
       width: responsiveWidth(43),
-      height: responsiveHeight(20),
-      backgroundColor: '#F3D6FD',
+      height: responsiveHeight(22),
+      backgroundColor: '#F3E8FF',
       image: require('../../../assets/lencana/icon-statistik.png'),
     },
     {
-      id: 7,
-      title: 'Papan peringkat',
-      deskripsi: 'Koleksi semua lencana',
+      id: 8,
+      title: 'Leaderboard',
+      deskripsi: 'Papan peringkat global',
       width: responsiveWidth(43),
       height: responsiveHeight(20),
-      backgroundColor: '#D6EFFD',
+      backgroundColor: '#E0F2FE',
       image: require('../../../assets/lencana/icon-papan-peringkat.png'),
     },
   ]);
-  return (
-    <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor: 'white',
-      }}>
-      <LinearGradient
-        colors={['#BAEED7', '#fff']}
-        style={{height: responsiveHeight(13)}}>
-        <View
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginVertical: responsiveHeight(4),
-            paddingHorizontal: responsiveWidth(5),
-          }}>
-          <View>
-            {/* <Image source={require('../../../../assets/Lonceng.png')} /> */}
-            {/* <LoncengIcon width={25} height={30} /> */}
-            {/* <Icon name="eye" size={25} color="gray" /> */}
-            {/* <Text>Icon</Text> */}
-          </View>
-        </View>
-      </LinearGradient>
-      {/* <Image source={require('../../../assets/login/banner-home.png')} /> */}
-      <View
-        style={{
-          //   marginBottom: responsiveWidth(15),
-          marginTop: responsiveWidth(10),
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          paddingHorizontal: responsiveWidth(6),
-        }}>
-        <View
-          style={{
-            flexDirection: 'row',
-          }}>
-          <View
-            style={{
-              alignSelf: 'center',
-            }}>
-            <Image
-              style={{
-                width: responsiveWidth(15),
-                height: responsiveWidth(15),
-                borderRadius: responsiveWidth(20),
-              }}
-              source={require('../../../assets/login/logo_uika.png')}
-            />
-          </View>
-          <View
-            style={{
-              alignSelf: 'center',
-              marginLeft: responsiveWidth(2),
-            }}>
-            <Text
-              style={{
-                color: 'white',
-              }}>
-              {data?.data?.rank}
-            </Text>
-            <Text
-              style={{
-                color: 'white',
-                fontSize: responsiveFontSize(1.4),
-              }}>
-              {data?.data?.total_point
-                ? ribuanCast(data?.data?.total_point || 0)
-                : 0}{' '}
-              TIAS Score avg
-            </Text>
-          </View>
-        </View>
 
+  return (
+    <ScrollView style={styles.rootContainer} showsVerticalScrollIndicator={false}>
+      
+      {/* Header Gradient */}
+      <LinearGradient colors={['#15613F', '#BAEED7']} style={styles.headerGradient} />
+
+      {/* Profil Banner Card (Overlapping Header) */}
+      <View style={styles.profileBanner}>
+        <View style={styles.profileInfo}>
+          <Image
+            style={styles.profileAvatar}
+            source={require('../../../assets/login/logo_uika.png')}
+          />
+          <View style={styles.profileTextContainer}>
+            <Text style={styles.profileRank}>{data?.data?.rank || 'Level 1'}</Text>
+            <Text style={styles.profileScore}>
+              {data?.data?.total_point ? ribuanCast(data?.data?.total_point) : 0} TIAS Score avg
+            </Text>
+          </View>
+        </View>
         <Image
-          style={{
-            width: responsiveWidth(15),
-            height: responsiveWidth(15),
-            alignSelf: 'center',
-          }}
+          style={styles.profileBadge}
           source={require('../../../assets/lencana/lencana_novice.png')}
         />
       </View>
-      <View
-        style={{
-          paddingHorizontal: responsiveWidth(4),
-          paddingTop: responsiveWidth(3),
-        }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            borderWidth: 1,
-            borderRadius: responsiveWidth(3),
-            borderColor: '#CCC4C4',
-            padding: responsiveWidth(2),
-          }}>
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-              }}>
-              <Image
-                source={require('../../../assets/login/mdi_shield-star.png')}
-              />
-              <Text
-                style={{
-                  alignSelf: 'center',
-                }}>
-                UCL Club
-              </Text>
+
+      <View style={styles.contentContainer}>
+        
+        {/* UCL Club Banner */}
+        <View style={styles.clubCard}>
+          <View style={styles.clubInfo}>
+            <View style={styles.clubHeaderRow}>
+              <Image source={require('../../../assets/login/mdi_shield-star.png')} style={styles.clubIcon} />
+              <Text style={styles.clubTitle}>UCL Club</Text>
             </View>
-            <View
-              style={{
-                marginTop: responsiveWidth(2),
-              }}>
-              <Text
-                style={{
-                  fontSize: responsiveFontSize(1.5),
-                }}>
-                Program loyalitas TIAS
-              </Text>
-            </View>
+            <Text style={styles.clubSubtitle}>Program loyalitas eksklusif TIAS</Text>
           </View>
-          <TouchableOpacity
-            style={{
-              alignSelf: 'center',
-              backgroundColor: '#15613F',
-              paddingHorizontal: responsiveWidth(3),
-              paddingVertical: responsiveWidth(2),
-              borderRadius: responsiveWidth(3),
-            }}>
-            <Text
-              style={{
-                color: 'white',
-              }}>
-              Ikuti dengan Gratis
-            </Text>
+          
+          <TouchableOpacity style={styles.clubButton}>
+            <Text style={styles.clubButtonText}>Ikuti Gratis</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Statistik Horizontal */}
         <ListStatistik data={data} />
-        <View
-          style={{
-            marginTop: responsiveWidth(3),
-          }}>
-          <Text>Tias Kategori</Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-            }}>
-            <StaggeredList
-              data={listKategori}
-              animationType={'FADE_IN_FAST'}
-              // contentContainerStyle={styles.contentContainer}
-              showsVerticalScrollIndicator={false}
-              renderItem={({item}) => (
-                <View
-                  key={`kategori-${item.id}`}
-                  style={{
-                    width: item.width,
-                    height: item.height,
-                    backgroundColor: item.backgroundColor,
-                    marginTop: responsiveWidth(2),
-                    borderRadius: responsiveWidth(3),
-                    paddingHorizontal: responsiveWidth(3),
-                    justifyContent: 'space-evenly',
-                  }}>
-                  <Image source={item.image} />
-                  <Text
-                    style={{
-                      fontWeight: '600',
-                    }}>
-                    {item.title}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: responsiveFontSize(1.2),
-                    }}>
-                    {item.deskripsi}
-                  </Text>
+
+        {/* Kategori Staggered Grid */}
+        <View style={styles.kategoriSection}>
+          <Text style={styles.sectionTitle}>Tias Kategori</Text>
+          
+          <StaggeredList
+            data={listKategori}
+            animationType={'FADE_IN_FAST'}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={false} // Dimatikan karena sudah di dalam ScrollView utama
+            renderItem={({ item }: { item: any }) => (
+              <TouchableOpacity activeOpacity={0.8} style={[styles.kategoriCard, { width: item.width, height: item.height, backgroundColor: item.backgroundColor }]}>
+                <Image source={item.image} style={styles.kategoriImage} resizeMode="contain" />
+                <View>
+                  <Text style={styles.kategoriTitle}>{item.title}</Text>
+                  <Text style={styles.kategoriDesc}>{item.deskripsi}</Text>
                 </View>
-              )}
-              // isLoading={isLoading}
-              // LoadingView={
-              //   <View style={styles.activityIndicatorWrapper}>
-              //     <ActivityIndicator color={'black'} size={'large'} />
-              //   </View>
-              // }
-            />
-            {/* {listKategori.map((list, index: number) => (
-              <View
-                key={`kategori-${list.id}`}
-                style={{
-                  width: list.width,
-                  height: list.height,
-                  backgroundColor: list.backgroundColor,
-                }}>
-                <Text>{list.title}</Text>
-              </View>
-            ))} */}
-          </View>
+              </TouchableOpacity>
+            )}
+          />
         </View>
       </View>
     </ScrollView>
   );
 };
-const style = StyleSheet.create({
-  card: {
-    width: responsiveWidth(30),
+
+const styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+    backgroundColor: '#FAFAFA',
+  },
+  headerGradient: {
+    height: responsiveHeight(15),
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  profileBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#1E293B', // Warna gelap agar kontras dengan avatar dan lencana
+    marginHorizontal: responsiveWidth(5),
+    marginTop: -responsiveHeight(7), // Overlapping gradient
+    borderRadius: 20,
+    padding: responsiveWidth(5),
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  profileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileAvatar: {
+    width: responsiveWidth(14),
+    height: responsiveWidth(14),
+    borderRadius: responsiveWidth(7),
+    backgroundColor: 'white', // Jika logo transparan
+  },
+  profileTextContainer: {
+    marginLeft: responsiveWidth(3),
+  },
+  profileRank: {
+    color: '#FBBF24', // Warna emas/kuning untuk rank
+    fontWeight: 'bold',
+    fontSize: responsiveFontSize(2.2),
+  },
+  profileScore: {
+    color: '#E2E8F0',
+    fontSize: responsiveFontSize(1.5),
+    marginTop: 2,
+  },
+  profileBadge: {
+    width: responsiveWidth(16),
+    height: responsiveWidth(16),
+    resizeMode: 'contain',
+  },
+  contentContainer: {
+    paddingHorizontal: responsiveWidth(5),
+    paddingTop: responsiveWidth(6),
+  },
+  clubCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderRadius: responsiveWidth(2),
-    paddingHorizontal: responsiveWidth(2),
-    paddingVertical: responsiveWidth(1),
-    marginHorizontal: responsiveWidth(1),
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    padding: responsiveWidth(4),
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  clubInfo: {
+    flex: 1,
+  },
+  clubHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  clubIcon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
+  clubTitle: {
+    fontWeight: 'bold',
+    fontSize: responsiveFontSize(2),
+    color: '#1F2937',
+    marginLeft: 6,
+  },
+  clubSubtitle: {
+    fontSize: responsiveFontSize(1.5),
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  clubButton: {
+    backgroundColor: '#15613F', // Hijau UIKA
+    paddingHorizontal: responsiveWidth(4),
+    paddingVertical: responsiveWidth(2.5),
+    borderRadius: 10,
+  },
+  clubButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: responsiveFontSize(1.5),
+  },
+  statistikContainer: {
+    flexDirection: 'row',
+    marginTop: responsiveWidth(6),
+    paddingBottom: responsiveWidth(2),
+  },
+  statistikCard: {
+    width: responsiveWidth(32),
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: responsiveWidth(3),
+    marginRight: responsiveWidth(3),
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  statistikValue: {
+    fontWeight: '900',
+    fontSize: responsiveFontSize(2.4),
+    color: '#1F2937',
+  },
+  statistikLabel: {
+    marginTop: 4,
+    fontSize: responsiveFontSize(1.6),
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  statistikProgress: {
+    width: '80%',
+    height: 4,
+    borderRadius: 2,
+    marginTop: 8,
+  },
+  kategoriSection: {
+    marginTop: responsiveWidth(6),
+    paddingBottom: responsiveWidth(10),
+  },
+  sectionTitle: {
+    fontSize: responsiveFontSize(2.2),
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: responsiveWidth(3),
+  },
+  kategoriCard: {
+    borderRadius: 20,
+    padding: responsiveWidth(4),
+    justifyContent: 'space-between',
+    marginBottom: responsiveWidth(4),
+    elevation: 1,
+  },
+  kategoriImage: {
+    width: responsiveWidth(12),
+    height: responsiveWidth(12),
+    alignSelf: 'flex-end',
+  },
+  kategoriTitle: {
+    fontWeight: '800',
+    fontSize: responsiveFontSize(2),
+    color: '#1F2937',
+  },
+  kategoriDesc: {
+    fontSize: responsiveFontSize(1.4),
+    color: '#4B5563',
+    marginTop: 2,
   },
 });
+
 export default Gamifikasi;

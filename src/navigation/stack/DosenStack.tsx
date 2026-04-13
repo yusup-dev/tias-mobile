@@ -5,7 +5,6 @@ import DetailChallange from '../../views/home/menu/detailChallange';
 import DosenMenuComponent from '../../views/home/menu/dosen.index';
 
 const Stack = createStackNavigator();
-console.log(Stack);
 function DosenStack() {
   return (
     <Stack.Navigator

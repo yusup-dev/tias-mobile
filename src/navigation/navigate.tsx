@@ -1,19 +1,28 @@
 import {NavigationContainer} from '@react-navigation/native';
-import React from 'react';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import React, {useEffect} from 'react';
+
 import {useTokenStore} from '../store/auth';
 import Login from '../views/login';
 import BottomTabsComponent from './bottom-tabs';
 
 const AppNavigation = () => {
-  const {auth, user} = useTokenStore();
+  const {auth, token, user, rememberMe, setAuthentication} = useTokenStore();
+
+  useEffect(() => {
+    if (!auth && rememberMe && token && (user?.npm || user?.email)) {
+      setAuthentication(true);
+    }
+  }, [auth, rememberMe, setAuthentication, token, user?.email, user?.npm]);
+
+  const isLoggedIn = Boolean(auth && token && (user?.npm || user?.email));
 
   return (
-    <SafeAreaProvider>
+    
       <NavigationContainer>
-        {auth ? <BottomTabsComponent /> : <Login />}
+        {isLoggedIn ? <BottomTabsComponent /> : <Login />}
       </NavigationContainer>
-    </SafeAreaProvider>
+    
   );
 };
+
 export default AppNavigation;
