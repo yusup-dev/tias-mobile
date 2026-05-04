@@ -13,6 +13,8 @@ type Store = {
   user: any;
   auth: boolean;
   rememberMe: boolean;
+  cbt_token: string | null;
+  cbt_user_id: number | null;
 };
 
 type Action = {
@@ -20,6 +22,8 @@ type Action = {
   setUser: (user: any) => void;
   setAuthentication: (auth: boolean) => void;
   setRememberMe: (rememberMe: boolean) => void;
+  setCbtToken: (token: string, cbt_user_id: number) => void;
+  clearCbtToken: () => void;
 };
 
 export const useTokenStore = create<Store & Action>()(
@@ -29,10 +33,14 @@ export const useTokenStore = create<Store & Action>()(
       user: {},
       auth: false,
       rememberMe: false,
+      cbt_token: null,
+      cbt_user_id: null,
       setToken: token => set(() => ({token})),
       setUser: user => set(() => ({user})),
       setAuthentication: auth => set(() => ({auth})),
       setRememberMe: rememberMe => set(() => ({rememberMe})),
+      setCbtToken: (cbt_token, cbt_user_id) => set({ cbt_token, cbt_user_id }),
+      clearCbtToken: () => set({ cbt_token: null, cbt_user_id: null }),
     }),
     {
       name: 'auth',
@@ -43,6 +51,8 @@ export const useTokenStore = create<Store & Action>()(
           token: persistedState?.token ?? '',
           user: persistedState?.user ?? {},
           rememberMe: persistedState?.rememberMe ?? false,
+          cbt_token: persistedState?.cbt_token ?? null,
+          cbt_user_id: persistedState?.cbt_user_id ?? null,
           auth: false,
         };
       },
@@ -50,6 +60,8 @@ export const useTokenStore = create<Store & Action>()(
         token: state.token,
         user: state.user,
         rememberMe: state.rememberMe,
+        cbt_token: state.cbt_token,
+        cbt_user_id: state.cbt_user_id,
       }),
     },
   ),

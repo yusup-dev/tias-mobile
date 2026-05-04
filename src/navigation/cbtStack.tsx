@@ -1,26 +1,35 @@
-import {createStackNavigator} from '@react-navigation/stack';
-import {
-  CbtExamListScreen,
-  CbtExamSessionScreen,
-  CbtResultScreen,
-  CbtHistoryScreen,
-} from '../features/cbt';
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import CBTEntryScreen from '../features/cbt/CBTEntryScreen';
+import CBTListScreen from '../features/cbt/CBTListScreen';
+import CBTTokenScreen from '../features/cbt/CBTTokenScreen';
+import CBTExamScreen from '../features/cbt/CBTExamScreen';
+import CBTResultScreen from '../features/cbt/CBTResultScreen';
 
 const Stack = createStackNavigator();
 
-function CbtStack() {
-  return (
-    <Stack.Navigator
-      screenOptions={{
+const CBTStack = () => (
+  <Stack.Navigator
+    initialRouteName="CBTEntry"
+    screenOptions={{
+      headerStyle: { backgroundColor: '#2E75B6' },
+      headerTintColor: '#fff',
+      headerTitleStyle: { fontWeight: 'bold' },
+    }}
+  >
+    <Stack.Screen name="CBTEntry" component={CBTEntryScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="CBTList" component={CBTListScreen} options={{ title: 'Daftar Ujian', headerLeft: () => null }} />
+    <Stack.Screen name="CBTToken" component={CBTTokenScreen} options={{ title: 'Masuk Ujian' }} />
+    <Stack.Screen
+      name="CBTExam"
+      component={CBTExamScreen}
+      options={{
         headerShown: false,
-      }}>
-      <Stack.Screen name="cbt.exam-list" component={CbtExamListScreen} />
-      <Stack.Screen name="cbt.session" component={CbtExamSessionScreen} />
-      <Stack.Screen name="cbt.result" component={CbtResultScreen} />
-      <Stack.Screen name="cbt.history" component={CbtHistoryScreen} />
-    </Stack.Navigator>
-  );
-}
+        gestureEnabled: false,   // nonaktifkan swipe back iOS saat ujian
+      }}
+    />
+    <Stack.Screen name="CBTResult" component={CBTResultScreen} options={{ title: 'Hasil Ujian', headerLeft: () => null }} />
+  </Stack.Navigator>
+);
 
-export default CbtStack;
-
+export default CBTStack;
