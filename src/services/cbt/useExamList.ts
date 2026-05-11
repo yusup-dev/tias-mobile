@@ -4,7 +4,9 @@ import axiosCbt from '../../config/axios-cbt';
 export interface Exam {
   id: number;
   nama_ujian: string;
-  mata_kuliah: string;
+  mata_kuliah: {
+    nama_mk: string;
+};
   durasi: number;
   start_time: string;
   end_time: string;
