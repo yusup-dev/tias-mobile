@@ -7,7 +7,7 @@ export const useHistory = () => {
     queryKey: ['cbtHistory'],
     queryFn: async () => {
       // Pastikan endpoint ini sesuai dengan route backend Kapten
-      const response = await api.get('/cbt/student/history'); 
+      const response = await api.get('api/student/history');
       return response.data;
     },
   });

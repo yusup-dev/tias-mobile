@@ -239,77 +239,77 @@ submitExam(fd, {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' }, // Slate 50 - Minimalist Apple bg
-  
-  // Header UCD UIKA Green
-  header: { 
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', 
-    backgroundColor: '#0F4C3A', // Hijau UIKA
-    paddingHorizontal: 20, paddingVertical: 16, 
+  container: { flex: 1, backgroundColor: '#F0FDF4' }, // Hijau UIKA sangat muda
+
+  // Header UIKA Green
+  header: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: '#14532D', // Hijau UIKA Gelap
+    paddingHorizontal: 20, paddingVertical: 16,
     paddingTop: Platform.OS === 'ios' ? 10 : 16,
-    borderBottomWidth: 1, borderBottomColor: '#092E23'
+    borderBottomWidth: 1, borderBottomColor: '#0F3D1F',
   },
   headerWarning: { backgroundColor: '#DC2626' }, // Merah jika waktu mau habis
   headerTitleContainer: { flex: 1, paddingRight: 16 },
   headerTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 16, letterSpacing: 0.5 },
-  headerSubtitle: { color: '#A7F3D0', fontSize: 12, marginTop: 4, fontWeight: '500' },
-  timerContainer: { alignItems: 'flex-end', backgroundColor: 'rgba(0,0,0,0.15)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  timerLabel: { color: '#A7F3D0', fontSize: 9, fontWeight: 'bold', letterSpacing: 1 },
+  headerSubtitle: { color: '#BBF7D0', fontSize: 12, marginTop: 4, fontWeight: '500' },
+  timerContainer: { alignItems: 'flex-end', backgroundColor: 'rgba(0,0,0,0.18)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  timerLabel: { color: '#BBF7D0', fontSize: 9, fontWeight: 'bold', letterSpacing: 1 },
   timerValue: { color: '#FFFFFF', fontSize: 18, fontWeight: '900', fontVariant: ['tabular-nums'] },
-  timerValueWarning: { color: '#FEF08A' },
+  timerValueWarning: { color: '#FACC15' }, // Kuning UIKA saat warning
 
   // Navigasi Soal
-  navScrollContainer: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 4, elevation: 1 },
+  navScrollContainer: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#DCFCE7', shadowColor: '#14532D', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
   navScrollContent: { paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
-  navBubble: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
-  navBubbleAnswered: { backgroundColor: '#10B981', borderColor: '#10B981' }, // Hijau terang jika sudah dijawab
-  navBubbleActive: { backgroundColor: '#FFFFFF', borderColor: '#0F4C3A', borderWidth: 2, transform: [{scale: 1.1}] }, // Border tebal hijau UIKA jika sedang dibuka
-  navBubbleText: { fontSize: 14, fontWeight: '700', color: '#64748B' },
+  navBubble: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F0FDF4', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#DCFCE7' },
+  navBubbleAnswered: { backgroundColor: '#16A34A', borderColor: '#16A34A' }, // Hijau UIKA
+  navBubbleActive: { backgroundColor: '#FFFFFF', borderColor: '#14532D', borderWidth: 2, transform: [{ scale: 1.1 }] },
+  navBubbleText: { fontSize: 14, fontWeight: '700', color: '#6B7280' },
   navBubbleTextActive: { color: '#FFFFFF' },
 
   // Area Konten
   contentArea: { flex: 1, padding: 16 },
-  questionCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12, elevation: 3 },
+  questionCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24, shadowColor: '#14532D', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3, borderWidth: 1, borderColor: '#DCFCE7' },
   questionMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  questionNumber: { fontSize: 13, color: '#64748B', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  badgeTipe: { backgroundColor: '#F1F5F9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' },
-  badgeTipeText: { color: '#475569', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
-  questionText: { fontSize: 16, lineHeight: 28, color: '#1E293B', fontWeight: '500' },
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 24 },
+  questionNumber: { fontSize: 13, color: '#166534', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  badgeTipe: { backgroundColor: '#FEF9C3', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#FACC15' },
+  badgeTipeText: { color: '#CA8A04', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  questionText: { fontSize: 16, lineHeight: 28, color: '#14532D', fontWeight: '500' },
+  divider: { height: 1, backgroundColor: '#DCFCE7', marginVertical: 24 },
 
   // Pilihan Ganda (TIPE 1)
-  optionCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 16, padding: 16 },
-  optionCardActive: { borderColor: '#10B981', backgroundColor: '#ECFDF5' },
-  optionBadge: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
-  optionBadgeActive: { backgroundColor: '#10B981' },
-  optionBadgeText: { fontWeight: '800', fontSize: 14, color: '#64748B' },
+  optionCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#DCFCE7', borderRadius: 16, padding: 16 },
+  optionCardActive: { borderColor: '#16A34A', backgroundColor: '#F0FDF4' },
+  optionBadge: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F0FDF4', justifyContent: 'center', alignItems: 'center', marginRight: 16, borderWidth: 1, borderColor: '#DCFCE7' },
+  optionBadgeActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
+  optionBadgeText: { fontWeight: '800', fontSize: 14, color: '#166534' },
   optionBadgeTextActive: { color: '#FFFFFF' },
-  optionText: { flex: 1, fontSize: 15, color: '#334155', lineHeight: 22 },
-  optionTextActive: { color: '#065F46', fontWeight: '600' },
+  optionText: { flex: 1, fontSize: 15, color: '#166534', lineHeight: 22 },
+  optionTextActive: { color: '#14532D', fontWeight: '600' },
 
   // Input Teks (TIPE 2 & 3)
-  inputSingkat: { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, fontSize: 16, color: '#1E293B', fontWeight: '500' },
-  inputEsai: { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, fontSize: 16, color: '#1E293B', minHeight: 200, lineHeight: 24 },
-  
+  inputSingkat: { backgroundColor: '#F0FDF4', borderWidth: 1.5, borderColor: '#DCFCE7', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, fontSize: 16, color: '#14532D', fontWeight: '500' },
+  inputEsai: { backgroundColor: '#F0FDF4', borderWidth: 1.5, borderColor: '#DCFCE7', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, fontSize: 16, color: '#14532D', minHeight: 200, lineHeight: 24 },
+
   // Upload Area (TIPE 4)
-  uploadArea: { backgroundColor: '#F8FAFC', borderWidth: 2, borderColor: '#CBD5E0', borderRadius: 16, borderStyle: 'dashed', padding: 24, alignItems: 'center', justifyContent: 'center' },
-  uploadAreaActive: { backgroundColor: '#ECFDF5', borderColor: '#10B981', borderStyle: 'solid' },
-  uploadText: { color: '#475569', fontWeight: '700', fontSize: 15, textAlign: 'center' },
-  uploadTextActive: { color: '#065F46' },
-  uploadSubtext: { color: '#94A3B8', fontSize: 12, marginTop: 8 },
+  uploadArea: { backgroundColor: '#F0FDF4', borderWidth: 2, borderColor: '#BBF7D0', borderRadius: 16, borderStyle: 'dashed', padding: 24, alignItems: 'center', justifyContent: 'center' },
+  uploadAreaActive: { backgroundColor: '#DCFCE7', borderColor: '#16A34A', borderStyle: 'solid' },
+  uploadText: { color: '#166534', fontWeight: '700', fontSize: 15, textAlign: 'center' },
+  uploadTextActive: { color: '#14532D' },
+  uploadSubtext: { color: '#6B7280', fontSize: 12, marginTop: 8 },
 
   // Footer Actions
-  footer: { flexDirection: 'row', padding: 16, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingBottom: Platform.OS === 'ios' ? 30 : 16, gap: 12 },
+  footer: { flexDirection: 'row', padding: 16, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#DCFCE7', paddingBottom: Platform.OS === 'ios' ? 30 : 16, gap: 12 },
   btnAction: { flex: 1, paddingVertical: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   btnDisabled: { opacity: 0.5 },
-  
-  btnPrev: { backgroundColor: '#F1F5F9' },
-  btnPrevText: { color: '#475569', fontWeight: '700', fontSize: 15 },
-  
-  btnNext: { backgroundColor: '#0F4C3A' }, // Hijau UIKA
+
+  btnPrev: { backgroundColor: '#F0FDF4', borderWidth: 1, borderColor: '#DCFCE7' },
+  btnPrevText: { color: '#166534', fontWeight: '700', fontSize: 15 },
+
+  btnNext: { backgroundColor: '#14532D' }, // Hijau UIKA Gelap
   btnNextText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
-  
-  btnSubmit: { backgroundColor: '#10B981', shadowColor: '#10B981', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+
+  btnSubmit: { backgroundColor: '#16A34A', shadowColor: '#16A34A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
   btnSubmitText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15, letterSpacing: 0.5 },
 });
 

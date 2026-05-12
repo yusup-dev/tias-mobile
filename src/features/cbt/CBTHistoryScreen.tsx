@@ -1,16 +1,39 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, SafeAreaView, Platform, LayoutAnimation, UIManager } from 'react-native';
-import { useHistory } from '../../services/cbt/useHistory'; // ✅ Import React Query Hook
+import {
+  View, Text, FlatList, TouchableOpacity, StyleSheet,
+  ActivityIndicator, SafeAreaView, Platform, StatusBar,
+  LayoutAnimation, UIManager,
+} from 'react-native';
+import { useHistory } from '../../services/cbt/useHistory';
 
-// Mengaktifkan animasi layout untuk Android (iOS sudah otomatis)
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const CBTHistoryScreen = ({ navigation }: any) => {
-  const [expandedId, setExpandedId] = useState<string | null>(null); // State untuk buka/tutup rincian
+// ============================
+//  PALETTE TEMA HIJAU-KUNING UIKA
+// ============================
+const C = {
+  bg: '#F0FDF4',
+  green: '#16A34A',
+  greenDark: '#14532D',
+  greenMed: '#22C55E',
+  greenLight: '#DCFCE7',
+  greenSoft: '#BBF7D0',
+  yellow: '#FACC15',
+  yellowLight: '#FEF9C3',
+  yellowDark: '#CA8A04',
+  white: '#FFFFFF',
+  textDark: '#14532D',
+  textMid: '#166534',
+  textGray: '#6B7280',
+  border: '#D1FAE5',
+  slate: '#F8FAFC',
+  slateText: '#64748B',
+};
 
-  // 🌟 1. MENGGUNAKAN REACT QUERY (Sangat bersih tanpa useEffect manual)
+const CBTHistoryScreen = ({ navigation }: any) => {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const { data: responseData, isLoading, isError, refetch } = useHistory();
   const historyData = responseData?.data || [];
 
@@ -20,13 +43,10 @@ const CBTHistoryScreen = ({ navigation }: any) => {
   };
 
   const renderBreakdownRow = (label: string, icon: string, data: any, gradingType: string) => {
-    if (!data || data.max === 0) return null; // Sembunyikan jika tidak ada soal tipe ini
-    
-    // Jika sistemnya mutlak (Per-Soal), tampilkan nilai mentah. Jika Persentase, kita bisa infokan rasio benarnya.
-    const scoreText = gradingType === 'PER_KATEGORI' 
+    if (!data || data.max === 0) return null;
+    const scoreText = gradingType === 'PER_KATEGORI'
       ? `${Math.round(data.obtained)} / ${Math.round(data.max)} poin`
       : `${Math.round(data.obtained)} / ${Math.round(data.max)}`;
-
     return (
       <View style={styles.breakdownRow}>
         <View style={styles.breakdownLabelContainer}>
@@ -38,77 +58,92 @@ const CBTHistoryScreen = ({ navigation }: any) => {
     );
   };
 
-  const renderItem = ({ item, index }: { item: any, index: number }) => {
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
     const isPending = item.status.toLowerCase().includes('menunggu');
     const isExpanded = expandedId === String(index);
     const bd = item.breakdown || {};
 
     return (
-      <TouchableOpacity 
-        style={styles.card} 
-        activeOpacity={0.9} 
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.9}
         onPress={() => toggleExpand(String(index))}
       >
-        <View style={styles.cardHeader}>
-          <View style={{ flex: 1, paddingRight: 12 }}>
-            <Text style={styles.cardTitle} numberOfLines={2}>{item.exam_nama}</Text>
-            <Text style={styles.cardSub}>{item.matkul}</Text>
-          </View>
-          {isPending ? (
-            <View style={styles.badgeWait}><Text style={styles.badgeWaitText}>Diproses</Text></View>
-          ) : (
-            <View style={styles.badgeDone}><Text style={styles.badgeDoneText}>Selesai</Text></View>
-          )}
-        </View>
-        
-        <View style={styles.divider} />
-        
-        <View style={styles.cardFooter}>
-          <View>
-            <Text style={styles.footerLabel}>Total Skor Akhir</Text>
-            <Text style={styles.gradingTypeBadge}>
-              Sistem: {item.grading_type === 'PER_KATEGORI' ? 'Persentase Kategori' : 'Poin Mutlak'}
-            </Text>
-          </View>
-          
-          {isPending ? (
-            <Text style={styles.scorePending}>Menghitung...</Text>
-          ) : (
-            <Text style={styles.scoreFinal}>{item.total_skor}</Text>
-          )}
-        </View>
+        {/* Strip aksen kuning kiri */}
+        <View style={[styles.cardAccent, isPending && { backgroundColor: C.yellow }]} />
 
-        {/* 🌟 SEKSI RINCIAN NILAI (BISA DIBUKA/TUTUP) */}
-        {isExpanded && (
-          <View style={styles.breakdownContainer}>
-            <Text style={styles.breakdownTitle}>Rincian Perolehan Nilai:</Text>
-            {renderBreakdownRow('Pilihan Ganda', '📝', bd.TIPE_1, item.grading_type)}
-            {renderBreakdownRow('Esai (Otomatis AI)', '🤖', bd.TIPE_3, item.grading_type)}
-            
-            {/* Khusus Tipe 4 (Upload), beri peringatan jika belum dinilai */}
-            {bd.TIPE_4?.max > 0 && (
-              <View style={[styles.breakdownRow, isPending && { opacity: 0.6 }]}>
-                <View style={styles.breakdownLabelContainer}>
-                  <Text style={styles.breakdownIcon}>📁</Text>
-                  <Text style={styles.breakdownLabel}>Praktik/Upload</Text>
-                </View>
-                <Text style={[styles.breakdownScore, isPending && { color: '#D97706', fontStyle: 'italic' }]}>
-                  {isPending ? 'Menunggu Dosen' : `${Math.round(bd.TIPE_4.obtained)} / ${Math.round(bd.TIPE_4.max)}`}
+        <View style={styles.cardBody}>
+          {/* Top: judul & badge */}
+          <View style={styles.cardHeader}>
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={styles.cardTitle} numberOfLines={2}>{item.exam_nama}</Text>
+              <Text style={styles.cardSub}>{item.matkul}</Text>
+            </View>
+            {isPending ? (
+              <View style={styles.badgeWait}>
+                <Text style={styles.badgeWaitText}>⏳ Proses</Text>
+              </View>
+            ) : (
+              <View style={styles.badgeDone}>
+                <Text style={styles.badgeDoneText}>✅ Selesai</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Bottom: skor */}
+          <View style={styles.cardFooter}>
+            <View>
+              <Text style={styles.footerLabel}>Total Skor Akhir</Text>
+              <View style={styles.gradingTypePill}>
+                <Text style={styles.gradingTypePillText}>
+                  {item.grading_type === 'PER_KATEGORI' ? '📊 Persentase' : '📌 Poin Mutlak'}
                 </Text>
               </View>
-            )}
-
-            {isPending && (
-              <View style={styles.warningBox}>
-                <Text style={styles.warningIcon}>⏳</Text>
-                <Text style={styles.warningText}>Nilai akhir masih dapat berubah setelah dosen menyelesaikan koreksi manual.</Text>
-              </View>
+            </View>
+            {isPending ? (
+              <Text style={styles.scorePending}>Menghitung...</Text>
+            ) : (
+              <Text style={styles.scoreFinal}>{item.total_skor}</Text>
             )}
           </View>
-        )}
-        
-        <View style={styles.expandHint}>
-          <Text style={styles.expandHintText}>{isExpanded ? 'Tutup rincian ▲' : 'Ketuk untuk lihat rincian ▼'}</Text>
+
+          {/* Rincian (expandable) */}
+          {isExpanded && (
+            <View style={styles.breakdownContainer}>
+              <Text style={styles.breakdownTitle}>Rincian Perolehan Nilai</Text>
+              {renderBreakdownRow('Pilihan Ganda', '📝', bd.TIPE_1, item.grading_type)}
+              {renderBreakdownRow('Esai (Otomatis AI)', '🤖', bd.TIPE_3, item.grading_type)}
+
+              {bd.TIPE_4?.max > 0 && (
+                <View style={[styles.breakdownRow, isPending && { opacity: 0.6 }]}>
+                  <View style={styles.breakdownLabelContainer}>
+                    <Text style={styles.breakdownIcon}>📁</Text>
+                    <Text style={styles.breakdownLabel}>Praktik/Upload</Text>
+                  </View>
+                  <Text style={[styles.breakdownScore, isPending && { color: C.yellowDark, fontStyle: 'italic' }]}>
+                    {isPending ? 'Menunggu Dosen' : `${Math.round(bd.TIPE_4.obtained)} / ${Math.round(bd.TIPE_4.max)}`}
+                  </Text>
+                </View>
+              )}
+
+              {isPending && (
+                <View style={styles.warningBox}>
+                  <Text style={styles.warningIcon}>⏳</Text>
+                  <Text style={styles.warningText}>
+                    Nilai akhir masih dapat berubah setelah dosen menyelesaikan koreksi manual.
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          <View style={styles.expandHint}>
+            <Text style={styles.expandHintText}>
+              {isExpanded ? 'Tutup rincian ▲' : 'Ketuk untuk lihat rincian ▼'}
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -116,22 +151,38 @@ const CBTHistoryScreen = ({ navigation }: any) => {
 
   if (isLoading) return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.center}><ActivityIndicator size="large" color="#065F46" /><Text style={styles.loadingText}>Memuat riwayat ujian...</Text></View>
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={C.green} />
+        <Text style={styles.loadingText}>Memuat riwayat ujian...</Text>
+      </View>
     </SafeAreaView>
   );
 
   if (isError) return (
     <SafeAreaView style={styles.container}>
-      {/* 🌟 2. GUNAKAN refetch DARI HOOK REACT QUERY */}
-      <View style={styles.center}><Text style={styles.iconLarge}>📡</Text><Text style={styles.errorTitle}>Koneksi Gagal</Text><TouchableOpacity style={styles.retryBtn} onPress={() => refetch()}><Text style={styles.retryBtnText}>Coba Lagi</Text></TouchableOpacity></View>
+      <View style={styles.center}>
+        <Text style={styles.iconLarge}>📡</Text>
+        <Text style={styles.errorTitle}>Koneksi Gagal</Text>
+        <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()}>
+          <Text style={styles.retryBtnText}>Coba Lagi</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <View style={styles.bgCircle} />
+
       <View style={styles.headerContainer}>
-        <Text style={styles.header}>Riwayat Ujian</Text>
-        <Text style={styles.subHeader}>Pantau hasil & rincian penilaian Anda</Text>
+        <View>
+          <Text style={styles.header}>Riwayat Ujian</Text>
+          <Text style={styles.subHeader}>Pantau hasil & rincian penilaian Anda</Text>
+        </View>
+        <View style={styles.countBadge}>
+          <Text style={styles.countBadgeText}>{historyData.length} Ujian</Text>
+        </View>
       </View>
 
       <FlatList
@@ -140,71 +191,156 @@ const CBTHistoryScreen = ({ navigation }: any) => {
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.listContent, historyData.length === 0 && { flex: 1 }]}
-        // 🌟 3. PASANGKAN KE LIST AGAR BISA PULL-TO-REFRESH
         onRefresh={refetch}
         refreshing={isLoading}
         ListEmptyComponent={
-          <View style={styles.emptyState}><Text style={styles.iconLarge}>📭</Text><Text style={styles.emptyStateTitle}>Belum Ada Riwayat</Text><Text style={styles.emptyStateText}>Anda belum menyelesaikan ujian apapun.</Text></View>
+          <View style={styles.emptyState}>
+            <Text style={styles.iconLarge}>📭</Text>
+            <Text style={styles.emptyStateTitle}>Belum Ada Riwayat</Text>
+            <Text style={styles.emptyStateText}>Anda belum menyelesaikan ujian apapun.</Text>
+          </View>
         }
       />
     </SafeAreaView>
   );
 };
 
-// 🎨 STYLING (Aesthetic: UIKA Green & iOS Minimalist)
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F7F6' },
-  headerContainer: { paddingHorizontal: 24, paddingTop: Platform.OS === 'android' ? 24 : 10, paddingBottom: 16 },
-  header: { fontSize: 34, fontWeight: '800', color: '#111827', letterSpacing: 0.5 },
-  subHeader: { fontSize: 15, color: '#6B7280', marginTop: 4, fontWeight: '500' },
-  listContent: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 },
-  
-  card: {
-    backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, marginBottom: 16,
-    shadowColor: '#065F46', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 3,
-    borderWidth: 1, borderColor: 'rgba(229, 231, 235, 0.5)', overflow: 'hidden'
-  },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  cardTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937', marginBottom: 4, lineHeight: 24 },
-  cardSub: { fontSize: 13, color: '#6B7280', fontWeight: '600' },
-  divider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 16 },
-  
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  footerLabel: { fontSize: 14, color: '#4B5563', fontWeight: '700', marginBottom: 4 },
-  gradingTypeBadge: { fontSize: 11, color: '#059669', backgroundColor: '#D1FAE5', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, alignSelf: 'flex-start', overflow: 'hidden', fontWeight: '600' },
-  scoreFinal: { fontSize: 32, fontWeight: '900', color: '#065F46' }, // Hijau UIKA
-  scorePending: { fontSize: 18, fontWeight: '700', color: '#D97706', fontStyle: 'italic' },
-  
-  badgeWait: { backgroundColor: '#FEF3C7', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 12 },
-  badgeWaitText: { color: '#D97706', fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
-  badgeDone: { backgroundColor: '#D1FAE5', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 12 },
-  badgeDoneText: { color: '#059669', fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
+  container: { flex: 1, backgroundColor: C.bg },
 
-  // Breakdown Section
-  breakdownContainer: { marginTop: 20, backgroundColor: '#F8FAFC', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#E2E8F0' },
-  breakdownTitle: { fontSize: 13, fontWeight: '700', color: '#64748B', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
+  bgCircle: {
+    position: 'absolute',
+    top: -60,
+    right: -60,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: C.greenSoft,
+    opacity: 0.35,
+  },
+
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 20 : 10,
+    paddingBottom: 16,
+  },
+  header: { fontSize: 30, fontWeight: '800', color: C.greenDark, letterSpacing: 0.3 },
+  subHeader: { fontSize: 13, color: C.textMid, marginTop: 3, fontWeight: '500' },
+  countBadge: {
+    backgroundColor: C.greenLight,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  countBadgeText: { color: C.green, fontSize: 13, fontWeight: '700' },
+
+  listContent: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 },
+
+  // Card
+  card: {
+    backgroundColor: C.white,
+    borderRadius: 20,
+    marginBottom: 16,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    shadowColor: C.greenDark,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  cardAccent: {
+    width: 5,
+    backgroundColor: C.green,
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  cardBody: { flex: 1, padding: 18 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: C.greenDark, lineHeight: 22, marginBottom: 4 },
+  cardSub: { fontSize: 13, color: C.textGray, fontWeight: '500' },
+  divider: { height: 1, backgroundColor: C.greenLight, marginVertical: 14 },
+
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  footerLabel: { fontSize: 13, color: C.slateText, fontWeight: '700', marginBottom: 6 },
+  gradingTypePill: {
+    backgroundColor: C.greenLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  gradingTypePillText: { fontSize: 11, color: C.green, fontWeight: '700' },
+  scoreFinal: { fontSize: 34, fontWeight: '900', color: C.greenDark },
+  scorePending: { fontSize: 18, fontWeight: '700', color: C.yellowDark, fontStyle: 'italic' },
+
+  badgeWait: { backgroundColor: C.yellowLight, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: C.yellow },
+  badgeWaitText: { color: C.yellowDark, fontSize: 11, fontWeight: '800' },
+  badgeDone: { backgroundColor: C.greenLight, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: C.border },
+  badgeDoneText: { color: C.green, fontSize: 11, fontWeight: '800' },
+
+  // Breakdown
+  breakdownContainer: {
+    marginTop: 16,
+    backgroundColor: C.slate,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: C.greenLight,
+  },
+  breakdownTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: C.slateText,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   breakdownRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   breakdownLabelContainer: { flexDirection: 'row', alignItems: 'center' },
-  breakdownIcon: { fontSize: 16, marginRight: 8 },
-  breakdownLabel: { fontSize: 14, color: '#334155', fontWeight: '600' },
-  breakdownScore: { fontSize: 14, color: '#0F172A', fontWeight: '800' },
-  
-  warningBox: { flexDirection: 'row', backgroundColor: '#FFFBEB', padding: 12, borderRadius: 12, marginTop: 12, alignItems: 'center' },
-  warningIcon: { fontSize: 16, marginRight: 8 },
-  warningText: { flex: 1, fontSize: 12, color: '#B45309', lineHeight: 18, fontWeight: '500' },
+  breakdownIcon: { fontSize: 15, marginRight: 8 },
+  breakdownLabel: { fontSize: 13, color: C.greenDark, fontWeight: '600' },
+  breakdownScore: { fontSize: 13, color: C.greenDark, fontWeight: '800' },
 
-  expandHint: { marginTop: 16, alignItems: 'center', borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 12 },
-  expandHintText: { fontSize: 12, color: '#9CA3AF', fontWeight: '600' },
+  warningBox: {
+    flexDirection: 'row',
+    backgroundColor: C.yellowLight,
+    borderLeftWidth: 3,
+    borderLeftColor: C.yellow,
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  warningIcon: { fontSize: 14, marginRight: 8 },
+  warningText: { flex: 1, fontSize: 11, color: C.yellowDark, lineHeight: 16, fontWeight: '500' },
 
+  expandHint: {
+    marginTop: 14,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: C.greenLight,
+    paddingTop: 10,
+  },
+  expandHintText: { fontSize: 11, color: C.slateText, fontWeight: '600' },
+
+  // State helpers
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  loadingText: { marginTop: 16, color: '#065F46', fontSize: 15, fontWeight: '600' },
-  iconLarge: { fontSize: 48, marginBottom: 16 },
-  errorTitle: { fontSize: 20, fontWeight: '700', color: '#111827', marginBottom: 16 },
-  retryBtn: { backgroundColor: '#10B981', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 16 },
-  retryBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  loadingText: { marginTop: 16, color: C.greenDark, fontSize: 15, fontWeight: '600' },
+  iconLarge: { fontSize: 52, marginBottom: 16 },
+  errorTitle: { fontSize: 20, fontWeight: '700', color: C.greenDark, marginBottom: 16 },
+  retryBtn: { backgroundColor: C.green, paddingVertical: 14, paddingHorizontal: 32, borderRadius: 16 },
+  retryBtnText: { color: C.white, fontWeight: '700', fontSize: 15 },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-  emptyStateTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937', marginBottom: 8 },
-  emptyStateText: { fontSize: 14, color: '#6B7280', textAlign: 'center' },
+  emptyStateTitle: { fontSize: 18, fontWeight: '700', color: C.greenDark, marginBottom: 8 },
+  emptyStateText: { fontSize: 14, color: C.textGray, textAlign: 'center' },
 });
 
 export default CBTHistoryScreen;

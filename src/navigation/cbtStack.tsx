@@ -5,6 +5,7 @@ import CBTListScreen from '../features/cbt/CBTListScreen';
 import CBTTokenScreen from '../features/cbt/CBTTokenScreen';
 import CBTExamScreen from '../features/cbt/CBTExamScreen';
 import CBTResultScreen from '../features/cbt/CBTResultScreen';
+import CBTHistoryScreen from '../features/cbt/CBTHistoryScreen';
 
 const Stack = createStackNavigator();
 
@@ -12,7 +13,7 @@ const CBTStack = () => (
   <Stack.Navigator
     initialRouteName="CBTEntry"
     screenOptions={{
-      headerStyle: { backgroundColor: '#2E75B6' },
+      headerStyle: { backgroundColor: '#14532D' },
       headerTintColor: '#fff',
       headerTitleStyle: { fontWeight: 'bold' },
     }}
@@ -29,6 +30,7 @@ const CBTStack = () => (
       }}
     />
     <Stack.Screen name="CBTResult" component={CBTResultScreen} options={{ title: 'Hasil Ujian', headerLeft: () => null }} />
+    <Stack.Screen name="CBTHistory" component={CBTHistoryScreen} options={{ title: 'Riwayat Ujian' }} />
   </Stack.Navigator>
 );
 
