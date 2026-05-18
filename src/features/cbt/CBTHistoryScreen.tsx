@@ -42,26 +42,15 @@ const CBTHistoryScreen = ({ navigation }: any) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const renderBreakdownRow = (label: string, icon: string, data: any, gradingType: string) => {
-    if (!data || data.max === 0) return null;
-    const scoreText = gradingType === 'PER_KATEGORI'
-      ? `${Math.round(data.obtained)} / ${Math.round(data.max)} poin`
-      : `${Math.round(data.obtained)} / ${Math.round(data.max)}`;
-    return (
-      <View style={styles.breakdownRow}>
-        <View style={styles.breakdownLabelContainer}>
-          <Text style={styles.breakdownIcon}>{icon}</Text>
-          <Text style={styles.breakdownLabel}>{label}</Text>
-        </View>
-        <Text style={styles.breakdownScore}>{scoreText}</Text>
-      </View>
-    );
-  };
-
   const renderItem = ({ item, index }: { item: any; index: number }) => {
-    const isPending = item.status.toLowerCase().includes('menunggu');
+    // 🔒 Status baru dari exam_attempts: 'MENUNGGU_VERIFIKASI' | 'SELESAI'
+    const isPending = item.status === 'MENUNGGU_VERIFIKASI';
     const isExpanded = expandedId === String(index);
-    const bd = item.breakdown || {};
+
+    // Skor per kategori (skala 0-100) dari API baru
+    const skorPilgan = item.skor_pilgan_100 ?? 0;
+    const skorEsai   = item.skor_esai_100   ?? 0;
+    const skorFile   = item.skor_file_100   ?? 0;
 
     return (
       <TouchableOpacity
@@ -95,44 +84,72 @@ const CBTHistoryScreen = ({ navigation }: any) => {
           {/* Bottom: skor */}
           <View style={styles.cardFooter}>
             <View>
-              <Text style={styles.footerLabel}>Total Skor Akhir</Text>
+              <Text style={styles.footerLabel}>Nilai Akhir</Text>
               <View style={styles.gradingTypePill}>
                 <Text style={styles.gradingTypePillText}>
-                  {item.grading_type === 'PER_KATEGORI' ? '📊 Persentase' : '📌 Poin Mutlak'}
+                  {item.grading_type === 'PER_KATEGORI' ? '📊 Bobot Persentase' : '📌 Poin Mutlak'}
                 </Text>
               </View>
             </View>
             {isPending ? (
-              <Text style={styles.scorePending}>Menghitung...</Text>
+              <View style={styles.lockBadge}>
+                <Text style={styles.lockBadgeText}>🔒  Belum Dipublikasi</Text>
+              </View>
             ) : (
-              <Text style={styles.scoreFinal}>{item.total_skor}</Text>
+              <Text style={styles.scoreFinal}>{Number(item.final_score).toFixed(1)}</Text>
             )}
           </View>
 
           {/* Rincian (expandable) */}
           {isExpanded && (
             <View style={styles.breakdownContainer}>
-              <Text style={styles.breakdownTitle}>Rincian Perolehan Nilai</Text>
-              {renderBreakdownRow('Pilihan Ganda', '📝', bd.TIPE_1, item.grading_type)}
-              {renderBreakdownRow('Esai (Otomatis AI)', '🤖', bd.TIPE_3, item.grading_type)}
+              <Text style={styles.breakdownTitle}>Rincian Skor per Kategori (Skala 0–100)</Text>
 
-              {bd.TIPE_4?.max > 0 && (
-                <View style={[styles.breakdownRow, isPending && { opacity: 0.6 }]}>
-                  <View style={styles.breakdownLabelContainer}>
-                    <Text style={styles.breakdownIcon}>📁</Text>
-                    <Text style={styles.breakdownLabel}>Praktik/Upload</Text>
-                  </View>
-                  <Text style={[styles.breakdownScore, isPending && { color: C.yellowDark, fontStyle: 'italic' }]}>
-                    {isPending ? 'Menunggu Dosen' : `${Math.round(bd.TIPE_4.obtained)} / ${Math.round(bd.TIPE_4.max)}`}
+              {/* Pilihan Ganda */}
+              <View style={styles.breakdownRow}>
+                <View style={styles.breakdownLabelContainer}>
+                  <Text style={styles.breakdownIcon}>📝</Text>
+                  <Text style={styles.breakdownLabel}>Pilihan Ganda</Text>
+                </View>
+                <Text style={styles.breakdownScore}>
+                  {isPending ? `${skorPilgan}/100 (sementara)` : `${skorPilgan}/100`}
+                </Text>
+              </View>
+
+              {/* Esai AI */}
+              <View style={styles.breakdownRow}>
+                <View style={styles.breakdownLabelContainer}>
+                  <Text style={styles.breakdownIcon}>🤖</Text>
+                  <Text style={styles.breakdownLabel}>Esai (Koreksi AI)</Text>
+                </View>
+                <Text style={[styles.breakdownScore, isPending && { color: C.yellowDark, fontStyle: 'italic' }]}>
+                  {isPending && skorEsai === 0 ? 'Sedang diproses...' : `${skorEsai}/100`}
+                </Text>
+              </View>
+
+              {/* File Upload */}
+              <View style={styles.breakdownRow}>
+                <View style={styles.breakdownLabelContainer}>
+                  <Text style={styles.breakdownIcon}>📁</Text>
+                  <Text style={styles.breakdownLabel}>Praktik / Upload</Text>
+                </View>
+                <Text style={[styles.breakdownScore, isPending && { color: C.yellowDark, fontStyle: 'italic' }]}>
+                  {isPending ? 'Menunggu Dosen' : `${skorFile}/100`}
+                </Text>
+              </View>
+
+              {isPending ? (
+                <View style={styles.warningBox}>
+                  <Text style={styles.warningIcon}>🔒</Text>
+                  <Text style={styles.warningText}>
+                    Nilai akhir dikunci sampai dosen memverifikasi dan mempublikasikan hasil penilaian.
                   </Text>
                 </View>
-              )}
-
-              {isPending && (
-                <View style={styles.warningBox}>
-                  <Text style={styles.warningIcon}>⏳</Text>
-                  <Text style={styles.warningText}>
-                    Nilai akhir masih dapat berubah setelah dosen menyelesaikan koreksi manual.
+              ) : (
+                <View style={styles.doneBox}>
+                  <Text style={styles.warningIcon}>✅</Text>
+                  <Text style={[styles.warningText, { color: C.textMid }]}>
+                    Nilai telah diverifikasi dan dipublikasikan oleh dosen.
                   </Text>
                 </View>
               )}
@@ -286,6 +303,12 @@ const styles = StyleSheet.create({
   badgeDone: { backgroundColor: C.greenLight, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: C.border },
   badgeDoneText: { color: C.green, fontSize: 11, fontWeight: '800' },
 
+  lockBadge: {
+    backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA',
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12,
+  },
+  lockBadgeText: { fontSize: 12, fontWeight: '700', color: '#DC2626' },
+
   // Breakdown
   breakdownContainer: {
     marginTop: 16,
@@ -310,17 +333,18 @@ const styles = StyleSheet.create({
   breakdownScore: { fontSize: 13, color: C.greenDark, fontWeight: '800' },
 
   warningBox: {
-    flexDirection: 'row',
-    backgroundColor: C.yellowLight,
-    borderLeftWidth: 3,
-    borderLeftColor: C.yellow,
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 10,
-    alignItems: 'center',
+    flexDirection: 'row', backgroundColor: C.yellowLight,
+    borderLeftWidth: 3, borderLeftColor: C.yellow,
+    padding: 10, borderRadius: 10, marginTop: 10, alignItems: 'center',
   },
   warningIcon: { fontSize: 14, marginRight: 8 },
   warningText: { flex: 1, fontSize: 11, color: C.yellowDark, lineHeight: 16, fontWeight: '500' },
+
+  doneBox: {
+    flexDirection: 'row', backgroundColor: C.greenLight,
+    borderLeftWidth: 3, borderLeftColor: C.green,
+    padding: 10, borderRadius: 10, marginTop: 10, alignItems: 'center',
+  },
 
   expandHint: {
     marginTop: 14,
