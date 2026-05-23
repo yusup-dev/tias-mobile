@@ -203,9 +203,17 @@ const CbtExamSessionScreen = (props: any) => {
           <View style={styles.questionCard}>
             <View style={styles.questionHeader}>
               <Text style={styles.questionNumber}>Pertanyaan {currentIndex + 1}</Text>
-              <View style={[styles.typeBadge, currentQ.tipe_soal === 'TIPE_3' && styles.typeBadgeEssay]}>
-                <Text style={[styles.typeText, currentQ.tipe_soal === 'TIPE_3' && styles.typeTextEssay]}>
-                  {currentQ.tipe_soal === 'TIPE_1' ? 'Pilihan Ganda' : currentQ.tipe_soal === 'TIPE_3' ? 'Essay' : 'Isian'}
+              <View style={[
+                styles.typeBadge, 
+                currentQ.tipe_soal === 'TIPE_3' && styles.typeBadgeEssay,
+                currentQ.tipe_soal === 'TIPE_2' && styles.typeBadgeMulti
+              ]}>
+                <Text style={[
+                  styles.typeText, 
+                  currentQ.tipe_soal === 'TIPE_3' && styles.typeTextEssay,
+                  currentQ.tipe_soal === 'TIPE_2' && styles.typeTextMulti
+                ]}>
+                  {currentQ.tipe_soal === 'TIPE_1' ? 'Pilihan Ganda' : currentQ.tipe_soal === 'TIPE_2' ? 'Pilihan Ganda Multi' : currentQ.tipe_soal === 'TIPE_3' ? 'Essay' : 'Isian'}
                 </Text>
               </View>
             </View>
@@ -238,16 +246,60 @@ const CbtExamSessionScreen = (props: any) => {
             </View>
           )}
 
-          {/* Render Form Essay (TIPE_3) atau Isian Singkat (TIPE_2) */}
-          {(currentQ.tipe_soal === 'TIPE_3' || currentQ.tipe_soal === 'TIPE_2') && (
+          {/* Render Opsi Pilihan Ganda Multiple Choice (TIPE_2) */}
+          {currentQ.tipe_soal === 'TIPE_2' && (
+            <View style={styles.optionsContainer}>
+              <View style={styles.multipleChoiceHelper}>
+                <Icon name="information-outline" size={16} color="#15613F" style={{ marginRight: 6 }} />
+                <Text style={styles.multipleChoiceHelperText}>
+                  Pilih satu atau lebih jawaban yang benar.
+                </Text>
+              </View>
+              {currentQ.question_options?.map((opt: any) => {
+                const currentSelections = (answers[currentQ.id.toString()] || '')
+                  .split(',')
+                  .filter((s: string) => s.trim());
+                const isSelected = currentSelections.includes(opt.label_pilihan);
+
+                const toggleSelection = () => {
+                  let newSelections;
+                  if (isSelected) {
+                    newSelections = currentSelections.filter((s: string) => s !== opt.label_pilihan);
+                  } else {
+                    newSelections = [...currentSelections, opt.label_pilihan].sort();
+                  }
+                  handleAnswer(currentQ.id, newSelections.join(','));
+                };
+
+                return (
+                  <TouchableOpacity
+                    key={opt.id}
+                    style={[styles.optionBtn, isSelected && styles.optionBtnSelected]}
+                    onPress={toggleSelection}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.checkboxSquare, isSelected && styles.checkboxSquareSelected]}>
+                      {isSelected && <Icon name="check" size={14} color="#FFFFFF" />}
+                    </View>
+                    <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                      {opt.label_pilihan}. {opt.teks_pilihan}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+
+          {/* Render Form Essay (TIPE_3) */}
+          {currentQ.tipe_soal === 'TIPE_3' && (
             <View style={styles.essayContainer}>
               <Text style={styles.essayHelper}>
-                {currentQ.tipe_soal === 'TIPE_3' ? 'Tuliskan penjelasan Anda secara rinci:' : 'Tuliskan jawaban singkat Anda:'}
+                Tuliskan penjelasan Anda secara rinci:
               </Text>
               <TextInput
-                style={[styles.essayInput, currentQ.tipe_soal === 'TIPE_2' && { minHeight: 60 }]}
-                multiline={currentQ.tipe_soal === 'TIPE_3'}
-                numberOfLines={currentQ.tipe_soal === 'TIPE_3' ? 10 : 2}
+                style={styles.essayInput}
+                multiline={true}
+                numberOfLines={10}
                 placeholder="Mulai mengetik jawaban..."
                 placeholderTextColor="#9CA3AF"
                 textAlignVertical="top"
@@ -321,6 +373,8 @@ const styles = StyleSheet.create({
   typeText: { fontSize: responsiveFontSize(1.4), color: '#0284C7', fontWeight: 'bold' },
   typeBadgeEssay: { backgroundColor: '#FEF3C7' },
   typeTextEssay: { color: '#D97706' },
+  typeBadgeMulti: { backgroundColor: '#F3E8FF' },
+  typeTextMulti: { color: '#7C3AED' },
   questionText: { fontSize: responsiveFontSize(2), color: '#374151', lineHeight: 28 },
   optionsContainer: { marginTop: 5 },
   optionBtn: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 14, marginBottom: 12 },
@@ -328,6 +382,10 @@ const styles = StyleSheet.create({
   radioCircle: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   radioCircleSelected: { borderColor: '#15613F' },
   radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#15613F' },
+  checkboxSquare: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  checkboxSquareSelected: { borderColor: '#15613F', backgroundColor: '#15613F' },
+  multipleChoiceHelper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', padding: 10, borderRadius: 10, marginBottom: 12 },
+  multipleChoiceHelperText: { fontSize: responsiveFontSize(1.5), color: '#15613F', fontWeight: 'bold' },
   optionText: { flex: 1, fontSize: responsiveFontSize(1.8), color: '#4B5563', lineHeight: 24 },
   optionTextSelected: { color: '#15613F', fontWeight: '600' },
   essayContainer: { marginTop: 5 },

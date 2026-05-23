@@ -107,13 +107,40 @@ submitExam(fd, {
         );
       case 'TIPE_2':
         return (
-          <TextInput 
-            style={styles.inputSingkat} 
-            placeholder="Ketik jawaban singkat di sini..." 
-            placeholderTextColor="#94A3B8"
-            value={answers[q.id] ?? ''} 
-            onChangeText={(t) => setAnswer(q.id, t)} 
-          />
+          <View style={{ gap: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3E8FF', padding: 12, borderRadius: 12, marginBottom: 4 }}>
+              <Text style={{ color: '#7E22CE', fontSize: 13, fontWeight: '700' }}>
+                💡 Pilih satu atau lebih jawaban yang benar.
+              </Text>
+            </View>
+            {(q.question_options ?? []).map((opt: any, i: number) => {
+              const label = opt.label_pilihan || ['A','B','C','D','E'][i];
+              const currentSelections = (answers[q.id] || '').split(',').filter((s: string) => s.trim());
+              const sel = currentSelections.includes(label);
+
+              const toggleSelect = () => {
+                let newSelections;
+                if (sel) {
+                  newSelections = currentSelections.filter((s: string) => s !== label);
+                } else {
+                  newSelections = [...currentSelections, label].sort();
+                }
+                setAnswer(q.id, newSelections.join(','));
+              };
+
+              return (
+                <TouchableOpacity activeOpacity={0.7} key={i} style={[styles.optionCard, sel && styles.optionCardActiveTipe2]} onPress={toggleSelect}>
+                  <View style={[styles.checkboxBadge, sel && styles.checkboxBadgeActive]}>
+                    {sel && <Text style={styles.checkboxCheckText}>✓</Text>}
+                  </View>
+                  <View style={[styles.optionBadge, sel && styles.optionBadgeActiveTipe2]}>
+                    <Text style={[styles.optionBadgeText, sel && styles.optionBadgeTextActiveTipe2]}>{label}</Text>
+                  </View>
+                  <Text style={[styles.optionText, sel && styles.optionTextActiveTipe2]}>{opt.teks_pilihan}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         );
       case 'TIPE_3':
         return (
@@ -192,9 +219,17 @@ submitExam(fd, {
         <View style={styles.questionCard}>
           <View style={styles.questionMeta}>
             <Text style={styles.questionNumber}>Pertanyaan {currentIndex + 1} dari {questions.length}</Text>
-            <View style={styles.badgeTipe}>
-              <Text style={styles.badgeTipeText}>
-                {q.tipe_soal ? q.tipe_soal.replace('_', ' ') : 'SOAL'}
+            <View style={[
+              styles.badgeTipe,
+              q.tipe_soal === 'TIPE_2' && styles.badgeTipeMulti,
+              q.tipe_soal === 'TIPE_3' && styles.badgeTipeEssay
+            ]}>
+              <Text style={[
+                styles.badgeTipeText,
+                q.tipe_soal === 'TIPE_2' && styles.badgeTipeTextMulti,
+                q.tipe_soal === 'TIPE_3' && styles.badgeTipeTextEssay
+              ]}>
+                {q.tipe_soal === 'TIPE_1' ? 'Pilihan Ganda' : q.tipe_soal === 'TIPE_2' ? 'Pilihan Ganda Multi' : q.tipe_soal === 'TIPE_3' ? 'Essay' : q.tipe_soal === 'TIPE_4' ? 'Upload File' : 'SOAL'}
               </Text>
             </View>
           </View>
@@ -274,18 +309,31 @@ const styles = StyleSheet.create({
   questionNumber: { fontSize: 13, color: '#166534', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   badgeTipe: { backgroundColor: '#FEF9C3', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#FACC15' },
   badgeTipeText: { color: '#CA8A04', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  badgeTipeMulti: { backgroundColor: '#F3E8FF', borderColor: '#C084FC' },
+  badgeTipeTextMulti: { color: '#7E22CE' },
+  badgeTipeEssay: { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' },
+  badgeTipeTextEssay: { color: '#DC2626' },
   questionText: { fontSize: 16, lineHeight: 28, color: '#14532D', fontWeight: '500' },
   divider: { height: 1, backgroundColor: '#DCFCE7', marginVertical: 24 },
 
   // Pilihan Ganda (TIPE 1)
   optionCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#DCFCE7', borderRadius: 16, padding: 16 },
   optionCardActive: { borderColor: '#16A34A', backgroundColor: '#F0FDF4' },
+  optionCardActiveTipe2: { borderColor: '#7E22CE', backgroundColor: '#FAF5FF' },
   optionBadge: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F0FDF4', justifyContent: 'center', alignItems: 'center', marginRight: 16, borderWidth: 1, borderColor: '#DCFCE7' },
   optionBadgeActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
+  optionBadgeActiveTipe2: { backgroundColor: '#7E22CE', borderColor: '#7E22CE' },
   optionBadgeText: { fontWeight: '800', fontSize: 14, color: '#166534' },
   optionBadgeTextActive: { color: '#FFFFFF' },
+  optionBadgeTextActiveTipe2: { color: '#FFFFFF' },
   optionText: { flex: 1, fontSize: 15, color: '#166534', lineHeight: 22 },
   optionTextActive: { color: '#14532D', fontWeight: '600' },
+  optionTextActiveTipe2: { color: '#581C87', fontWeight: '600' },
+
+  // Checkbox (TIPE 2)
+  checkboxBadge: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: '#D8B4FE', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  checkboxBadgeActive: { backgroundColor: '#7E22CE', borderColor: '#7E22CE' },
+  checkboxCheckText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
 
   // Input Teks (TIPE 2 & 3)
   inputSingkat: { backgroundColor: '#F0FDF4', borderWidth: 1.5, borderColor: '#DCFCE7', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, fontSize: 16, color: '#14532D', fontWeight: '500' },
