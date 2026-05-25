@@ -1,5 +1,5 @@
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {MenuComponent} from '../views/home/index';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { MenuComponent } from '../views/home/index';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icons from 'react-native-vector-icons/FontAwesome5';
 
@@ -9,7 +9,8 @@ import PerkuliahanStack from './perkiliahanStack';
 import AbsensiStack from './absensiStack';
 import HomeStack from './stack/HomeStack';
 import ProfileStack from './stack/ProfileStack';
-import {useTokenStore} from '../store/auth';
+import ProfileParentStack from './stack/ProfileParentStack';
+import { useTokenStore } from '../store/auth';
 import DosenStack from './stack/DosenStack';
 import CbtStack from './cbtStack';
 const Tab = createBottomTabNavigator();
@@ -27,7 +28,7 @@ const MahasiswaComponent = () => (
         options={{
           title: 'home',
           tabBarLabel: 'Home',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="home" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="home" />,
         }}
       />
       <Tab.Screen
@@ -36,7 +37,7 @@ const MahasiswaComponent = () => (
         options={{
           title: 'gamifikasi',
           tabBarLabel: 'Gamifikasi',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="medal" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="medal" />,
         }}
       />
       <Tab.Screen
@@ -45,7 +46,7 @@ const MahasiswaComponent = () => (
         options={{
           title: 'absensi',
           tabBarLabel: 'Absensi',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="qrcode" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="qrcode" />,
         }}
       />
       <Tab.Screen
@@ -54,7 +55,7 @@ const MahasiswaComponent = () => (
         options={{
           title: 'kuliah',
           tabBarLabel: 'Kuliah',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="school" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="school" />,
         }}
       />
       <Tab.Screen
@@ -63,7 +64,7 @@ const MahasiswaComponent = () => (
         options={{
           title: 'cbt',
           tabBarLabel: 'CBT',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="clipboard" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="clipboard" />,
         }}
       />
       <Tab.Screen
@@ -72,7 +73,7 @@ const MahasiswaComponent = () => (
         options={{
           title: 'profile',
           tabBarLabel: 'Profile',
-          tabBarIcon: ({color, size}) => (
+          tabBarIcon: ({ color, size }) => (
             <Icon size={size} name="account-circle" />
           ),
         }}
@@ -95,7 +96,7 @@ const DosenComponent = () => (
         options={{
           title: 'home',
           tabBarLabel: 'Home',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="home" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="home" />,
         }}
       />
       <Tab.Screen
@@ -104,7 +105,7 @@ const DosenComponent = () => (
         options={{
           title: 'rekomendasi',
           tabBarLabel: 'Rekomendasi',
-          tabBarIcon: ({color, size}) => (
+          tabBarIcon: ({ color, size }) => (
             <Icon size={size} name="shield-star" />
           ),
         }}
@@ -115,7 +116,7 @@ const DosenComponent = () => (
         options={{
           title: 'absensi',
           tabBarLabel: 'Absensi',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="qrcode" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="qrcode" />,
         }}
       />
       <Tab.Screen
@@ -124,7 +125,7 @@ const DosenComponent = () => (
         options={{
           title: 'kuliah',
           tabBarLabel: 'Kuliah',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="school" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="school" />,
         }}
       />
       <Tab.Screen
@@ -133,7 +134,7 @@ const DosenComponent = () => (
         options={{
           title: 'cbt',
           tabBarLabel: 'CBT',
-          tabBarIcon: ({color, size}) => <Icon size={size} name="clipboard" />,
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="clipboard" />,
         }}
       />
       <Tab.Screen
@@ -142,7 +143,7 @@ const DosenComponent = () => (
         options={{
           title: 'profile',
           tabBarLabel: 'Profile',
-          tabBarIcon: ({color, size}) => (
+          tabBarIcon: ({ color, size }) => (
             <Icon size={size} name="account-circle" />
           ),
         }}
@@ -150,12 +151,68 @@ const DosenComponent = () => (
     </Tab.Navigator>
   </>
 );
+const OrangTuaComponent = () => (
+  <>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarHideOnKeyboard: true,
+        headerShown: false,
+        unmountOnBlur: true,
+      }}>
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{
+          title: 'home',
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="home" />,
+        }}
+      />
+      <Tab.Screen
+        name="Gamifikasi"
+        component={Gamifikasi}
+        options={{
+          title: 'gamifikasi',
+          tabBarLabel: 'Gamifikasi',
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="medal" />,
+        }}
+      />
+      <Tab.Screen
+        name="Kuliah"
+        component={PerkuliahanStack}
+        options={{
+          title: 'kuliah',
+          tabBarLabel: 'Kuliah',
+          tabBarIcon: ({ color, size }) => <Icon size={size} name="school" />,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileParentStack}
+        options={{
+          title: 'profile',
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Icon size={size} name="account-circle" />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  </>
+);
+
 const BottomTabsComponent = () => {
-  const {user} = useTokenStore();
+  const { user } = useTokenStore();
 
   return (
     <>
-      {user?.role === 'Mahasiswa' ? <MahasiswaComponent /> : <DosenComponent />}
+      {user?.role === 'Parent' ? (
+        <OrangTuaComponent />
+      ) : user?.role === 'Mahasiswa' ? (
+        <MahasiswaComponent />
+      ) : (
+        <DosenComponent />
+      )}
     </>
   );
 };
