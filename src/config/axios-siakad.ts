@@ -2,7 +2,7 @@ import axios from 'axios';
 
 
 const instance = axios.create({
-  baseURL: 'http://localhost:3000/api/',
+  baseURL: 'https://api-siak.uika-bogor.ac.id/api/',
   validateStatus: status => status < 500,
   timeout: 15000,
   headers: {

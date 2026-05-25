@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: 'http://localhost:4242/',
+  baseURL: 'https://api-tias.ti.ft.uika-bogor.ac.id/',
   validateStatus: status => status < 500,
   timeout: 15000, // 15 detik timeout
   headers: {
