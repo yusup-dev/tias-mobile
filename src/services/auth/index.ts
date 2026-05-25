@@ -1,6 +1,5 @@
 import axios from '../../config/axios-tias';
-
-// import { useTokenStore } from '@/store/auth'
+import axiosParent from '../../config/axios-parent';
 
 export type LoginResponse = {
   message?: string;
@@ -12,9 +11,26 @@ export type LoginRequest = {
   email: string;
   password: string;
 };
-export async function login(data: any): Promise<any> {
+
+/** Login mahasiswa dengan email + password */
+export async function login(data: LoginRequest): Promise<any> {
   try {
     const response = await axios.post('auth/login', data, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+}
+
+/** Login orang tua dengan email + password */
+export async function loginOrangTua(data: LoginRequest): Promise<any> {
+  try {
+    const response = await axiosParent.post('parents/login', data, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',

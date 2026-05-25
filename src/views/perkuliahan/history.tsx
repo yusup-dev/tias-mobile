@@ -42,7 +42,7 @@ const HistoryPerkuliahanComponent = (props: any) => {
           ) : historyList.length ? (
             historyList.map((list: any, index: number) => (
               <View key={`${index}-history-${list.id}`} style={styles.card}>
-                
+
                 {/* Status Box */}
                 <View style={styles.statusBox}>
                   <Icons name="check-circle-outline" size={24} color="#15613F" />
@@ -54,12 +54,12 @@ const HistoryPerkuliahanComponent = (props: any) => {
                   <Text style={styles.matkulName} numberOfLines={2}>
                     {list.pembelajaran.matkul.name} <Text style={styles.sksText}>({list.sks} SKS)</Text>
                   </Text>
-                  
+
                   <View style={styles.detailRow}>
                     <Icons name="calendar-clock" size={14} color="#666" />
                     <Text style={styles.detailText}>Pertemuan {list.pembelajaran.pertemuan}</Text>
                   </View>
-                  
+
                   <View style={styles.detailRow}>
                     <Icons name="google-classroom" size={14} color="#666" />
                     <Text style={styles.detailText}>

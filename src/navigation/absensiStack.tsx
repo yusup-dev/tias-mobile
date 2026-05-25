@@ -1,7 +1,7 @@
-import {createStackNavigator} from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import AbsensiComponent from '../views/absensi/index';
 import FormCodeComponent from '../views/absensi/formCode';
-import {AttendanceFaceScreen} from '../features/attendance-face';
+import { AttendanceFaceScreen } from '../features/attendance-face';
 
 const Stack = createStackNavigator();
 function AbsensiStack() {
