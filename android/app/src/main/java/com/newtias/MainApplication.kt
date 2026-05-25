@@ -1,4 +1,4 @@
-package com.newtias
+package com.UCLMobile
 
 import android.app.Application
 import com.facebook.react.PackageList
