@@ -81,7 +81,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.newtias"
+    namespace "com.UCLMobile"
     splits {
         abi {
             enable true
@@ -101,7 +101,7 @@ android {
         }
     }
     defaultConfig {
-        applicationId "com.newtias"
+        applicationId "com.UCLMobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

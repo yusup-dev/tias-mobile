@@ -8,9 +8,9 @@ export const useCbtLogin = () => {
   return useMutation({
     mutationFn: async () => {
       const res = await axiosTias.post(
-        'api/cbt/auth',
+        'cbt/auth',
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { token: token } }
       );
       return res.data;
     },
