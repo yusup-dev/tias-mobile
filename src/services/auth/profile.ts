@@ -12,3 +12,31 @@ export async function profile(): Promise<any> {
   });
   return response.data;
 }
+
+export async function updateSignature(base64Image: string): Promise<any> {
+  const token = useTokenStore.getState().token;
+  
+  // Create form data for file upload
+  const formData = new FormData();
+  
+  // Convert base64 to file-like object for FormData
+  // Note: base64Image is expected to be 'data:image/png;base64,...'
+  const uri = base64Image;
+  const name = `signature_${Date.now()}.png`;
+  const type = 'image/png';
+  
+  formData.append('ttd', {
+    uri,
+    name,
+    type,
+  } as any);
+
+  const response = await axios.patch('profile/update-ttd', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      token: token,
+    },
+  });
+  return response.data;
+}
+

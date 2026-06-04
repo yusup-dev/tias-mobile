@@ -1,7 +1,7 @@
   import axios from 'axios';
 
   const instance = axios.create({
-    baseURL: 'https://n796ctp1-8000.asse.devtunnels.ms/api/',
+    baseURL: 'https://absen.ft.uika-bogor.ac.id/api/',
     validateStatus: status => status < 500,
     headers: {
       'Content-Type': 'application/json',

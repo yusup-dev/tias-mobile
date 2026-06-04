@@ -3,7 +3,20 @@ import React, {useEffect} from 'react';
 
 import {useTokenStore} from '../store/auth';
 import Login from '../views/login';
+import RegisterScreen from '../views/RegisterScreen';
+import ForgotPasswordScreen from '../views/ForgotPasswordScreen';
 import BottomTabsComponent from './bottom-tabs';
+import {createStackNavigator} from '@react-navigation/stack';
+
+const Stack = createStackNavigator();
+
+const AuthStack = () => (
+  <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Screen name="login" component={Login} />
+    <Stack.Screen name="register" component={RegisterScreen} />
+    <Stack.Screen name="forgotPassword" component={ForgotPasswordScreen} />
+  </Stack.Navigator>
+);
 
 const AppNavigation = () => {
   const {auth, token, user, rememberMe, setAuthentication} = useTokenStore();
@@ -19,7 +32,7 @@ const AppNavigation = () => {
   return (
     
       <NavigationContainer>
-        {isLoggedIn ? <BottomTabsComponent /> : <Login />}
+        {isLoggedIn ? <BottomTabsComponent /> : <AuthStack />}
       </NavigationContainer>
     
   );

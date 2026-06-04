@@ -24,7 +24,7 @@ import {useTokenStore} from '../store/auth';
 import {DialogComponent} from '../component/dialog';
 import {LogoUika} from '../../assets/svg';
 
-const Login = () => {
+const Login = (props: any) => {
   const [check, setCheck] = useState(false);
   const [formLogin, setFormLogin] = useState({
     email: '',
@@ -273,9 +273,11 @@ const Login = () => {
               Ingat Saya
             </Text>
           </View>
-          <View
+          <TouchableOpacity
+            onPress={() => props.navigation.navigate('forgotPassword')}
             style={{
               flexDirection: 'row',
+              alignSelf: 'center',
             }}>
             <Text
               style={{
@@ -284,7 +286,7 @@ const Login = () => {
               }}>
               Lupa Password?
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
         <TouchableOpacity
           onPress={submit}
@@ -309,13 +311,15 @@ const Login = () => {
             marginTop: responsiveWidth(2),
           }}>
           <Text>Belum punya akun?</Text>
-          <Text
-            style={{
-              color: '#15613F',
-              fontWeight: '700',
-            }}>
-            Daftar Sekarang
-          </Text>
+          <TouchableOpacity onPress={() => props.navigation.navigate('register')}>
+            <Text
+              style={{
+                color: '#15613F',
+                fontWeight: '700',
+              }}>
+              Daftar Sekarang
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       {isLoading && (

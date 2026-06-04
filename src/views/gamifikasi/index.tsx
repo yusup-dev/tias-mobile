@@ -1,5 +1,5 @@
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -50,7 +50,7 @@ const ListStatistik = ({ data }: { data: any }) => {
 };
 
 // --- KOMPONEN UTAMA GAMIFIKASI ---
-const Gamifikasi = () => {
+const Gamifikasi = (props: any) => {
   const { data, isSuccess, isError, error }: { data: any; isSuccess: boolean; isError: boolean; error: any } = useQuery({
     queryKey: ['profile', {}],
     queryFn: () => profile(),
@@ -137,6 +137,23 @@ const Gamifikasi = () => {
     },
   ]);
 
+  const handlePressKategori = (item: any) => {
+    if (item.title === 'Misi') {
+      props.navigation.navigate('gamifikasi.misi');
+    } else if (item.title === 'Leaderboard') {
+      props.navigation.navigate('gamifikasi.leaderboard');
+    } else if (item.title === 'Pencapaian') {
+      props.navigation.navigate('gamifikasi.pencapaian');
+    } else if (item.title === 'Aktivitas') {
+      props.navigation.navigate('gamifikasi.aktivitas');
+    } else if (item.title === 'Statistik') {
+      props.navigation.navigate('gamifikasi.statistik');
+    } else {
+      // Implementasi kategori lain menyusul
+      console.log('Navigasi ke:', item.title);
+    }
+  };
+
   return (
     <ScrollView style={styles.rootContainer} showsVerticalScrollIndicator={false}>
       
@@ -193,7 +210,10 @@ const Gamifikasi = () => {
             showsVerticalScrollIndicator={false}
             scrollEnabled={false} // Dimatikan karena sudah di dalam ScrollView utama
             renderItem={({ item }: { item: any }) => (
-              <TouchableOpacity activeOpacity={0.8} style={[styles.kategoriCard, { width: item.width, height: item.height, backgroundColor: item.backgroundColor }]}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => handlePressKategori(item)}
+                style={[styles.kategoriCard, { width: item.width, height: item.height, backgroundColor: item.backgroundColor }]}>
                 <Image source={item.image} style={styles.kategoriImage} resizeMode="contain" />
                 <View>
                   <Text style={styles.kategoriTitle}>{item.title}</Text>

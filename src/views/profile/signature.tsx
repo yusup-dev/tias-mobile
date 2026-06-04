@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Text, TouchableOpacity, View, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import {
   responsiveHeight,
   responsiveWidth,
@@ -7,13 +7,27 @@ import {
 } from 'react-native-responsive-dimensions';
 import Signature from 'react-native-signature-canvas';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useMutation } from '@tanstack/react-query';
+import { updateSignature } from '../../services/auth/profile';
 
 const SignaturePage = (props: any) => {
   const ref: any = useRef();
 
+  const { mutate, isLoading } = useMutation({
+    mutationFn: updateSignature,
+    onSuccess: (data) => {
+      Alert.alert('Berhasil', 'Tanda tangan digital Anda telah diperbarui.', [
+        { text: 'OK', onPress: () => props.navigation.goBack() }
+      ]);
+    },
+    onError: (error: any) => {
+      Alert.alert('Gagal', error?.message || 'Gagal mengunggah tanda tangan.');
+    }
+  });
+
   const handleSignature = (signature: any) => {
-    console.log('Tanda tangan base64:', signature); // base64 string
-    // TODO: Kirim data signature ke API atau state
+    // signature is a base64 string
+    mutate(signature);
   };
 
   const handleClear = () => {
@@ -21,7 +35,7 @@ const SignaturePage = (props: any) => {
   };
 
   const handleEnd = () => {
-    ref.current.readSignature(); // Membaca tanda tangan saat selesai
+    // We don't want to auto-save on end
   };
 
   return (
@@ -46,44 +60,53 @@ const SignaturePage = (props: any) => {
 
       {/* Area Kanvas Tanda Tangan */}
       <View style={styles.canvasContainer}>
-        <Signature
-          ref={ref}
-          onOK={handleSignature}
-          onEmpty={() => console.log('Kosong')}
-          onClear={handleClear}
-          onEnd={handleEnd}
-          descriptionText=""
-          clearText="Hapus"
-          confirmText="Simpan"
-          webStyle={`
-            .m-signature-pad {
-              border: none;
-              box-shadow: none;
-              background-color: transparent;
-            }
-            .m-signature-pad--body {
-              border: none;
-            }
-            .m-signature-pad--footer {
-              display: none;
-              margin: 0px;
-            }
-          `}
-        />
+        {isLoading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#15613F" />
+            <Text style={{marginTop: 10}}>Sedang mengunggah...</Text>
+          </View>
+        ) : (
+          <Signature
+            ref={ref}
+            onOK={handleSignature}
+            onEmpty={() => console.log('Kosong')}
+            onClear={handleClear}
+            onEnd={handleEnd}
+            descriptionText=""
+            clearText="Hapus"
+            confirmText="Simpan"
+            webStyle={`
+              .m-signature-pad {
+                border: none;
+                box-shadow: none;
+                background-color: transparent;
+              }
+              .m-signature-pad--body {
+                border: none;
+              }
+              .m-signature-pad--footer {
+                display: none;
+                margin: 0px;
+              }
+            `}
+          />
+        )}
       </View>
 
       {/* Area Tombol Aksi */}
-      <View style={styles.actionContainer}>
-        <TouchableOpacity onPress={handleClear} style={styles.btnCancel}>
-          <Icon name="eraser" size={20} color="#EF4444" style={styles.btnIcon} />
-          <Text style={styles.btnCancelText}>Hapus Ulang</Text>
-        </TouchableOpacity>
+      {!isLoading && (
+        <View style={styles.actionContainer}>
+          <TouchableOpacity onPress={handleClear} style={styles.btnCancel}>
+            <Icon name="eraser" size={20} color="#EF4444" style={styles.btnIcon} />
+            <Text style={styles.btnCancelText}>Hapus Ulang</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => ref.current.readSignature()} style={styles.btnSave}>
-          <Icon name="check" size={20} color="#FFF" style={styles.btnIcon} />
-          <Text style={styles.btnSaveText}>Simpan</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={() => ref.current.readSignature()} style={styles.btnSave}>
+            <Icon name="check" size={20} color="#FFF" style={styles.btnIcon} />
+            <Text style={styles.btnSaveText}>Simpan</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -91,7 +114,7 @@ const SignaturePage = (props: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6', // Seragam dengan latar aplikasi
+    backgroundColor: '#F3F4F6',
   },
   header: {
     flexDirection: 'row',
@@ -141,6 +164,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
   },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   actionContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -156,7 +184,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: responsiveHeight(6.5),
-    backgroundColor: '#FEE2E2', // Merah pudar
+    backgroundColor: '#FEE2E2',
     borderRadius: 14,
     marginRight: responsiveWidth(2),
   },
@@ -171,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: responsiveHeight(6.5),
-    backgroundColor: '#10B981', // Hijau modern
+    backgroundColor: '#10B981',
     borderRadius: 14,
     marginLeft: responsiveWidth(2),
     elevation: 3,

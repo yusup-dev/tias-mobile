@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import {
   responsiveFontSize,
@@ -12,9 +13,18 @@ import {
 } from 'react-native-responsive-dimensions';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTokenStore} from '../../store/auth';
+import { useQuery } from '@tanstack/react-query';
+import { profile } from '../../services/auth/profile';
 
 const AlamatScreen = (props: any) => {
-  const {user} = useTokenStore();
+  const {user: userStore} = useTokenStore();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['profile-detail'],
+    queryFn: () => profile(),
+  });
+
+  const user = data?.data || userStore;
 
   const alamatFields = [
     {label: 'Alamat Lengkap', value: user?.alamat || '-', icon: 'home-map-marker'},
@@ -46,36 +56,42 @@ const AlamatScreen = (props: any) => {
         </Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Map Illustration */}
-        <View style={styles.mapIllustration}>
-          <Icon name="map-marker-radius" size={50} color="#15613F" />
-          <Text style={styles.mapTitle}>Alamat Domisili</Text>
-          <Text style={styles.mapSubtitle}>Data tempat tinggal yang terdaftar</Text>
+      {isLoading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#15613F" />
         </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          {/* Map Illustration */}
+          <View style={styles.mapIllustration}>
+            <Icon name="map-marker-radius" size={50} color="#15613F" />
+            <Text style={styles.mapTitle}>Alamat Domisili</Text>
+            <Text style={styles.mapSubtitle}>Data tempat tinggal yang terdaftar</Text>
+          </View>
 
-        {/* Data Fields */}
-        <View style={styles.cardGroup}>
-          {alamatFields.map((field, index) => (
-            <View
-              key={field.label}
-              style={[
-                styles.fieldRow,
-                index !== alamatFields.length - 1 && styles.fieldBorder,
-              ]}>
-              <View style={styles.fieldIconBox}>
-                <Icon name={field.icon} size={20} color="#15613F" />
+          {/* Data Fields */}
+          <View style={styles.cardGroup}>
+            {alamatFields.map((field, index) => (
+              <View
+                key={field.label}
+                style={[
+                  styles.fieldRow,
+                  index !== alamatFields.length - 1 && styles.fieldBorder,
+                ]}>
+                <View style={styles.fieldIconBox}>
+                  <Icon name={field.icon} size={20} color="#15613F" />
+                </View>
+                <View style={styles.fieldContent}>
+                  <Text style={styles.fieldLabel}>{field.label}</Text>
+                  <Text style={styles.fieldValue}>{field.value}</Text>
+                </View>
               </View>
-              <View style={styles.fieldContent}>
-                <Text style={styles.fieldLabel}>{field.label}</Text>
-                <Text style={styles.fieldValue}>{field.value}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
 
-        <View style={{height: 30}} />
-      </ScrollView>
+          <View style={{height: 30}} />
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -84,6 +100,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',

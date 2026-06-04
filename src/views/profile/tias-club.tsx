@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import {
   responsiveFontSize,
@@ -12,21 +13,21 @@ import {
 } from 'react-native-responsive-dimensions';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTokenStore} from '../../store/auth';
+import { useQuery } from '@tanstack/react-query';
+import { getMyAchievements } from '../../services/gamifikasi/index';
+import { ribuanCast } from '../../helper/ribuan';
 
 const TiasClubScreen = (props: any) => {
   const {user} = useTokenStore();
 
-  // Data achievements / badges
-  const badges = [
-    {id: 1, name: 'Rajin Absen', desc: 'Hadir 30 hari berturut-turut', icon: 'calendar-check', color: '#10B981', earned: true},
-    {id: 2, name: 'Pertama Kali', desc: 'Login pertama kali ke TIAS', icon: 'rocket-launch', color: '#3B82F6', earned: true},
-    {id: 3, name: 'Nilai Sempurna', desc: 'Mendapat nilai 100 di CBT', icon: 'star-circle', color: '#F59E0B', earned: false},
-    {id: 4, name: 'Tepat Waktu', desc: 'Tidak pernah telat absen', icon: 'clock-check', color: '#8B5CF6', earned: false},
-    {id: 5, name: 'Super Aktif', desc: 'Mengakses TIAS setiap hari selama 1 semester', icon: 'fire', color: '#EF4444', earned: false},
-    {id: 6, name: 'Explorer', desc: 'Menggunakan semua fitur TIAS', icon: 'compass', color: '#06B6D4', earned: false},
-  ];
+  const { data, isLoading } = useQuery({
+    queryKey: ['my-achievements'],
+    queryFn: () => getMyAchievements(),
+  });
 
-  const earnedCount = badges.filter(b => b.earned).length;
+  const badges = data?.data?.achievements || [];
+  const earnedCount = badges.filter((b: any) => b.status).length;
+  const totalPoints = data?.data?.total_points || 0;
 
   return (
     <View style={styles.container}>
@@ -39,81 +40,87 @@ const TiasClubScreen = (props: any) => {
         <View style={{width: 28}} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Stats Card */}
-        <View style={styles.statsCard}>
-          <View style={styles.statsIconCircle}>
-            <Icon name="star-outline" size={34} color="#FFF" />
-          </View>
-          <Text style={styles.statsTitle}>{user?.nama_lengkap || 'Pengguna'}</Text>
-          <Text style={styles.statsSubtitle}>Member TIAS Club</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{earnedCount}</Text>
-              <Text style={styles.statLabel}>Badge Diperoleh</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{badges.length - earnedCount}</Text>
-              <Text style={styles.statLabel}>Belum Tercapai</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>-</Text>
-              <Text style={styles.statLabel}>Poin</Text>
-            </View>
-          </View>
+      {isLoading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#15613F" />
         </View>
-
-        {/* Badge List */}
-        <Text style={styles.sectionTitle}>Badge & Pencapaian</Text>
-        <View style={styles.badgeGrid}>
-          {badges.map(badge => (
-            <View
-              key={badge.id}
-              style={[
-                styles.badgeCard,
-                !badge.earned && styles.badgeCardLocked,
-              ]}>
-              <View
-                style={[
-                  styles.badgeIconCircle,
-                  {backgroundColor: badge.earned ? badge.color : '#E5E7EB'},
-                ]}>
-                <Icon
-                  name={badge.icon}
-                  size={26}
-                  color={badge.earned ? '#FFF' : '#9CA3AF'}
-                />
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          {/* Stats Card */}
+          <View style={styles.statsCard}>
+            <View style={styles.statsIconCircle}>
+              <Icon name="star-outline" size={34} color="#FFF" />
+            </View>
+            <Text style={styles.statsTitle}>{user?.nama_lengkap || 'Pengguna'}</Text>
+            <Text style={styles.statsSubtitle}>Member TIAS Club</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{earnedCount}</Text>
+                <Text style={styles.statLabel}>Badge Diperoleh</Text>
               </View>
-              <Text
-                style={[
-                  styles.badgeName,
-                  !badge.earned && styles.badgeNameLocked,
-                ]}
-                numberOfLines={1}>
-                {badge.name}
-              </Text>
-              <Text style={styles.badgeDesc} numberOfLines={2}>
-                {badge.desc}
-              </Text>
-              {badge.earned ? (
-                <View style={styles.earnedBadge}>
-                  <Icon name="check-circle" size={12} color="#10B981" />
-                  <Text style={styles.earnedText}>Diperoleh</Text>
-                </View>
-              ) : (
-                <View style={styles.lockedBadge}>
-                  <Icon name="lock" size={12} color="#9CA3AF" />
-                  <Text style={styles.lockedText}>Terkunci</Text>
-                </View>
-              )}
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{badges.length - earnedCount}</Text>
+                <Text style={styles.statLabel}>Belum Tercapai</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{ribuanCast(totalPoints)}</Text>
+                <Text style={styles.statLabel}>Total Poin</Text>
+              </View>
             </View>
-          ))}
-        </View>
+          </View>
 
-        <View style={{height: 30}} />
-      </ScrollView>
+          {/* Badge List */}
+          <Text style={styles.sectionTitle}>Badge & Pencapaian</Text>
+          <View style={styles.badgeGrid}>
+            {badges.map((badge: any) => (
+              <View
+                key={badge.id}
+                style={[
+                  styles.badgeCard,
+                  !badge.status && styles.badgeCardLocked,
+                ]}>
+                <View
+                  style={[
+                    styles.badgeIconCircle,
+                    {backgroundColor: badge.status ? '#FBBF24' : '#E5E7EB'},
+                  ]}>
+                  <Icon
+                    name={badge.status ? 'medal' : 'lock'}
+                    size={26}
+                    color={badge.status ? '#FFF' : '#9CA3AF'}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.badgeName,
+                    !badge.status && styles.badgeNameLocked,
+                  ]}
+                  numberOfLines={1}>
+                  {badge.name}
+                </Text>
+                <Text style={styles.badgeDesc} numberOfLines={2}>
+                  {badge.deskripsi || badge.sub_judul || 'Selesaikan misi untuk mendapatkan badge ini.'}
+                </Text>
+                {badge.status ? (
+                  <View style={styles.earnedBadge}>
+                    <Icon name="check-circle" size={12} color="#10B981" />
+                    <Text style={styles.earnedText}>Diperoleh</Text>
+                  </View>
+                ) : (
+                  <View style={styles.lockedBadge}>
+                    <Icon name="lock" size={12} color="#9CA3AF" />
+                    <Text style={styles.lockedText}>Terkunci</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+
+          <View style={{height: 30}} />
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -122,6 +129,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -146,7 +158,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsiveWidth(5),
     paddingTop: responsiveWidth(4),
   },
-  // Stats Card
   statsCard: {
     backgroundColor: '#15613F',
     borderRadius: 20,
@@ -202,7 +213,6 @@ const styles = StyleSheet.create({
     height: 30,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  // Badge Section
   sectionTitle: {
     fontSize: responsiveFontSize(2),
     fontWeight: 'bold',

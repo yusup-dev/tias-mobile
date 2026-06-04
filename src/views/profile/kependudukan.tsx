@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import {
   responsiveFontSize,
@@ -12,11 +13,20 @@ import {
 } from 'react-native-responsive-dimensions';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTokenStore} from '../../store/auth';
+import { useQuery } from '@tanstack/react-query';
+import { profile } from '../../services/auth/profile';
 
 const KependudukanScreen = (props: any) => {
-  const {user} = useTokenStore();
+  const {user: userStore} = useTokenStore();
 
-  // Data kependudukan (ambil dari user store, fallback ke placeholder)
+  const { data, isLoading } = useQuery({
+    queryKey: ['profile-detail'],
+    queryFn: () => profile(),
+  });
+
+  const user = data?.data || userStore;
+
+  // Data kependudukan (ambil dari API, fallback ke store)
   const dataFields = [
     {label: 'Nama Lengkap', value: user?.nama_lengkap || '-', icon: 'account'},
     {label: 'NPM / NIP', value: user?.npm || user?.nip || '-', icon: 'card-account-details'},
@@ -49,38 +59,44 @@ const KependudukanScreen = (props: any) => {
         </Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Avatar Header */}
-        <View style={styles.avatarSection}>
-          <View style={styles.avatar}>
-            <Icon name="account" size={40} color="#FFF" />
-          </View>
-          <Text style={styles.avatarName}>{user?.nama_lengkap || 'Pengguna'}</Text>
-          <Text style={styles.avatarSubtitle}>{user?.role || 'Mahasiswa'}</Text>
+      {isLoading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#15613F" />
         </View>
-
-        {/* Data Fields */}
-        <View style={styles.cardGroup}>
-          {dataFields.map((field, index) => (
-            <View
-              key={field.label}
-              style={[
-                styles.fieldRow,
-                index !== dataFields.length - 1 && styles.fieldBorder,
-              ]}>
-              <View style={styles.fieldIconBox}>
-                <Icon name={field.icon} size={20} color="#15613F" />
-              </View>
-              <View style={styles.fieldContent}>
-                <Text style={styles.fieldLabel}>{field.label}</Text>
-                <Text style={styles.fieldValue}>{field.value}</Text>
-              </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          {/* Avatar Header */}
+          <View style={styles.avatarSection}>
+            <View style={styles.avatar}>
+              <Icon name="account" size={40} color="#FFF" />
             </View>
-          ))}
-        </View>
+            <Text style={styles.avatarName}>{user?.nama_lengkap || 'Pengguna'}</Text>
+            <Text style={styles.avatarSubtitle}>{user?.role || 'Mahasiswa'}</Text>
+          </View>
 
-        <View style={{height: 30}} />
-      </ScrollView>
+          {/* Data Fields */}
+          <View style={styles.cardGroup}>
+            {dataFields.map((field, index) => (
+              <View
+                key={field.label}
+                style={[
+                  styles.fieldRow,
+                  index !== dataFields.length - 1 && styles.fieldBorder,
+                ]}>
+                <View style={styles.fieldIconBox}>
+                  <Icon name={field.icon} size={20} color="#15613F" />
+                </View>
+                <View style={styles.fieldContent}>
+                  <Text style={styles.fieldLabel}>{field.label}</Text>
+                  <Text style={styles.fieldValue}>{field.value}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          <View style={{height: 30}} />
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -89,6 +105,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
