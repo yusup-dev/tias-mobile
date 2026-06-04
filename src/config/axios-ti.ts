@@ -1,4 +1,4 @@
-  import axios from 'axios';
+import axios from 'axios';
 
   const instance = axios.create({
     baseURL: 'https://absen.ft.uika-bogor.ac.id/api/',
@@ -10,4 +10,4 @@
     // timeout: 30,
   });
 
-  export default instance;
+export default instance;

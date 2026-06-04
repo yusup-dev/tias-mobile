@@ -1,7 +1,9 @@
-import {NavigationContainer} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect } from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { useTokenStore } from '../store/auth';
 
-import {useTokenStore} from '../store/auth';
+const Stack = createStackNavigator();
 import Login from '../views/login';
 import RegisterScreen from '../views/RegisterScreen';
 import ForgotPasswordScreen from '../views/ForgotPasswordScreen';
@@ -19,7 +21,7 @@ const AuthStack = () => (
 );
 
 const AppNavigation = () => {
-  const {auth, token, user, rememberMe, setAuthentication} = useTokenStore();
+  const { auth, token, user, rememberMe, setAuthentication } = useTokenStore();
 
   useEffect(() => {
     if (!auth && rememberMe && token && (user?.npm || user?.email)) {

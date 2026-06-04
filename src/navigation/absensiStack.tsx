@@ -1,4 +1,4 @@
-import {createStackNavigator} from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import AbsensiComponent from '../views/absensi/index';
 import FormCodeComponent from '../views/absensi/formCode';
 import AttendanceFaceScreen from '../views/absensi/AttendanceFaceScreen';

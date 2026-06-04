@@ -1,6 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import HistoryPerkuliahanComponent from '../views/perkuliahan/history';
 import PerkuliahanComponent from '../views/perkuliahan/index';
+import DetailAbsensiScreen from '../views/perkuliahan/DetailAbsensiScreen';
 
 const Stack = createStackNavigator();
 
@@ -15,8 +16,14 @@ function PerkuliahanStack() {
         name="perkuliahan.history"
         component={HistoryPerkuliahanComponent}
       />
+      <Stack.Screen
+        name="perkuliahan.detail-absensi"
+        component={DetailAbsensiScreen}
+      />
     </Stack.Navigator>
   );
 }
+
+export default PerkuliahanStack;
 
 export default PerkuliahanStack;

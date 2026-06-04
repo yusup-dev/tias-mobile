@@ -517,6 +517,11 @@ const DosenMenuComponent = (props: any) => {
         >
           {data?.data?.map((list: any, index: number) => (
             <TouchableOpacity
+              onPress={() => {
+                props.navigation.push('home.detail-pengumuman', {
+                  ...list,
+                });
+              }}
               key={list.id}
               activeOpacity={0.85}
               style={{

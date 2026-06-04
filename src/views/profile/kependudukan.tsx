@@ -28,16 +28,16 @@ const KependudukanScreen = (props: any) => {
 
   // Data kependudukan (ambil dari API, fallback ke store)
   const dataFields = [
-    {label: 'Nama Lengkap', value: user?.nama_lengkap || '-', icon: 'account'},
-    {label: 'NPM / NIP', value: user?.npm || user?.nip || '-', icon: 'card-account-details'},
-    {label: 'Tempat Lahir', value: user?.tempat_lahir || '-', icon: 'map-marker'},
-    {label: 'Tanggal Lahir', value: user?.tanggal_lahir || '-', icon: 'calendar'},
-    {label: 'Jenis Kelamin', value: user?.jenis_kelamin || '-', icon: 'gender-male-female'},
-    {label: 'Agama', value: user?.agama || '-', icon: 'hands-pray'},
-    {label: 'NIK', value: user?.nik || '-', icon: 'card-account-details-outline'},
-    {label: 'No. KK', value: user?.no_kk || '-', icon: 'home-group'},
-    {label: 'Golongan Darah', value: user?.golongan_darah || '-', icon: 'water'},
-    {label: 'Status Pernikahan', value: user?.status_pernikahan || '-', icon: 'ring'},
+    { label: 'Nama Lengkap', value: user?.nama_lengkap || '-', icon: 'account' },
+    { label: 'NPM / NIP', value: user?.npm || user?.nip || '-', icon: 'card-account-details' },
+    { label: 'Tempat Lahir', value: user?.tempat_lahir || '-', icon: 'map-marker' },
+    { label: 'Tanggal Lahir', value: user?.tanggal_lahir || '-', icon: 'calendar' },
+    { label: 'Jenis Kelamin', value: user?.jenis_kelamin || '-', icon: 'gender-male-female' },
+    { label: 'Agama', value: user?.agama || '-', icon: 'hands-pray' },
+    { label: 'NIK', value: user?.nik || '-', icon: 'card-account-details-outline' },
+    { label: 'No. KK', value: user?.no_kk || '-', icon: 'home-group' },
+    { label: 'Golongan Darah', value: user?.golongan_darah || '-', icon: 'water' },
+    { label: 'Status Pernikahan', value: user?.status_pernikahan || '-', icon: 'ring' },
   ];
 
   return (
@@ -48,7 +48,7 @@ const KependudukanScreen = (props: any) => {
           <Icon name="chevron-left" size={28} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Data Kependudukan</Text>
-        <View style={{width: 28}} />
+        <View style={{ width: 28 }} />
       </View>
 
       {/* Info Banner */}
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
   },

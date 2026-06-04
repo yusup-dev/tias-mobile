@@ -1,8 +1,13 @@
-import {createStackNavigator} from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import EvotingComp from '../../views/home/menu/evoting';
-import {MenuComponent} from '../../views/home/index';
+import { MenuComponent } from '../../views/home/index';
 import DetailChallange from '../../views/home/menu/detailChallange';
-import ChallengeList from '../../views/home/menu/ChallengeList';
+import DetailPengumuman from '../../views/home/menu/detailPengumuman';
+import NilaiScreen from '../../views/pendidikan/nilai/index';
+import SkripsiScreen from '../../views/penelitian/skripsi/index';
+import KknScreen from '../../views/pengabdian/kkn/index';
+import KompetensiScreen from '../../views/kompetensi/index';
+import PenunjangScreen from '../../views/penunjang/index';
 
 const Stack = createStackNavigator();
 
@@ -34,10 +39,45 @@ function HomeStack() {
         }}
       />
       <Stack.Screen
-        name="home.challenge-list"
-        component={ChallengeList}
+        name="home.detail-pengumuman"
+        component={DetailPengumuman}
         options={{
-          title: 'UCL Challenges',
+          title: 'Detail Pengumuman',
+        }}
+      />
+      <Stack.Screen
+        name="home.pendidikan"
+        component={NilaiScreen}
+        options={{
+          title: 'Nilai Akademik',
+        }}
+      />
+      <Stack.Screen
+        name="home.penelitian"
+        component={SkripsiScreen}
+        options={{
+          title: 'Data Skripsi',
+        }}
+      />
+      <Stack.Screen
+        name="home.pengabdian"
+        component={KknScreen}
+        options={{
+          title: 'Data KKN',
+        }}
+      />
+      <Stack.Screen
+        name="home.kompetensi"
+        component={KompetensiScreen}
+        options={{
+          title: 'Data Kompetensi',
+        }}
+      />
+      <Stack.Screen
+        name="home.penunjang"
+        component={PenunjangScreen}
+        options={{
+          title: 'Data Penunjang',
         }}
       />
     </Stack.Navigator>
