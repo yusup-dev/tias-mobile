@@ -2,13 +2,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTokenStore } from '../store/auth';
-
-const Stack = createStackNavigator();
 import Login from '../views/login';
 import RegisterScreen from '../views/RegisterScreen';
 import ForgotPasswordScreen from '../views/ForgotPasswordScreen';
 import BottomTabsComponent from './bottom-tabs';
-import {createStackNavigator} from '@react-navigation/stack';
 
 const Stack = createStackNavigator();
 

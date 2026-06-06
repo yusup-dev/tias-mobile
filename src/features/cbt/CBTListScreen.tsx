@@ -28,7 +28,7 @@ const C = {
 // ============================
 //  HELPER FORMAT TANGGAL & JAM
 // ============================
-const formatTanggal = (dateStr: string): string => {
+const formatTanggal = (dateStr?: string): string => {
   if (!dateStr) return '-';
   try {
     const d = new Date(dateStr);
@@ -38,7 +38,7 @@ const formatTanggal = (dateStr: string): string => {
   } catch { return '-'; }
 };
 
-const formatJam = (dateStr: string): string => {
+const formatJam = (dateStr?: string): string => {
   if (!dateStr) return '--:--';
   try {
     const d = new Date(dateStr);

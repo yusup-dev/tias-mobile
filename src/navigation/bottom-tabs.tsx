@@ -170,7 +170,7 @@ const OrangTuaComponent = () => (
       />
       <Tab.Screen
         name="Gamifikasi"
-        component={Gamifikasi}
+        component={GamifikasiStack}
         options={{
           title: 'gamifikasi',
           tabBarLabel: 'Gamifikasi',

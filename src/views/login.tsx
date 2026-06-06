@@ -32,14 +32,10 @@ type Props = {
 };
 
 const Login = (props: any) => {
-  const [check, setCheck] = useState(false);
-  const [formLogin, setFormLogin] = useState({
-    email: '',
-    password: {
-      value: '',
-      secure: true,
-    },
-  });
+  const [role, setRole] = useState<Role>('mahasiswa');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState({ value: '', secure: true });
   const [modalQuery, setModalQuery] = useState({
     visible: false,
     title: '',
@@ -202,47 +198,28 @@ const Login = (props: any) => {
             </View>
           </View>
 
-            <TextInput
-              placeholder="Please put your password"
-              secureTextEntry={formLogin.password.secure}
-              style={{
-                flex: 1,
-                marginLeft: responsiveWidth(2),
-              }}
-              onChangeText={val => {
-                setFormLogin({
-                  ...formLogin,
-                  password: {
-                    secure: formLogin.password.secure,
-                    value: val,
-                  },
-                });
-              }}
-            />
-            <TouchableOpacity
-              onPress={() => {
-                setFormLogin({
-                  ...formLogin,
-                  password: {
-                    secure: !formLogin.password.secure,
-                    value: formLogin.password.value,
-                  },
-                });
-              }}>
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                }}>
-                {formLogin.password.secure ? (
-                  <Icon name="eye" size={25} color="gray" />
-                ) : (
-                  <Icon name="eye-off" size={25} color="gray" />
-                )}
+          {/* Password */}
+          <View style={styles.fieldWrapper}>
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.inputRow}>
+              <View style={styles.inputIcon}>
+                <Icon name="lock" size={22} color="gray" />
               </View>
-            </TouchableOpacity>
+              <TextInput
+                placeholder="Masukkan password"
+                secureTextEntry={password.secure}
+                value={password.value}
+                onChangeText={val => setPassword({ ...password, value: val })}
+                style={styles.input}
+              />
+              <TouchableOpacity
+                onPress={() => setPassword({ ...password, secure: !password.secure })}>
+                <View style={styles.inputIcon}>
+                  <Icon name={password.secure ? 'eye' : 'eye-off'} size={22} color="gray" />
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
         <View
           style={{
             flexDirection: 'row',
@@ -255,9 +232,9 @@ const Login = (props: any) => {
               alignSelf: 'center',
             }}>
             <Checkbox
-              status={check ? 'checked' : 'unchecked'}
+              status={rememberMe ? 'checked' : 'unchecked'}
               onPress={() => {
-                setCheck(!check);
+                setRememberMe(!rememberMe);
               }}
             />
 
@@ -316,7 +293,8 @@ const Login = (props: any) => {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
+    </View>
 
       {/* Loading overlay */}
       {isLoading && (
