@@ -41,7 +41,8 @@ const CBTTokenScreen = ({ route, navigation }: any) => {
     verifyToken(trimmed, {
       onSuccess: (data) => {
         if (data?.data || data?.message === 'Akses Diberikan!') {
-          navigation.replace('CBTExam', {
+          // ✅ Setelah token valid → ke CBTTerms dulu (bukan langsung CBTExam)
+          navigation.replace('CBTTerms', {
             exam,
             questions: data.data?.questions ?? [],
             durasi: data.data?.durasi ?? exam.durasi,
