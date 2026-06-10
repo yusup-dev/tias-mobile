@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ActivityIndicator, ScrollView } from 'react-native';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { editProfileParent } from '../../services/auth/profile';
 import { useTokenStore } from '../../store/auth';
+import { DialogComponent } from '../../component/dialog';
 
 const EditParentProfileScreen = ({ navigation }: any) => {
   const { user, setUser } = useTokenStore();
@@ -12,6 +13,27 @@ const EditParentProfileScreen = ({ navigation }: any) => {
 
   const [namaLengkap, setNamaLengkap] = useState('');
   const [noHp, setNoHp] = useState('');
+
+  const [modalQuery, setModalQuery] = useState({
+    visible: false,
+    title: '',
+    desc: { buttonCancel: 'Ok', buttonDone: '', title: '' },
+    onDismiss: () => {},
+  });
+
+  const showDialog = (title: string, message: string, onDismissAction?: () => void) => {
+    setModalQuery({
+      visible: true,
+      title,
+      desc: { buttonCancel: 'Ok', buttonDone: '', title: message },
+      onDismiss: () => {
+        setModalQuery(prev => ({ ...prev, visible: false }));
+        if (onDismissAction) {
+          onDismissAction();
+        }
+      },
+    });
+  };
 
   useEffect(() => {
     if (user) {
@@ -25,21 +47,21 @@ const EditParentProfileScreen = ({ navigation }: any) => {
     onSuccess: () => {
       setUser({ ...user, nama_lengkap: namaLengkap, no_hp: noHp });
       queryClient.invalidateQueries(['parentProfile']);
-      Alert.alert('Berhasil', 'Profil berhasil diperbarui.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      showDialog('Berhasil', 'Profil berhasil diperbarui.', () => {
+        navigation.goBack();
+      });
     },
     onError: (err: any) => {
-      Alert.alert(
+      showDialog(
         'Gagal',
-        err?.response?.data?.message || err?.message || 'Gagal memperbarui profil.',
+        'Gagal memperbarui profil.',
       );
     },
   });
 
   const handleSave = () => {
     if (!noHp.trim()) {
-      Alert.alert('Perhatian', 'Nomor handphone wajib diisi.');
+      showDialog('Perhatian', 'Nomor handphone wajib diisi.');
       return;
     }
     mutate({
@@ -51,6 +73,13 @@ const EditParentProfileScreen = ({ navigation }: any) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}>
+
+      <DialogComponent
+        visible={modalQuery.visible}
+        onDismiss={modalQuery.onDismiss}
+        title={modalQuery.title}
+        desc={modalQuery.desc}
+      />
 
       {/* Header */}
       <View style={styles.header}>

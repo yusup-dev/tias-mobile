@@ -21,6 +21,7 @@ import moment from 'moment';
 const KompetensiScreen = (props: any) => {
   const { user } = useTokenStore();
   const npm = user?.npm;
+  const [activeTab, setActiveTab] = useState<'sertifikasi' | 'tes'>('sertifikasi');
 
   const { data: kompetensiRes, isLoading, isError } = useQuery({
     queryKey: ['kompetensi-parent', npm],
@@ -33,80 +34,9 @@ const KompetensiScreen = (props: any) => {
     tes: [],
   };
 
-  const renderSertifikasi = () => {
-    if (!kompetensiData.sertifikasi || kompetensiData.sertifikasi.length === 0) {
-      return null;
-    }
-    return kompetensiData.sertifikasi.map((item: any, index: number) => (
-      <View key={`sertifikasi-${index}`} style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.kategoriBadge}>
-            <Text style={styles.kategoriText}>{item.nama_kategori || 'Sertifikasi'}</Text>
-          </View>
-          <View style={styles.pointBadge}>
-            <Text style={styles.pointText}>{item.point} Poin</Text>
-          </View>
-        </View>
-        <View style={styles.cardBody}>
-          <Text style={styles.titleText}>{item.nama_serti || '-'}</Text>
-          <View style={styles.detailRow}>
-            <Icons name="office-building-outline" size={18} color="#6B7280" style={{ marginRight: 8 }} />
-            <Text style={styles.detailText}>{item.penyelenggara || '-'}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Icons name="calendar-check-outline" size={18} color="#6B7280" style={{ marginRight: 8 }} />
-            <Text style={styles.detailText}>
-              {item.tgl_serti ? moment(item.tgl_serti).format('DD MMMM YYYY') : '-'}
-            </Text>
-          </View>
-          {item.jenis_serti && (
-            <View style={styles.detailRow}>
-              <Icons name="tag-outline" size={18} color="#6B7280" style={{ marginRight: 8 }} />
-              <Text style={styles.detailText}>Jenis: {item.jenis_serti}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-    ));
-  };
-
-  const renderTes = () => {
-    if (!kompetensiData.tes || kompetensiData.tes.length === 0) {
-      return null;
-    }
-    return kompetensiData.tes.map((item: any, index: number) => (
-      <View key={`tes-${index}`} style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.kategoriBadge}>
-            <Text style={styles.kategoriText}>{item.nama_kategori || 'Tes'}</Text>
-          </View>
-          <View style={styles.pointBadge}>
-            <Text style={styles.pointText}>{item.point} Poin</Text>
-          </View>
-        </View>
-        <View style={styles.cardBody}>
-          <Text style={styles.titleText}>{item.nama_tes || '-'}</Text>
-          <View style={styles.detailRow}>
-            <Icons name="school-outline" size={18} color="#6B7280" style={{ marginRight: 8 }} />
-            <Text style={styles.detailText}>{item.penyelenggara || '-'}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Icons name="chart-bell-curve-cumulative" size={18} color="#6B7280" style={{ marginRight: 8 }} />
-            <Text style={[styles.detailText, { fontWeight: 'bold', color: '#15613F' }]}>
-              Skor: {item.skor_tes || '-'}
-            </Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Icons name="calendar-outline" size={18} color="#6B7280" style={{ marginRight: 8 }} />
-            <Text style={styles.detailText}>
-              {item.tgl_tes ? moment(item.tgl_tes).format('DD MMMM YYYY') : '-'}
-            </Text>
-          </View>
-        </View>
-      </View>
-    ));
-  };
-
+  const sertifikasiData: any[] = kompetensiData.sertifikasi || [];
+  const tesData: any[] = kompetensiData.tes || [];
+  const currentData = activeTab === 'sertifikasi' ? sertifikasiData : tesData;
 
   return (
     <View style={styles.container}>
@@ -120,41 +50,156 @@ const KompetensiScreen = (props: any) => {
         <Text style={styles.headerTitle}>Kompetensi</Text>
       </View>
 
-
       {/* ── Body Wrapper ── */}
       <View style={styles.bodyWrapper}>
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'sertifikasi' && styles.activeTabButton]}
+            onPress={() => setActiveTab('sertifikasi')}>
+            <Text style={[styles.tabButtonText, activeTab === 'sertifikasi' && styles.activeTabButtonText]}>
+              Sertifikasi ({sertifikasiData.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'tes' && styles.activeTabButton]}
+            onPress={() => setActiveTab('tes')}>
+            <Text style={[styles.tabButtonText, activeTab === 'tes' && styles.activeTabButtonText]}>
+              Tes Bahasa/Lain ({tesData.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
 
+          {/* Info Banner */}
           <View style={styles.infoBanner}>
             <Icons name="information-outline" size={18} color="#1565C0" style={{ marginRight: 8 }} />
             <Text style={styles.infoBannerText}>
-              Menampilkan data kompetensi untuk mahasiswa dengan NPM {npm || '-'}
+              Data {activeTab === 'sertifikasi' ? 'sertifikasi kompetensi/pelatihan' : 'riwayat tes akademik'} NPM {npm || '-'}
             </Text>
           </View>
 
           {isLoading ? (
             <View style={styles.centerBox}>
               <ActivityIndicator size="large" color="#15613F" />
-              <Text style={styles.centerText}>Memuat data kompetensi...</Text>
+              <Text style={styles.centerText}>Memuat data...</Text>
             </View>
           ) : isError ? (
             <View style={styles.centerBox}>
-              <Icons name="alert-circle-outline" size={48} color="#EF4444" />
+              <Icons name="alert-circle-outline" size={60} color="#EF4444" />
               <Text style={styles.centerText}>Gagal memuat data</Text>
             </View>
-          ) : (!kompetensiData.sertifikasi?.length && !kompetensiData.tes?.length) ? (
+          ) : currentData.length === 0 ? (
             <View style={styles.centerBox}>
-              <Icons name="folder-open-outline" size={60} color="#CBD5E0" />
+              <Icons name="file-document-outline" size={60} color="#CBD5E0" />
               <Text style={styles.centerText}>Belum ada data</Text>
             </View>
           ) : (
-            <>
-              {renderSertifikasi()}
-              {renderTes()}
-            </>
+            currentData.map((item: any, index: number) => {
+              if (activeTab === 'sertifikasi') {
+                return (
+                  <View key={item.sertifikat_id || index} style={styles.card}>
+                    {/* Card Header */}
+                    <View style={styles.cardHeader}>
+                      <View style={styles.semesterBadge}>
+                        <Text style={styles.semesterText}>{item.bidang_studi || 'Kompetensi'}</Text>
+                      </View>
+                      <View style={styles.pointBadge}>
+                        <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
+                      </View>
+                    </View>
+
+                    {/* Card Body */}
+                    <View style={styles.cardBody}>
+                      {/* Nama Sertifikasi */}
+                      <Text style={styles.judulLabel}>Nama Sertifikasi / Pelatihan:</Text>
+                      <Text style={styles.judulText}>{item.nama_serti || '-'}</Text>
+
+                      {/* Kategori */}
+                      <View style={styles.detailRow}>
+                        <Icons name="bookmark-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>{item.nama_kategori || '-'}</Text>
+                      </View>
+
+                      {/* Penyelenggara */}
+                      <View style={styles.detailRow}>
+                        <Icons name="office-building" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Penyelenggara: {item.penyelenggara || '-'}</Text>
+                      </View>
+
+                      {/* Jenis Sertifikat */}
+                      <View style={styles.detailRow}>
+                        <Icons name="tag-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Jenis: {item.jenis_serti || '-'}</Text>
+                      </View>
+
+                      {/* Tanggal Terbit */}
+                      <View style={styles.detailRow}>
+                        <Icons name="calendar-range" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Tanggal Sertifikasi: {item.tgl_serti ? moment(item.tgl_serti).format('DD MMMM YYYY') : '-'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              } else {
+                return (
+                  <View key={item.tes_id || index} style={styles.card}>
+                    {/* Card Header */}
+                    <View style={styles.cardHeader}>
+                      <View style={[styles.semesterBadge, { backgroundColor: '#E3F2FD' }]}>
+                        <Text style={[styles.semesterText, { color: '#1565C0' }]}>
+                          {item.jenis_tes || 'Tes'}
+                        </Text>
+                      </View>
+                      <View style={styles.pointBadge}>
+                        <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
+                      </View>
+                    </View>
+
+                    {/* Card Body */}
+                    <View style={styles.cardBody}>
+                      {/* Nama Tes */}
+                      <Text style={styles.judulLabel}>Nama Tes:</Text>
+                      <Text style={styles.judulText}>{item.nama_tes || '-'}</Text>
+
+                      {/* Kategori */}
+                      <View style={styles.detailRow}>
+                        <Icons name="bookmark-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>{item.nama_kategori || '-'}</Text>
+                      </View>
+
+                      {/* Skor Tes */}
+                      <View style={styles.detailRow}>
+                        <Icons name="chart-bell-curve-cumulative" size={16} color="#15613F" />
+                        <Text style={[styles.detailText, { fontWeight: 'bold', color: '#15613F' }]}>
+                          Skor: {item.skor_tes || '-'}
+                        </Text>
+                      </View>
+
+                      {/* Penyelenggara */}
+                      <View style={styles.detailRow}>
+                        <Icons name="office-building" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Penyelenggara: {item.penyelenggara || '-'}</Text>
+                      </View>
+
+                      {/* Tanggal Tes */}
+                      <View style={styles.detailRow}>
+                        <Icons name="calendar-range" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Tanggal Tes: {item.tgl_tes ? moment(item.tgl_tes).format('DD MMMM YYYY') : '-'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              }
+            })
           )}
         </ScrollView>
       </View>
@@ -171,7 +216,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: responsiveHeight(5),
-    paddingBottom: responsiveHeight(1),
+    paddingBottom: responsiveHeight(2.5),
     paddingHorizontal: responsiveWidth(4),
     gap: responsiveWidth(3),
   },
@@ -187,7 +232,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
-
   // Body wrapper
   bodyWrapper: {
     flex: 1,
@@ -195,6 +239,33 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
+  },
+
+  // Tabs style
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    padding: responsiveWidth(2),
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: responsiveWidth(3),
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  activeTabButton: {
+    backgroundColor: '#E8F5E9',
+  },
+  tabButtonText: {
+    fontSize: responsiveFontSize(1.6),
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  activeTabButtonText: {
+    color: '#15613F',
+    fontWeight: 'bold',
   },
 
   // ScrollView
@@ -255,48 +326,56 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F0F4F8',
   },
-  kategoriBadge: {
+  semesterBadge: {
     backgroundColor: '#E8F5E9',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
-    marginRight: 8,
-    flexShrink: 1,
   },
-  kategoriText: {
+  semesterText: {
     fontSize: responsiveFontSize(1.6),
     fontWeight: 'bold',
     color: '#15613F',
   },
   pointBadge: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 10,
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   pointText: {
     fontSize: responsiveFontSize(1.4),
     fontWeight: 'bold',
-    color: '#D97706',
+    color: '#E65100',
   },
   cardBody: {
     padding: responsiveWidth(4),
   },
-  titleText: {
+  judulLabel: {
+    fontSize: responsiveFontSize(1.4),
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  judulText: {
     fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: 8,
+    marginBottom: 10,
+    lineHeight: 24,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   detailText: {
-    fontSize: responsiveFontSize(1.5),
+    fontSize: responsiveFontSize(1.6),
     color: '#4B5563',
+    marginLeft: 6,
+    flex: 1,
   },
 });
+
+export default KompetensiScreen;
 
 export default KompetensiScreen;

@@ -14,20 +14,24 @@ import {
 } from 'react-native-responsive-dimensions';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
-import { useTokenStore } from '../../../../src/store/auth';
-import { getPengabdianOrangTua } from '../../../../src/services/pengabdian/index';
+import moment from 'moment';
+import { useTokenStore } from '../../../store/auth';
+import { getPengabdianParent } from '../../../services/pengabdian/index';
 
 const PengabdianScreen = (props: any) => {
   const { user } = useTokenStore();
   const npm = user?.npm;
+  const [activeTab, setActiveTab] = React.useState<'pengabdian' | 'pembicara'>('pengabdian');
 
   const { data: pengabdianRes, isLoading, isError } = useQuery({
     queryKey: ['pengabdian-ortu', npm],
-    queryFn: () => getPengabdianOrangTua(npm as string),
+    queryFn: () => getPengabdianParent(npm as string),
     enabled: !!npm,
   });
 
-  const pengabdianData: any[] = pengabdianRes?.data || [];
+  const pengabdianData: any[] = pengabdianRes?.data?.pengabdian || [];
+  const pembicaraData: any[] = pengabdianRes?.data?.pembicara || [];
+  const currentData = activeTab === 'pengabdian' ? pengabdianData : pembicaraData;
 
   return (
     <View style={styles.container}>
@@ -43,6 +47,24 @@ const PengabdianScreen = (props: any) => {
 
       {/* ── Body Wrapper ── */}
       <View style={styles.bodyWrapper}>
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'pengabdian' && styles.activeTabButton]}
+            onPress={() => setActiveTab('pengabdian')}>
+            <Text style={[styles.tabButtonText, activeTab === 'pengabdian' && styles.activeTabButtonText]}>
+              Pengabdian ({pengabdianData.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'pembicara' && styles.activeTabButton]}
+            onPress={() => setActiveTab('pembicara')}>
+            <Text style={[styles.tabButtonText, activeTab === 'pembicara' && styles.activeTabButtonText]}>
+              Pembicara ({pembicaraData.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -52,55 +74,140 @@ const PengabdianScreen = (props: any) => {
           <View style={styles.infoBanner}>
             <Icons name="information-outline" size={18} color="#1565C0" style={{ marginRight: 8 }} />
             <Text style={styles.infoBannerText}>
-              Data pengabdian (KKN) mahasiswa NPM {npm || '-'}
+              Data {activeTab === 'pengabdian' ? 'pengabdian masyarakat' : 'pembicara seminar'} NPM {npm || '-'}
             </Text>
           </View>
 
           {isLoading ? (
             <View style={styles.centerBox}>
               <ActivityIndicator size="large" color="#15613F" />
-              <Text style={styles.centerText}>Memuat data pengabdian...</Text>
+              <Text style={styles.centerText}>Memuat data...</Text>
             </View>
           ) : isError ? (
             <View style={styles.centerBox}>
               <Icons name="alert-circle-outline" size={60} color="#EF4444" />
-              <Text style={styles.centerText}>Gagal memuat data pengabdian</Text>
+              <Text style={styles.centerText}>Gagal memuat data</Text>
             </View>
-          ) : pengabdianData.length === 0 ? (
+          ) : currentData.length === 0 ? (
             <View style={styles.centerBox}>
               <Icons name="file-document-outline" size={60} color="#CBD5E0" />
               <Text style={styles.centerText}>Belum ada data</Text>
             </View>
           ) : (
-            pengabdianData.map((item: any, index: number) => {
-              const mk = item.kelasKuliah?.mataKuliah || {};
-              const semester = item.krsMahasiswa?.semester ?? '-';
+            currentData.map((item: any, index: number) => {
+              if (activeTab === 'pengabdian') {
+                return (
+                  <View key={item.pengabdian_id || index} style={styles.card}>
+                    {/* Card Header */}
+                    <View style={styles.cardHeader}>
+                      <View style={styles.semesterBadge}>
+                        <Text style={styles.semesterText}>{item.kelompok_bidang || 'Pengabdian'}</Text>
+                      </View>
+                      <View style={styles.pointBadge}>
+                        <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
+                      </View>
+                    </View>
 
-              return (
-                <View key={item.id || index} style={styles.card}>
-                  {/* Card Header */}
-                  <View style={styles.cardHeader}>
-                    <View style={styles.semesterBadge}>
-                      <Text style={styles.semesterText}>Semester {semester}</Text>
+                    {/* Card Body */}
+                    <View style={styles.cardBody}>
+                      {/* Judul Kegiatan */}
+                      <Text style={styles.judulLabel}>Judul Kegiatan:</Text>
+                      <Text style={styles.judulText}>{item.judul_kegiatan || '-'}</Text>
+
+                      {/* Kategori */}
+                      <View style={styles.detailRow}>
+                        <Icons name="bookmark-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>{item.nama_kategori || '-'}</Text>
+                      </View>
+
+                      {/* Lokasi & Durasi */}
+                      <View style={styles.detailRow}>
+                        <Icons name="map-marker-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Lokasi: {item.lokasi_kegiatan || '-'} ({item.lama_kegiatan || '-'})
+                        </Text>
+                      </View>
+
+                      {/* SK Penugasan */}
+                      <View style={styles.detailRow}>
+                        <Icons name="file-document-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>SK: {item.no_sk_penugasan || '-'}</Text>
+                      </View>
+
+                      {/* Tanggal SK */}
+                      <View style={styles.detailRow}>
+                        <Icons name="calendar-range" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Tanggal SK: {item.tgl_sk_penugasan ? moment(item.tgl_sk_penugasan).format('DD MMMM YYYY') : '-'}
+                        </Text>
+                      </View>
                     </View>
                   </View>
+                );
+              } else {
+                return (
+                  <View key={item.pembicara_id || index} style={styles.card}>
+                    {/* Card Header */}
+                    <View style={styles.cardHeader}>
+                      <View style={[styles.semesterBadge, { backgroundColor: '#E3F2FD' }]}>
+                        <Text style={[styles.semesterText, { color: '#1565C0' }]}>
+                          {item.kategori_pembicara || 'Pembicara'}
+                        </Text>
+                      </View>
+                      <View style={styles.pointBadge}>
+                        <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
+                      </View>
+                    </View>
 
-                  {/* Card Body */}
-                  <View style={styles.cardBody}>
-                    {/* Mata Kuliah */}
-                    <Text style={styles.judulLabel}>Mata Kuliah:</Text>
-                    <Text style={styles.judulText}>{mk.nama || 'Kuliah Kerja Nyata (KKN)'}</Text>
+                    {/* Card Body */}
+                    <View style={styles.cardBody}>
+                      {/* Judul Makalah */}
+                      <Text style={styles.judulLabel}>Judul Makalah / Materi:</Text>
+                      <Text style={styles.judulText}>{item.judul_makalah || '-'}</Text>
 
-                    {/* Kode & SKS */}
-                    <View style={styles.detailRow}>
-                      <Icons name="book-open-outline" size={16} color="#6B7280" />
-                      <Text style={styles.detailText}>
-                        {mk.kode || '-'}  ·  {mk.totalSks || '-'} SKS
-                      </Text>
+                      {/* Kategori */}
+                      <View style={styles.detailRow}>
+                        <Icons name="bookmark-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>{item.nama_kategori || '-'}</Text>
+                      </View>
+
+                      {/* Pertemuan */}
+                      <View style={styles.detailRow}>
+                        <Icons name="account-group-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Pertemuan: {item.nama_pertemuan || '-'} ({item.tingkat_pertemuan || '-'})
+                        </Text>
+                      </View>
+
+                      {/* Penyelenggara */}
+                      <View style={styles.detailRow}>
+                        <Icons name="office-building" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Penyelenggara: {item.penyelenggara || '-'}</Text>
+                      </View>
+
+                      {/* Bahasa */}
+                      <View style={styles.detailRow}>
+                        <Icons name="translate" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Bahasa: {item.bahasa || '-'}</Text>
+                      </View>
+
+                      {/* SK Penugasan */}
+                      <View style={styles.detailRow}>
+                        <Icons name="file-document-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>SK: {item.no_sk_penugasan || '-'}</Text>
+                      </View>
+
+                      {/* Tanggal SK */}
+                      <View style={styles.detailRow}>
+                        <Icons name="calendar-range" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Tanggal SK: {item.tgl_sk_penugasan ? moment(item.tgl_sk_penugasan).format('DD MMMM YYYY') : '-'}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-              );
+                );
+              }
             })
           )}
         </ScrollView>
@@ -141,6 +248,33 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
+  },
+
+  // Tabs style
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    padding: responsiveWidth(2),
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: responsiveWidth(3),
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  activeTabButton: {
+    backgroundColor: '#E8F5E9',
+  },
+  tabButtonText: {
+    fontSize: responsiveFontSize(1.6),
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  activeTabButtonText: {
+    color: '#15613F',
+    fontWeight: 'bold',
   },
 
   // ScrollView
@@ -212,6 +346,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#15613F',
   },
+  pointBadge: {
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  pointText: {
+    fontSize: responsiveFontSize(1.4),
+    fontWeight: 'bold',
+    color: '#E65100',
+  },
   cardBody: {
     padding: responsiveWidth(4),
   },
@@ -236,7 +381,10 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.6),
     color: '#4B5563',
     marginLeft: 6,
+    flex: 1,
   },
 });
+
+export default PengabdianScreen;
 
 export default PengabdianScreen;

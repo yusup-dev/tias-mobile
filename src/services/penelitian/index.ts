@@ -3,7 +3,7 @@ import { useTokenStore } from '../../store/auth';
 
 export async function getSkripsiParent(npm: string): Promise<any> {
   const token = useTokenStore.getState().token;
-  
+
   if (!npm) {
     throw new Error('NPM tidak ditemukan');
   }
@@ -14,7 +14,7 @@ export async function getSkripsiParent(npm: string): Promise<any> {
       token: token,
     },
   });
-  
+
   return response.data;
 }
 
@@ -27,6 +27,6 @@ export async function getAllDosen(): Promise<any> {
       token: token,
     },
   });
-  
+
   return response.data;
 }

@@ -92,7 +92,7 @@ const NilaiScreen = (props: any) => {
 
   const totalSks = hasilStudiRes?.data?.hasilStudi?.sksDiambil ?? hasilStudiRes?.data?.totalSks ?? 0;
   const ips = hasilStudiRes?.data?.hasilStudi?.ips ?? hasilStudiRes?.data?.ips ?? 0;
-  
+
   const totalBobot = useMemo(() => {
     if (hasilStudiRes?.data?.rincianKrs) {
       return hasilStudiRes.data.rincianKrs.reduce((acc: number, curr: any) => {
@@ -114,7 +114,7 @@ const NilaiScreen = (props: any) => {
           onPress={() => props.navigation.goBack()}>
           <Icon name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nilai Akademik</Text>
+        <Text style={styles.headerTitle}>Pendidikan</Text>
       </View>
 
       {/* ── Body Wrapper (rounded top) ── */}
