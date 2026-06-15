@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Alert, ActivityIndicator, KeyboardAvoidingView,
   Platform, SafeAreaView, StatusBar,
 } from 'react-native';
 import { useVerifyToken } from '../../services/cbt/useVerifyToken';
+import { useTokenStore } from '../../store/auth';
 
 // ============================
 //  PALETTE TEMA HIJAU-KUNING UIKA
@@ -31,6 +32,16 @@ const CBTTokenScreen = ({ route, navigation }: any) => {
   const { exam } = route.params;
   const [tokenInput, setTokenInput] = useState('');
   const { mutate: verifyToken, isPending } = useVerifyToken();
+
+  const cbtToken = useTokenStore(state => state.cbt_token);
+  const user = useTokenStore(state => state.user);
+  const isDosen = user?.role === 'Dosen' || user?.role === 'dosen';
+
+  useEffect(() => {
+    if (!cbtToken && !isDosen) {
+      navigation.replace('CBTEntry');
+    }
+  }, [cbtToken, isDosen, navigation]);
 
   const handleVerifikasi = () => {
     const trimmed = tokenInput.trim();

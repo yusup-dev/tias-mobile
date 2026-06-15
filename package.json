@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "android-build-bundle": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
+    "android-build-bundle": "node --max-old-space-size=8192 node_modules/react-native/cli.js bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
     "android-build-debug": "cd android && gradlew assembleDebug",
     "android-build-debug-linux": "cd android && ./gradlew assembleDebug",
     "android-build-release-windows": "cd android && gradlew assembleRelease",

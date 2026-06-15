@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, BackHandler, Platform, SafeAreaView } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSubmitExam } from '../../services/cbt/useSubmitExam';
 
 const CBTExamScreen = ({ route, navigation }: any) => {
@@ -9,8 +10,32 @@ const CBTExamScreen = ({ route, navigation }: any) => {
   const [answers, setAnswers] = useState<Record<number, any>>({});
   const [timeLeft, setTimeLeft] = useState((durasi ?? 60) * 60);
   const [sudahSubmit, setSudahSubmit] = useState(false);
+  const [hydrated, setHydrated] = useState(false); // draft selesai dimuat?
   const timerRef = useRef<any>(null);
   const { mutate: submitExam, isPending: isSubmitting } = useSubmitExam();
+
+  // Key draft per-ujian: jawaban aman walau token mati / app crash di tengah ujian
+  const draftKey = `cbt_draft_${exam.id}`;
+
+  // Pulihkan draft jawaban saat masuk ruang ujian
+  useEffect(() => {
+    let mounted = true;
+    AsyncStorage.getItem(draftKey)
+      .then((raw) => {
+        if (mounted && raw) {
+          try { setAnswers(JSON.parse(raw)); } catch {}
+        }
+      })
+      .finally(() => { if (mounted) setHydrated(true); });
+    return () => { mounted = false; };
+  }, [draftKey]);
+
+  // Simpan otomatis setiap jawaban berubah. Tunggu hydrasi dulu agar
+  // state awal kosong tidak menimpa draft yang sudah ada di storage.
+  useEffect(() => {
+    if (!hydrated) return;
+    AsyncStorage.setItem(draftKey, JSON.stringify(answers)).catch(() => {});
+  }, [answers, hydrated, draftKey]);
 
   // Timer countdown
   useEffect(() => {
@@ -64,8 +89,10 @@ const CBTExamScreen = ({ route, navigation }: any) => {
       });
 submitExam(fd, {
         onSuccess: (data) => {
+          // Submit sukses → draft tidak diperlukan lagi
+          AsyncStorage.removeItem(draftKey).catch(() => {});
           // JARING PENGAMAN: Ambil data utuh, jangan terpaku pada data.data
-          const payload = data?.data || data; 
+          const payload = data?.data || data;
           navigation.replace('CBTResult', { exam, result: payload });
         },
         onError: () => { setSudahSubmit(false); Alert.alert('Gagal Submit', 'Terjadi kesalahan jaringan. Coba lagi.'); },

@@ -34,6 +34,10 @@ local.properties
 *.keystore
 !debug.keystore
 
+# JVM crash dumps (dibuat saat Gradle/build Android crash)
+hs_err_pid*.log
+replay_pid*.log
+
 # node.js
 #
 node_modules/

@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   ActivityIndicator, SafeAreaView, Platform, StatusBar,
   LayoutAnimation, UIManager, TextInput,
 } from 'react-native';
 import { useHistory } from '../../services/cbt/useHistory';
+import { useTokenStore } from '../../store/auth';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -41,6 +42,16 @@ const CBTHistoryScreen = ({ navigation }: any) => {
 
   const { data: responseData, isLoading, isError, refetch } = useHistory();
   const historyData = responseData?.data || [];
+
+  const cbtToken = useTokenStore(state => state.cbt_token);
+  const user = useTokenStore(state => state.user);
+  const isDosen = user?.role === 'Dosen' || user?.role === 'dosen';
+
+  useEffect(() => {
+    if (!cbtToken && !isDosen) {
+      navigation.replace('CBTEntry');
+    }
+  }, [cbtToken, isDosen, navigation]);
 
   // =============================
   //  FILTER & SEARCH (client-side)

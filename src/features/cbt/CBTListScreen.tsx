@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   RefreshControl, ActivityIndicator, SafeAreaView, Platform, StatusBar,
 } from 'react-native';
 import { useExamList, Exam } from '../../services/cbt/useExamList';
+import { useTokenStore } from '../../store/auth';
 
 // ============================
 //  PALETTE TEMA HIJAU-KUNING UIKA
@@ -48,6 +49,16 @@ const formatJam = (dateStr?: string): string => {
 
 const CBTListScreen = ({ navigation }: any) => {
   const { data: exams, isLoading, isError, refetch, isFetching } = useExamList();
+
+  const cbtToken = useTokenStore(state => state.cbt_token);
+  const user = useTokenStore(state => state.user);
+  const isDosen = user?.role === 'Dosen' || user?.role === 'dosen';
+
+  useEffect(() => {
+    if (!cbtToken && !isDosen) {
+      navigation.replace('CBTEntry');
+    }
+  }, [cbtToken, isDosen, navigation]);
 
   const renderItem = ({ item }: { item: Exam }) => (
     <TouchableOpacity
