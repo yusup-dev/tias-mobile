@@ -1,18 +1,24 @@
 import axios from 'axios';
+import { useTokenStore } from '../store/auth';
 
 const instance = axios.create({
   baseURL: 'https://api-tias.ti.ft.uika-bogor.ac.id/',
   validateStatus: status => status < 500,
-  timeout: 15000, // 15 detik timeout
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
-    "Accept": "application/json",
+    Accept: 'application/json',
   },
 });
 
-// Interceptor untuk logging request (debug)
+// Interceptor untuk inject token + logging request (debug)
 instance.interceptors.request.use(
   (config) => {
+    const token = useTokenStore.getState().token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.token = token;
+    }
     console.log(`[AXIOS-PARENT] >> ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || '');
     return config;
   },

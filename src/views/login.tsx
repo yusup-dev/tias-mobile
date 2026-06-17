@@ -53,7 +53,7 @@ const Login = (props: any) => {
     });
   };
 
-  const handleSuccess = (succ: any) => {
+  const handleSuccess = (succ: any, expectedRole: 'Parent' | 'Mahasiswa') => {
     const isSuccess = succ?.isSuccess ||
       succ?.message?.toLowerCase().includes('success') ||
       succ?.responseMessage?.toLowerCase().includes('success') ||
@@ -62,14 +62,13 @@ const Login = (props: any) => {
     if (isSuccess) {
       const userData = {
         ...succ?.data,
-        role: succ?.data?.role || (role === 'orang_tua' ? 'Parent' : 'Mahasiswa')
+        role: succ?.data?.role || expectedRole,
       };
       setUser(userData);
       setToken(succ?.data?.token);
       storeSetRememberMe(rememberMe);
       setAuthentication(true);
     } else {
-      // Ambil pesan error dari response
       const errorMsg = (succ?.responseMessage && succ?.responseMessage !== 'error' && succ?.responseMessage !== 'Error')
         ? succ.responseMessage
         : (typeof succ?.data === 'string' ? succ.data : (succ?.message || 'Login gagal. Periksa kembali email dan password Anda.'));
@@ -78,28 +77,24 @@ const Login = (props: any) => {
     }
   };
 
+  const handleError = (err: any) => {
+    const data = err?.response?.data;
+    const msg = (data?.responseMessage && data?.responseMessage !== 'error' && data?.responseMessage !== 'Error')
+      ? data.responseMessage
+      : (typeof data?.data === 'string' ? data.data : (data?.message || err?.message || 'Terjadi kesalahan. Silakan coba lagi.'));
+    showDialog('Gagal', msg);
+  };
+
   const { mutate: mutateMhs, isLoading: loadingMhs } = useMutation({
     mutationFn: login,
-    onError: (err: any) => {
-      const data = err?.response?.data;
-      const msg = (data?.responseMessage && data?.responseMessage !== 'error' && data?.responseMessage !== 'Error')
-        ? data.responseMessage
-        : (typeof data?.data === 'string' ? data.data : (data?.message || err?.message || 'Terjadi kesalahan. Silakan coba lagi.'));
-      showDialog('Gagal', msg);
-    },
-    onSuccess: handleSuccess,
+    onError: handleError,
+    onSuccess: (data) => handleSuccess(data, 'Mahasiswa'),
   });
 
   const { mutate: mutateOt, isLoading: loadingOt } = useMutation({
     mutationFn: loginOrangTua,
-    onError: (err: any) => {
-      const data = err?.response?.data;
-      const msg = (data?.responseMessage && data?.responseMessage !== 'error' && data?.responseMessage !== 'Error')
-        ? data.responseMessage
-        : (typeof data?.data === 'string' ? data.data : (data?.message || err?.message || 'Terjadi kesalahan. Silakan coba lagi.'));
-      showDialog('Gagal', msg);
-    },
-    onSuccess: handleSuccess,
+    onError: handleError,
+    onSuccess: (data) => handleSuccess(data, 'Parent'),
   });
 
   const isLoading = loadingMhs || loadingOt;

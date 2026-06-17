@@ -59,25 +59,11 @@ export async function updateSignature(base64Image: string): Promise<any> {
 // ── PROFILE ORANG TUA ────────────────────────────────────────────────────────
 
 export async function getProfileParent(): Promise<any> {
-  const token = useTokenStore.getState().token;
-  const response = await parentAxios.get('/parents/get-profile', {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      token: token,
-    },
-  });
+  const response = await parentAxios.get('/parents/get-profile');
   return response.data;
 }
 
 export async function editProfileParent(data: { nama_lengkap: string; no_hp: string }): Promise<any> {
-  const token = useTokenStore.getState().token;
-  const response = await parentAxios.put('/parents/edit-profile', data, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      token: token,
-    },
-  });
+  const response = await parentAxios.put('/parents/edit-profile', data);
   return response.data;
 }

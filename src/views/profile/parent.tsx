@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, Text, TouchableOpacity, View, StyleSheet, ActivityIndicator } from 'react-native';
 import {
   responsiveFontSize,
@@ -11,18 +11,18 @@ import { useQuery } from '@tanstack/react-query';
 import { getProfileParent } from '../../services/auth/profile';
 
 const ParentProfileScreen = (props: any) => {
-  const { auth, user, setAuthentication, setToken, setUser, setRememberMe } = useTokenStore();
+  const { user, setUser, setRememberMe, logout } = useTokenStore();
 
-  // Mengambil data profile terbaru dari API
   const { data: profileData, isLoading } = useQuery({
     queryKey: ['parentProfile'],
     queryFn: getProfileParent,
-    onSuccess: (res) => {
-      if (res?.data) {
-        setUser({ ...user, ...res.data });
-      }
-    }
   });
+
+  useEffect(() => {
+    if (profileData?.data) {
+      setUser({ ...user, ...profileData.data });
+    }
+  }, [profileData]);
 
   const [listProfile] = useState([
     { id: 1, name: 'Pengaturan Akun', icon: 'cog-outline', action: () => props.navigation.push('parentProfile.pengaturan-akun') },
@@ -34,10 +34,8 @@ const ParentProfileScreen = (props: any) => {
     { id: 4, name: 'Beri Kami Nilai', icon: 'party-popper', action: () => props.navigation.push('parentProfile.beri-nilai') },
     {
       id: 5, name: 'Logout', icon: 'logout', action: () => {
-        setUser({});
-        setToken('');
+        logout();
         setRememberMe(false);
-        setAuthentication(false);
       }
     },
   ]);
