@@ -31,12 +31,11 @@ type Props = {
   navigation?: any;
 };
 
-const Login = ({ navigation }: Props) => {
+const Login = (props: any) => {
   const [role, setRole] = useState<Role>('mahasiswa');
   const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState({ value: '', secure: true });
-
   const [modalQuery, setModalQuery] = useState({
     visible: false,
     title: '',
@@ -54,7 +53,7 @@ const Login = ({ navigation }: Props) => {
     });
   };
 
-  const handleSuccess = (succ: any) => {
+  const handleSuccess = (succ: any, expectedRole: 'Parent' | 'Mahasiswa') => {
     const isSuccess = succ?.isSuccess ||
       succ?.message?.toLowerCase().includes('success') ||
       succ?.responseMessage?.toLowerCase().includes('success') ||
@@ -63,14 +62,13 @@ const Login = ({ navigation }: Props) => {
     if (isSuccess) {
       const userData = {
         ...succ?.data,
-        role: succ?.data?.role || (role === 'orang_tua' ? 'Parent' : 'Mahasiswa')
+        role: succ?.data?.role || expectedRole,
       };
       setUser(userData);
       setToken(succ?.data?.token);
       storeSetRememberMe(rememberMe);
       setAuthentication(true);
     } else {
-      // Ambil pesan error dari response
       const errorMsg = (succ?.responseMessage && succ?.responseMessage !== 'error' && succ?.responseMessage !== 'Error')
         ? succ.responseMessage
         : (typeof succ?.data === 'string' ? succ.data : (succ?.message || 'Login gagal. Periksa kembali email dan password Anda.'));
@@ -79,28 +77,24 @@ const Login = ({ navigation }: Props) => {
     }
   };
 
+  const handleError = (err: any) => {
+    const data = err?.response?.data;
+    const msg = (data?.responseMessage && data?.responseMessage !== 'error' && data?.responseMessage !== 'Error')
+      ? data.responseMessage
+      : (typeof data?.data === 'string' ? data.data : (data?.message || err?.message || 'Terjadi kesalahan. Silakan coba lagi.'));
+    showDialog('Gagal', msg);
+  };
+
   const { mutate: mutateMhs, isLoading: loadingMhs } = useMutation({
     mutationFn: login,
-    onError: (err: any) => {
-      const data = err?.response?.data;
-      const msg = (data?.responseMessage && data?.responseMessage !== 'error' && data?.responseMessage !== 'Error')
-        ? data.responseMessage
-        : (typeof data?.data === 'string' ? data.data : (data?.message || err?.message || 'Terjadi kesalahan. Silakan coba lagi.'));
-      showDialog('Gagal', msg);
-    },
-    onSuccess: handleSuccess,
+    onError: handleError,
+    onSuccess: (data) => handleSuccess(data, 'Mahasiswa'),
   });
 
   const { mutate: mutateOt, isLoading: loadingOt } = useMutation({
     mutationFn: loginOrangTua,
-    onError: (err: any) => {
-      const data = err?.response?.data;
-      const msg = (data?.responseMessage && data?.responseMessage !== 'error' && data?.responseMessage !== 'Error')
-        ? data.responseMessage
-        : (typeof data?.data === 'string' ? data.data : (data?.message || err?.message || 'Terjadi kesalahan. Silakan coba lagi.'));
-      showDialog('Gagal', msg);
-    },
-    onSuccess: handleSuccess,
+    onError: handleError,
+    onSuccess: (data) => handleSuccess(data, 'Parent'),
   });
 
   const isLoading = loadingMhs || loadingOt;
@@ -213,46 +207,89 @@ const Login = ({ navigation }: Props) => {
                 onChangeText={val => setPassword({ ...password, value: val })}
                 style={styles.input}
               />
-              <TouchableOpacity onPress={() => setPassword({ ...password, secure: !password.secure })}>
+              <TouchableOpacity
+                onPress={() => setPassword({ ...password, secure: !password.secure })}>
                 <View style={styles.inputIcon}>
                   <Icon name={password.secure ? 'eye' : 'eye-off'} size={22} color="gray" />
                 </View>
               </TouchableOpacity>
             </View>
           </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: responsiveWidth(1),
+          }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignSelf: 'center',
+            }}>
+            <Checkbox
+              status={rememberMe ? 'checked' : 'unchecked'}
+              onPress={() => {
+                setRememberMe(!rememberMe);
+              }}
+            />
 
-          {/* Remember me / Lupa password */}
-          <View style={styles.optionsRow}>
-            <View style={styles.rememberRow}>
-              <Checkbox
-                status={rememberMe ? 'checked' : 'unchecked'}
-                onPress={() => setRememberMe(!rememberMe)}
-              />
-              <Text style={styles.rememberText}>Ingat Saya</Text>
-            </View>
-            <TouchableOpacity onPress={() => navigation?.navigate('ForgotPassword')}>
-              <Text style={styles.forgotText}>Lupa Password?</Text>
-            </TouchableOpacity>
+            <Text
+              style={{
+                alignSelf: 'center',
+              }}>
+              Ingat Saya
+            </Text>
           </View>
-
-          {/* Login button */}
           <TouchableOpacity
-            onPress={submit}
-            disabled={isLoading}
-            style={[styles.submitBtn, isLoading && { opacity: 0.7 }]}>
-            <Text style={styles.submitText}>Login</Text>
+            onPress={() => props.navigation.navigate('forgotPassword')}
+            style={{
+              flexDirection: 'row',
+              alignSelf: 'center',
+            }}>
+            <Text
+              style={{
+                alignSelf: 'center',
+                color: 'gray',
+              }}>
+              Lupa Password?
+            </Text>
           </TouchableOpacity>
-
-          {/* Register link */}
-          <View style={styles.registerRow}>
-            <Text style={styles.registerHint}>Belum punya akun? </Text>
-            <TouchableOpacity onPress={() => navigation?.navigate('Register')}>
-              <Text style={styles.registerLink}>Daftar Sekarang</Text>
-            </TouchableOpacity>
-          </View>
-
-        </ScrollView>
-      </View>
+        </View>
+        <TouchableOpacity
+          onPress={submit}
+          style={{
+            backgroundColor: '#15613F',
+            paddingVertical: responsiveWidth(3),
+            borderRadius: responsiveWidth(3),
+            marginVertical: responsiveWidth(3),
+          }}>
+          <Text
+            style={{
+              color: 'white',
+              textAlign: 'center',
+            }}>
+            Login
+          </Text>
+        </TouchableOpacity>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            marginTop: responsiveWidth(2),
+          }}>
+          <Text>Belum punya akun?</Text>
+          <TouchableOpacity onPress={() => props.navigation.navigate('register')}>
+            <Text
+              style={{
+                color: '#15613F',
+                fontWeight: '700',
+              }}>
+              Daftar Sekarang
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
 
       {/* Loading overlay */}
       {isLoading && (

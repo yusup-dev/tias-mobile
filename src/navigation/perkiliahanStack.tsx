@@ -25,5 +25,3 @@ function PerkuliahanStack() {
 }
 
 export default PerkuliahanStack;
-
-export default PerkuliahanStack;

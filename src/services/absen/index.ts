@@ -75,12 +75,12 @@ export async function absensi(data: AbsenRequest): Promise<AbsenResponse> {
   return response.data;
 }
 
-// 2. Fungsi untuk Mengambil Info Matkul dari Token (INI YANG DIPERBAIKI)
+// 2. Fungsi untuk Mengambil Info Matkul dari Token
+// Proxy ke PHP server (172.16.18.162) yang menyimpan data QR
 export async function get_pembelajaran(data: {
   token: string;
 }): Promise<AbsenResponse> {
-  // Ubah URL dari 'absensi/get-pembelajaran' menjadi 'pembelajaran' saja
-  const response = await axios.get('pembelajaran', {
+  const response = await axios.get('absensi/get-pembelajaran', {
     params: {
       'filter[]': 'token',
       'filterValue[]': data.token,

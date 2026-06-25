@@ -27,6 +27,35 @@ export async function login(data: LoginRequest): Promise<any> {
   }
 }
 
+export async function register(data: any): Promise<any> {
+  try {
+    const response = await axios.post('auth/register', data, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+}
+
+export async function forgotPassword(data: { email: string }): Promise<any> {
+  try {
+    const response = await axios.post('auth/forgotPassword', data, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+}
+
+
 /** Login orang tua dengan email + password */
 export async function loginOrangTua(data: LoginRequest): Promise<any> {
   try {

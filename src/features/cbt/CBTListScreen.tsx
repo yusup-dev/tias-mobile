@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   RefreshControl, ActivityIndicator, SafeAreaView, Platform, StatusBar,
 } from 'react-native';
 import { useExamList, Exam } from '../../services/cbt/useExamList';
+import { useTokenStore } from '../../store/auth';
 
 // ============================
 //  PALETTE TEMA HIJAU-KUNING UIKA
@@ -25,8 +26,39 @@ const C = {
   border: '#D1FAE5',
 };
 
+// ============================
+//  HELPER FORMAT TANGGAL & JAM
+// ============================
+const formatTanggal = (dateStr?: string): string => {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('id-ID', {
+      weekday: 'long', day: '2-digit', month: 'short', year: 'numeric',
+    });
+  } catch { return '-'; }
+};
+
+const formatJam = (dateStr?: string): string => {
+  if (!dateStr) return '--:--';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+  } catch { return '--:--'; }
+};
+
 const CBTListScreen = ({ navigation }: any) => {
   const { data: exams, isLoading, isError, refetch, isFetching } = useExamList();
+
+  const cbtToken = useTokenStore(state => state.cbt_token);
+  const user = useTokenStore(state => state.user);
+  const isDosen = user?.role === 'Dosen' || user?.role === 'dosen';
+
+  useEffect(() => {
+    if (!cbtToken && !isDosen) {
+      navigation.replace('CBTEntry');
+    }
+  }, [cbtToken, isDosen, navigation]);
 
   const renderItem = ({ item }: { item: Exam }) => (
     <TouchableOpacity
@@ -45,6 +77,22 @@ const CBTListScreen = ({ navigation }: any) => {
           </View>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>🟢 Aktif</Text>
+          </View>
+        </View>
+
+        {/* ✅ BARU: Jadwal Ujian */}
+        <View style={styles.scheduleBox}>
+          <View style={styles.scheduleRow}>
+            <Text style={styles.scheduleIcon}>📅</Text>
+            <Text style={styles.scheduleText}>
+              {formatTanggal(item.waktu_mulai || item.start_time)}
+            </Text>
+          </View>
+          <View style={styles.scheduleRow}>
+            <Text style={styles.scheduleIcon}>🕐</Text>
+            <Text style={styles.scheduleText}>
+              {formatJam(item.waktu_mulai || item.start_time)} – {formatJam(item.waktu_selesai || item.end_time)} WIB
+            </Text>
           </View>
         </View>
 
@@ -215,6 +263,31 @@ const styles = StyleSheet.create({
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: C.greenDark, lineHeight: 22 },
   cardSub: { fontSize: 13, color: C.textGray, marginTop: 4, fontWeight: '500' },
+
+  // Jadwal Ujian
+  scheduleBox: {
+    backgroundColor: C.greenLight,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  scheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  scheduleIcon: { fontSize: 13 },
+  scheduleText: {
+    fontSize: 12.5,
+    color: C.textMid,
+    fontWeight: '600',
+    flex: 1,
+  },
+
   divider: { height: 1, backgroundColor: C.greenLight, marginBottom: 14 },
 
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

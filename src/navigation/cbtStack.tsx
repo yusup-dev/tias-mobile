@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import CBTEntryScreen from '../features/cbt/CBTEntryScreen';
 import CBTListScreen from '../features/cbt/CBTListScreen';
 import CBTTokenScreen from '../features/cbt/CBTTokenScreen';
+import CBTTermsScreen from '../features/cbt/CBTTermsScreen';
 import CBTExamScreen from '../features/cbt/CBTExamScreen';
 import CBTResultScreen from '../features/cbt/CBTResultScreen';
 import CBTHistoryScreen from '../features/cbt/CBTHistoryScreen';
@@ -21,6 +22,7 @@ const CBTStack = () => (
     <Stack.Screen name="CBTEntry" component={CBTEntryScreen} options={{ headerShown: false }} />
     <Stack.Screen name="CBTList" component={CBTListScreen} options={{ title: 'Daftar Ujian', headerLeft: () => null }} />
     <Stack.Screen name="CBTToken" component={CBTTokenScreen} options={{ title: 'Masuk Ujian' }} />
+    <Stack.Screen name="CBTTerms" component={CBTTermsScreen} options={{ title: 'Syarat & Ketentuan', headerLeft: () => null }} />
     <Stack.Screen
       name="CBTExam"
       component={CBTExamScreen}
@@ -35,3 +37,4 @@ const CBTStack = () => (
 );
 
 export default CBTStack;
+

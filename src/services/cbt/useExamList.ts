@@ -6,10 +6,13 @@ export interface Exam {
   nama_ujian: string;
   mata_kuliah: {
     nama_mk: string;
-};
+  };
   durasi: number;
-  start_time: string;
-  end_time: string;
+  // Field dari backend (bisa salah satu, tergantung versi API)
+  waktu_mulai?: string;
+  waktu_selesai?: string;
+  start_time?: string;
+  end_time?: string;
 }
 
 export const useExamList = () => {

@@ -760,14 +760,16 @@ const MenuComponent = (props: any) => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: '#ECFDF5',
-            paddingHorizontal: responsiveWidth(3),
-            paddingVertical: responsiveWidth(1.5),
-            borderRadius: 20,
-          }}>
+          <TouchableOpacity 
+            onPress={() => props.navigation.push('home.challenge-list')}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#ECFDF5',
+              paddingHorizontal: responsiveWidth(3),
+              paddingVertical: responsiveWidth(1.5),
+              borderRadius: 20,
+            }}>
             <Text style={{
               fontSize: responsiveFontSize(1.3),
               color: '#15613F',
@@ -791,7 +793,7 @@ const MenuComponent = (props: any) => {
           shadowOpacity: 0.05,
           shadowRadius: 4,
         }}>
-          {dataEvent?.data.map((list: any, index: number) => (
+          {dataEvent?.data.slice(0, 3).map((list: any, index: number) => (
             <TouchableOpacity
               onPress={() => {
                 props.navigation.push('home.detail-challenge', {
@@ -805,7 +807,7 @@ const MenuComponent = (props: any) => {
                 alignItems: 'center',
                 paddingVertical: responsiveWidth(3),
                 paddingHorizontal: responsiveWidth(4),
-                borderBottomWidth: index !== (dataEvent?.data?.length ?? 0) - 1 ? 1 : 0,
+                borderBottomWidth: index !== (dataEvent?.data?.slice(0, 3).length ?? 0) - 1 ? 1 : 0,
                 borderBottomColor: '#F3F4F6',
               }}>
               {/* Thumbnail */}

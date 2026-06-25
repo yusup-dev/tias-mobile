@@ -3,19 +3,19 @@ import { View, Text, StyleSheet, ActivityIndicator, Dimensions } from 'react-nat
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
 import { useIsFocused } from '@react-navigation/native';
 
-// Mengambil ukuran layar untuk membuat scanner yang proporsional
-const { width } = Dimensions.get('window');
-const SCAN_BOX_SIZE = width * 0.75; // Ukuran kotak kamera 75% dari lebar layar HP
+const { width, height } = Dimensions.get('window');
 
-const CameraScanBarcode = ({ onScanSuccess }: { onScanSuccess: (token: string) => void }) => {
+interface Props {
+  onScanSuccess: (token: string) => void;
+  fullScreen?: boolean; // jika true, kamera mengisi flex:1 dari parent
+}
+
+const CameraScanBarcode = ({ onScanSuccess, fullScreen = true }: Props) => {
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
   const isFocused = useIsFocused();
-
-  // Lock agar scan tidak dipanggil berulang kali
   const isScanning = useRef(false);
 
-  // Reset lock ketika layar kehilangan fokus (navigasi ke halaman lain)
   useEffect(() => {
     if (!isFocused) {
       isScanning.current = false;
@@ -23,16 +23,10 @@ const CameraScanBarcode = ({ onScanSuccess }: { onScanSuccess: (token: string) =
   }, [isFocused]);
 
   const handleCodeScanned = useCallback((codes: any[]) => {
-    // Jika sudah dalam proses scan, abaikan scan berikutnya
-    if (isScanning.current) {
-      return;
-    }
-
+    if (isScanning.current) return;
     if (codes.length > 0 && codes[0].value) {
-      isScanning.current = true; // Kunci agar tidak scan lagi
+      isScanning.current = true;
       onScanSuccess(codes[0].value);
-
-      // Buka kunci setelah 3 detik untuk memungkinkan scan ulang jika diperlukan
       setTimeout(() => {
         isScanning.current = false;
       }, 3000);
@@ -53,56 +47,75 @@ const CameraScanBarcode = ({ onScanSuccess }: { onScanSuccess: (token: string) =
   if (!hasPermission) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#6B4CE6" />
+        <ActivityIndicator size="large" color="#15613F" />
         <Text style={styles.loadingText}>Menyiapkan Kamera...</Text>
       </View>
     );
   }
 
   if (device == null) {
-    return <Text style={styles.errorText}>Kamera belakang tidak ditemukan</Text>;
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Kamera belakang tidak ditemukan</Text>
+      </View>
+    );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Kotak Kamera */}
-      <View style={styles.cameraWrapper}>
-        <Camera
-          style={StyleSheet.absoluteFillObject}
-          device={device}
-          isActive={isFocused}
-          codeScanner={codeScanner}
-        />
-        
-        {/* Sudut Estetika Pembidik (Warna ungu menyesuaikan tema tombolmu) */}
+    <View style={styles.fullContainer}>
+      {/* Kamera mengisi seluruh area */}
+      <Camera
+        style={StyleSheet.absoluteFill}
+        device={device}
+        isActive={isFocused}
+        codeScanner={codeScanner}
+      />
+
+      {/* Overlay gelap di luar area scan */}
+      <View style={styles.overlayTop} />
+      <View style={styles.overlayBottom} />
+      <View style={styles.overlaySideLeft} />
+      <View style={styles.overlaySideRight} />
+
+      {/* Scan box di tengah */}
+      <View style={styles.scanBox}>
+        {/* Corner guides */}
         <View style={[styles.corner, styles.topLeft]} />
         <View style={[styles.corner, styles.topRight]} />
         <View style={[styles.corner, styles.bottomLeft]} />
         <View style={[styles.corner, styles.bottomRight]} />
+
+        {/* Scan line animasi */}
+        <View style={styles.scanLine} />
       </View>
-      
-      {/* Teks Instruksi Opsional */}
-      <Text style={styles.instruction}>Posisikan QR Code di dalam area kamera</Text>
+
+      {/* Label bawah */}
+      <View style={styles.labelContainer}>
+        <Text style={styles.instruction}>Posisikan QR Code di dalam kotak</Text>
+      </View>
     </View>
   );
 };
 
+const SCAN_BOX = width * 0.68;
+const SCAN_BOX_TOP = (height * 0.55 - SCAN_BOX) / 2; // posisi vertikal scan box
+
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    backgroundColor: 'transparent', // Agar menyatu dengan background abu-abu halamanmu
+  fullContainer: {
+    flex: 1,
+    position: 'relative',
   },
   center: {
-    height: SCAN_BOX_SIZE,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000',
   },
   loadingText: {
-    marginTop: 10,
-    color: '#666',
+    marginTop: 12,
+    color: '#FFFFFF',
     fontSize: 14,
+    fontWeight: '500',
   },
   errorText: {
     color: '#FF3B30',
@@ -111,36 +124,117 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  cameraWrapper: {
-    width: SCAN_BOX_SIZE,
-    height: SCAN_BOX_SIZE,
-    borderRadius: 20, // Bikin ujung kamera jadi melengkung elegan
-    overflow: 'hidden',
-    backgroundColor: '#E5E5EA', // Warna loading sebelum kamera terbuka
-    position: 'relative',
-    elevation: 5, // Shadow untuk Android
-    shadowColor: '#000', // Shadow untuk iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+
+  // Overlay gelap di sisi-sisi luar scan box
+  overlayTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: SCAN_BOX_TOP,
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
-  instruction: {
-    marginTop: 15,
-    color: '#666666',
-    fontSize: 14,
-    fontWeight: '500',
+  overlayBottom: {
+    position: 'absolute',
+    top: SCAN_BOX_TOP + SCAN_BOX,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
-  // Style untuk sudut pembidik
+  overlaySideLeft: {
+    position: 'absolute',
+    top: SCAN_BOX_TOP,
+    left: 0,
+    width: (width - SCAN_BOX) / 2,
+    height: SCAN_BOX,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  overlaySideRight: {
+    position: 'absolute',
+    top: SCAN_BOX_TOP,
+    right: 0,
+    width: (width - SCAN_BOX) / 2,
+    height: SCAN_BOX,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+
+  // Kotak scan area
+  scanBox: {
+    position: 'absolute',
+    top: SCAN_BOX_TOP,
+    left: (width - SCAN_BOX) / 2,
+    width: SCAN_BOX,
+    height: SCAN_BOX,
+  },
+
+  // Corner guides
   corner: {
     position: 'absolute',
-    width: 30,
-    height: 30,
-    borderColor: '#6B4CE6', // Warna ungu senada dengan tombol
+    width: 36,
+    height: 36,
+    borderColor: '#4ADE80',
   },
-  topLeft: { top: 15, left: 15, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 8 },
-  topRight: { top: 15, right: 15, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 8 },
-  bottomLeft: { bottom: 15, left: 15, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 8 },
-  bottomRight: { bottom: 15, right: 15, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 8 },
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+    borderTopLeftRadius: 6,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 4,
+    borderRightWidth: 4,
+    borderTopRightRadius: 6,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+    borderBottomLeftRadius: 6,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: 4,
+    borderRightWidth: 4,
+    borderBottomRightRadius: 6,
+  },
+
+  // Scan line
+  scanLine: {
+    position: 'absolute',
+    top: '50%',
+    left: 8,
+    right: 8,
+    height: 2,
+    backgroundColor: '#4ADE80',
+    opacity: 0.8,
+    borderRadius: 1,
+  },
+
+  // Label
+  labelContainer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  instruction: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
 });
 
 export default CameraScanBarcode;

@@ -1,7 +1,8 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import AbsensiComponent from '../views/absensi/index';
 import FormCodeComponent from '../views/absensi/formCode';
-import { AttendanceFaceScreen } from '../features/attendance-face';
+import AttendanceFaceScreen from '../views/absensi/AttendanceFaceScreen';
+import AttendanceFaceDevScreen from '../features/attendance-face/screens/AttendanceFaceScreen';
 
 const Stack = createStackNavigator();
 function AbsensiStack() {
@@ -25,6 +26,8 @@ function AbsensiStack() {
         }}
       />
       <Stack.Screen name="absensi.face" component={AttendanceFaceScreen} />
+      {/* DEV ONLY: Face screen lengkap dengan enroll & face detector */}
+      <Stack.Screen name="absensi.face.dev" component={AttendanceFaceDevScreen} />
     </Stack.Navigator>
   );
 }

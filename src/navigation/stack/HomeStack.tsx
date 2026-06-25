@@ -10,6 +10,7 @@ import KompetensiScreen from '../../views/kompetensi/index';
 import PenunjangScreen from '../../views/penunjang/index';
 
 const Stack = createStackNavigator();
+
 function HomeStack() {
   return (
     <Stack.Navigator
@@ -20,14 +21,14 @@ function HomeStack() {
         name="home.index"
         component={MenuComponent}
         options={{
-          title: 'test',
+          title: 'home',
         }}
       />
       <Stack.Screen
         name="home.evoting"
         component={EvotingComp}
         options={{
-          title: 'test2',
+          title: 'test',
         }}
       />
       <Stack.Screen

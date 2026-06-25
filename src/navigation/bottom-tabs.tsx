@@ -3,7 +3,7 @@ import { MenuComponent } from '../views/home/index';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icons from 'react-native-vector-icons/FontAwesome5';
 
-import Gamifikasi from '../views/gamifikasi/index';
+import GamifikasiStack from './stack/GamifikasiStack';
 
 import PerkuliahanStack from './perkiliahanStack';
 import AbsensiStack from './absensiStack';
@@ -33,7 +33,7 @@ const MahasiswaComponent = () => (
       />
       <Tab.Screen
         name="Gamifikasi"
-        component={Gamifikasi}
+        component={GamifikasiStack}
         options={{
           title: 'gamifikasi',
           tabBarLabel: 'Gamifikasi',
@@ -101,7 +101,7 @@ const DosenComponent = () => (
       />
       <Tab.Screen
         name="Gamifikasi"
-        component={Gamifikasi}
+        component={GamifikasiStack}
         options={{
           title: 'rekomendasi',
           tabBarLabel: 'Rekomendasi',
@@ -170,7 +170,7 @@ const OrangTuaComponent = () => (
       />
       <Tab.Screen
         name="Gamifikasi"
-        component={Gamifikasi}
+        component={GamifikasiStack}
         options={{
           title: 'gamifikasi',
           tabBarLabel: 'Gamifikasi',

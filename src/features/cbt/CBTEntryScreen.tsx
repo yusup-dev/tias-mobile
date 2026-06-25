@@ -3,7 +3,7 @@ import {
   View, Text, ActivityIndicator, TouchableOpacity,
   StyleSheet, Linking, SafeAreaView, StatusBar, Platform,
 } from 'react-native';
-import { useTokenStore } from '../../store/auth';
+import { useTokenStore, isCbtTokenValid } from '../../store/auth';
 import { useCbtLogin } from '../../services/cbt/useCbtLogin';
 
 const CBT_WEB_URL = 'https://u-talent.uika-bogor.ac.id/cbt/';
@@ -37,7 +37,12 @@ const CBTEntryScreen = ({ navigation }: any) => {
   const isDosen = user?.role === 'Dosen' || user?.role === 'dosen';
 
   useEffect(() => {
-    if (!isDosen && !cbt_token) {
+    if (isDosen) return; // dosen tetap lihat portal
+    // Validasi token (expiry), bukan sekadar keberadaannya:
+    // token basi → SSO ulang; token masih valid → langsung ke daftar ujian.
+    if (isCbtTokenValid()) {
+      navigation.replace('CBTList');
+    } else {
       loginCbt();
     }
   }, []);

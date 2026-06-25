@@ -16,7 +16,10 @@ export const useCbtLogin = () => {
     },
     onSuccess: (data) => {
       if (data?.success && data?.data?.cbt_token) {
-        setCbtToken(data.data.cbt_token, data.data.cbt_user_id);
+        const expiresAt = data?.data?.expires_at
+          ? new Date(data.data.expires_at).getTime()
+          : Date.now() + 8 * 60 * 60 * 1000;
+        setCbtToken(data.data.cbt_token, data.data.cbt_user_id, expiresAt);
       }
     },
   });
