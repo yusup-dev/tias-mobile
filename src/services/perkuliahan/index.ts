@@ -2,7 +2,7 @@
 
 import axios from '../../config/axios-tias';
 import siakadAxios from '../../config/axios-siakad';
-import axiosParent from '../../config/axios-parent';
+import axiosOrangTua from '../../config/axios-orang-tua';
 import { useTokenStore } from '../../store/auth';
 
 export async function perkuliahan(): Promise<any> {
@@ -29,7 +29,7 @@ export async function perkuliahan(): Promise<any> {
 
 export async function absensiDetail(npm: string, kodeMatkul: string): Promise<any> {
   const token = useTokenStore.getState().token;
-  const response = await axiosParent.get(`parents/absensi-matkul/${npm}/${kodeMatkul}`, {
+  const response = await axiosOrangTua.get(`parents/absensi-matkul/${npm}/${kodeMatkul}`, {
     headers: {
       token: token,
     },

@@ -9,7 +9,7 @@ import PerkuliahanStack from './perkiliahanStack';
 import AbsensiStack from './absensiStack';
 import HomeStack from './stack/HomeStack';
 import ProfileStack from './stack/ProfileStack';
-import ProfileParentStack from './stack/ProfileParentStack';
+import ProfileOrangTuaStack from './stack/ProfileOrangTuaStack';
 import { useTokenStore } from '../store/auth';
 import DosenStack from './stack/DosenStack';
 import CbtStack from './cbtStack';
@@ -188,7 +188,7 @@ const OrangTuaComponent = () => (
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileParentStack}
+        component={ProfileOrangTuaStack}
         options={{
           title: 'profile',
           tabBarLabel: 'Profile',
