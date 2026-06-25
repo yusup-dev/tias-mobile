@@ -1,7 +1,7 @@
 // profile/getDataPribadi
 
 import axios from '../../config/axios-tias';
-import parentAxios from '../../config/axios-parent';
+import axiosOrangTua from '../../config/axios-orang-tua';
 import { useTokenStore } from '../../store/auth';
 export async function profile(): Promise<any> {
   const token = useTokenStore.getState().token;
@@ -9,7 +9,7 @@ export async function profile(): Promise<any> {
 
   // Jika login sebagai Orang Tua, ambil data mahasiswa berdasarkan NPM
   if (user?.role === 'Parent' && user?.npm) {
-    const response = await parentAxios.get(`profile/getDataPribadiByNpm/${user.npm}`, {
+    const response = await axiosOrangTua.get(`profile/getDataPribadiByNpm/${user.npm}`, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         token: token,
@@ -30,9 +30,9 @@ export async function profile(): Promise<any> {
 
 // ── PROFILE ORANG TUA ────────────────────────────────────────────────────────
 
-export async function getProfileParent(): Promise<any> {
+export async function getProfileOrangTua(): Promise<any> {
   const token = useTokenStore.getState().token;
-  const response = await parentAxios.get('/parents/get-profile', {
+  const response = await axiosOrangTua.get('/parents/get-profile', {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -42,9 +42,9 @@ export async function getProfileParent(): Promise<any> {
   return response.data;
 }
 
-export async function editProfileParent(data: { nama_lengkap: string; no_hp: string }): Promise<any> {
+export async function editProfileOrangTua(data: { nama_lengkap: string; no_hp: string }): Promise<any> {
   const token = useTokenStore.getState().token;
-  const response = await parentAxios.put('/parents/edit-profile', data, {
+  const response = await axiosOrangTua.put('/parents/edit-profile', data, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,

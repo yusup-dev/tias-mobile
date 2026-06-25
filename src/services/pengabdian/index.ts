@@ -1,15 +1,15 @@
-import parentAxios from '../../config/axios-parent';
+import axiosOrangTua from '../../config/axios-orang-tua';
 import siakadAxios from '../../config/axios-siakad';
 import { useTokenStore } from '../../store/auth';
 
-export async function getPengabdianParent(npm: string): Promise<any> {
+export async function getPengabdianOrangTua(npm: string): Promise<any> {
   const token = useTokenStore.getState().token;
 
   if (!npm) {
     throw new Error('NPM tidak ditemukan');
   }
 
-  const response = await parentAxios.get(`/parents/pengabdian/${npm}`, {
+  const response = await axiosOrangTua.get(`/parents/pengabdian/${npm}`, {
     headers: {
       'Content-Type': 'application/json',
       token: token,
@@ -19,7 +19,7 @@ export async function getPengabdianParent(npm: string): Promise<any> {
   return response.data;
 }
 
-export async function getPengabdianOrangTua(npm: string): Promise<any> {
+export async function getPengabdianOrangTuaSiakad(npm: string): Promise<any> {
   if (!npm) {
     throw new Error('NPM tidak ditemukan');
   }

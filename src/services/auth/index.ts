@@ -1,5 +1,5 @@
 import axios from '../../config/axios-tias';
-import axiosParent from '../../config/axios-parent';
+import axiosOrangTua from '../../config/axios-orang-tua';
 
 export type LoginResponse = {
   message?: string;
@@ -30,7 +30,7 @@ export async function login(data: LoginRequest): Promise<any> {
 /** Login orang tua dengan email + password */
 export async function loginOrangTua(data: LoginRequest): Promise<any> {
   try {
-    const response = await axiosParent.post('parents/login', data, {
+    const response = await axiosOrangTua.post('parents/login', data, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',

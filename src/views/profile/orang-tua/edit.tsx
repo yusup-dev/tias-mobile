@@ -3,11 +3,11 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingVi
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { editProfileParent } from '../../services/auth/profile';
-import { useTokenStore } from '../../store/auth';
-import { DialogComponent } from '../../component/dialog';
+import { editProfileOrangTua } from '../../../services/auth/profile';
+import { useTokenStore } from '../../../store/auth';
+import { DialogComponent } from '../../../component/dialog';
 
-const EditParentProfileScreen = ({ navigation }: any) => {
+const EditOrangTuaProfileScreen = ({ navigation }: any) => {
   const { user, setUser } = useTokenStore();
   const queryClient = useQueryClient();
 
@@ -43,10 +43,10 @@ const EditParentProfileScreen = ({ navigation }: any) => {
   }, [user]);
 
   const { mutate, isLoading } = useMutation({
-    mutationFn: editProfileParent,
+    mutationFn: editProfileOrangTua,
     onSuccess: () => {
       setUser({ ...user, nama_lengkap: namaLengkap, no_hp: noHp });
-      queryClient.invalidateQueries(['parentProfile']);
+      queryClient.invalidateQueries(['orangTuaProfile']);
       showDialog('Berhasil', 'Profil berhasil diperbarui.', () => {
         navigation.goBack();
       });
@@ -283,4 +283,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditParentProfileScreen;
+export default EditOrangTuaProfileScreen;

@@ -40,7 +40,7 @@ export async function getNilai(): Promise<any> {
 
 export async function getPeriodeAkademik(): Promise<any> {
   const token = useTokenStore.getState().token;
-  const response = await siakadAxios.get('akademik/periode-akademik', {
+  const response = await siakadAxios.get('periode-akademik/dropdown', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -69,7 +69,7 @@ export async function getHasilStudiSiakad(periodeId: string): Promise<any> {
   }
 }
 
-export async function getIpkParent(npm: string): Promise<any> {
+export async function getIpkOrangTua(npm: string): Promise<any> {
   const token = useTokenStore.getState().token;
   const response = await siakadAxios.get(`orang-tua/hasil-studi/ipk?npm=${npm}`, {
     headers: {

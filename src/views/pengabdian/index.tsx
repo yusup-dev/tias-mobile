@@ -15,8 +15,8 @@ import {
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
-import { useTokenStore } from '../../../store/auth';
-import { getPengabdianParent } from '../../../services/pengabdian/index';
+import { useTokenStore } from '../../store/auth';
+import { getPengabdianOrangTua } from '../../services/pengabdian/index';
 
 const PengabdianScreen = (props: any) => {
   const { user } = useTokenStore();
@@ -24,8 +24,8 @@ const PengabdianScreen = (props: any) => {
   const [activeTab, setActiveTab] = React.useState<'pengabdian' | 'pembicara'>('pengabdian');
 
   const { data: pengabdianRes, isLoading, isError } = useQuery({
-    queryKey: ['pengabdian-ortu', npm],
-    queryFn: () => getPengabdianParent(npm as string),
+    queryKey: ['pengabdian-orang-tua', npm],
+    queryFn: () => getPengabdianOrangTua(npm as string),
     enabled: !!npm,
   });
 

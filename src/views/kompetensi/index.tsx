@@ -15,7 +15,7 @@ import {
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
 import { useTokenStore } from '../../../src/store/auth';
-import { getKompetensiParent } from '../../../src/services/kompetensi/index';
+import { getKompetensiOrangTua } from '../../../src/services/kompetensi/index';
 import moment from 'moment';
 
 const KompetensiScreen = (props: any) => {
@@ -24,8 +24,8 @@ const KompetensiScreen = (props: any) => {
   const [activeTab, setActiveTab] = useState<'sertifikasi' | 'tes'>('sertifikasi');
 
   const { data: kompetensiRes, isLoading, isError } = useQuery({
-    queryKey: ['kompetensi-parent', npm],
-    queryFn: () => getKompetensiParent(npm as string),
+    queryKey: ['kompetensi-orang-tua', npm],
+    queryFn: () => getKompetensiOrangTua(npm as string),
     enabled: !!npm,
   });
 
