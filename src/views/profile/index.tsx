@@ -50,6 +50,7 @@ const ProfileScreen = (props: any) => {
           <View style={styles.userData}>
             <Text style={styles.userName}>{user?.nama_lengkap || 'Pengguna'}</Text>
             <Text style={styles.userEmail}>{user?.email || 'email@example.com'}</Text>
+            {user?.nik && <Text style={styles.userNik}>NIK: {user?.nik}</Text>}
           </View>
           
           <TouchableOpacity 
@@ -165,6 +166,12 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.6),
     color: '#6B7280',
     marginTop: 2,
+  },
+  userNik: {
+    fontSize: responsiveFontSize(1.5),
+    color: '#15613F',
+    marginTop: 2,
+    fontWeight: '600',
   },
   editButton: {
     padding: 8,

@@ -386,5 +386,3 @@ const styles = StyleSheet.create({
 });
 
 export default PengabdianScreen;
-
-export default PengabdianScreen;
