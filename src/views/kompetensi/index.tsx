@@ -377,5 +377,3 @@ const styles = StyleSheet.create({
 });
 
 export default KompetensiScreen;
-
-export default KompetensiScreen;

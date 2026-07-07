@@ -64,6 +64,7 @@ const OrangTuaProfileScreen = (props: any) => {
               <Text style={styles.userName}>{displayUser?.nama_lengkap || 'Pengguna'}</Text>
               <Text style={styles.userEmail}>{displayUser?.email || 'email@example.com'}</Text>
               {displayUser?.no_hp && <Text style={styles.userPhone}>{displayUser?.no_hp}</Text>}
+              {displayUser?.nik && <Text style={styles.userNik}>NIK: {displayUser?.nik}</Text>}
             </View>
             <TouchableOpacity
               style={styles.editButton}
@@ -185,6 +186,12 @@ const styles = StyleSheet.create({
     color: '#15613F',
     marginTop: 2,
     fontWeight: '600',
+  },
+  userNik: {
+    fontSize: responsiveFontSize(1.5),
+    color: '#6B7280',
+    marginTop: 2,
+    fontWeight: '500',
   },
   editButton: {
     padding: 8,

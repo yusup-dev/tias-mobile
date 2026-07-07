@@ -41,6 +41,7 @@ const Register = ({ navigation }: Props) => {
   // ── Orang Tua fields ──────────────────────────────────────────────────────
   const [namaOt, setNamaOt] = useState('');
   const [emailOt, setEmailOt] = useState('');
+  const [nikOt, setNikOt] = useState('');
   const [npmOt, setNpmOt] = useState('');
   const [noHpOt, setNoHpOt] = useState('');
   const [passwordOt, setPasswordOt] = useState({ value: '', secure: true });
@@ -121,8 +122,12 @@ const Register = ({ navigation }: Props) => {
         return false;
       }
     } else {
-      if (!namaOt.trim() || !emailOt.trim() || !npmOt.trim() || !noHpOt.trim() || !passwordOt.value) {
+      if (!namaOt.trim() || !emailOt.trim() || !nikOt.trim() || !npmOt.trim() || !noHpOt.trim() || !passwordOt.value) {
         showDialog('Perhatian', 'Semua field wajib diisi.');
+        return false;
+      }
+      if (nikOt.trim().length !== 16) {
+        showDialog('Perhatian', 'NIK harus terdiri dari 16 digit.');
         return false;
       }
       if (passwordOt.value !== confirmPasswordOt.value) {
@@ -156,6 +161,7 @@ const Register = ({ navigation }: Props) => {
         email: emailOt.trim(),
         npm: npmOt.trim(),
         no_hp: noHpOt.trim(),
+        nik: nikOt.trim(),
         password: passwordOt.value,
         password2: confirmPasswordOt.value,
       });
@@ -295,6 +301,7 @@ const Register = ({ navigation }: Props) => {
 
               {renderTextField('Nama Lengkap', 'account', namaOt, setNamaOt, 'Masukkan nama lengkap')}
               {renderTextField('Email', 'email', emailOt, setEmailOt, 'Masukkan email', 'email-address')}
+              {renderTextField('NIK', 'card-account-details', nikOt, setNikOt, 'Masukkan NIK', 'numeric', 16)}
               {renderTextField('NPM Mahasiswa', 'card-account-details', npmOt, setNpmOt, 'NPM anak/mahasiswa', 'numeric')}
               {renderTextField('No. HP', 'phone', noHpOt, setNoHpOt, 'Masukkan nomor HP', 'phone-pad', 15)}
               {renderPasswordField('Password', passwordOt, setPasswordOt, 'Masukkan password')}

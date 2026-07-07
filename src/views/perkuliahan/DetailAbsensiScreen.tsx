@@ -52,42 +52,66 @@ const DetailAbsensiScreen = ({ route, navigation }: any) => {
     );
   }
 
+  const normalizeStatus = (s: any) => (s ?? '').toString().trim().toLowerCase();
+
+  const isAlpaStatus = (s: string) =>
+    s === 'alpa' ||
+    s === 'alfa' ||
+    s === 'alpha' ||
+    s.includes('tidak hadir') ||
+    s.includes('tanpa keterangan');
+
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'hadir':
-        return '#2D9CDB'; // Blue
-      case 'alpa':
-        return '#EB5757'; // Red
-      case 'izin':
-        return '#F2994A'; // Orange
-      case 'sakit':
-        return '#27AE60'; // Green
-      default:
-        return '#828282';
-    }
+    const s = normalizeStatus(status);
+    if (s === 'hadir') return '#2D9CDB'; // Blue
+    if (isAlpaStatus(s)) return '#EB5757'; // Red
+    if (s === 'izin') return '#F2994A'; // Orange
+    if (s === 'sakit') return '#27AE60'; // Green
+    return '#828282';
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'hadir':
-        return 'check-circle';
-      case 'alpa':
-        return 'close-circle';
-      case 'izin':
-        return 'email-open';
-      case 'sakit':
-        return 'medical-bag';
-      default:
-        return 'help-circle';
-    }
+    const s = normalizeStatus(status);
+    if (s === 'hadir') return 'check-circle';
+    if (isAlpaStatus(s)) return 'close-circle';
+    if (s === 'izin') return 'email-open';
+    if (s === 'sakit') return 'medical-bag';
+    return 'help-circle';
   };
 
-  // Safe calculations
-  const total = absensiData?.total_pertemuan || 0;
-  const hadir = absensiData?.hadir || 0;
-  const izin = absensiData?.izin || 0;
-  const sakit = absensiData?.sakit || 0;
-  const alpa = absensiData?.alpa ?? Math.max(0, total - hadir - izin - sakit);
+  // Rincian per pertemuan = sumber kebenaran yang benar-benar ditampilkan ke user.
+  const rincian: any[] = Array.isArray(absensiData?.rincian_absensi)
+    ? absensiData.rincian_absensi
+    : [];
+
+  const countStatus = (predicate: (s: string) => boolean) =>
+    rincian.filter(item => predicate(normalizeStatus(item.status))).length;
+
+  const hasRincian = rincian.length > 0;
+
+  // Kalau ada rincian, hitung langsung dari list agar ringkasan selalu cocok
+  // dengan daftar pertemuan. Kalau tidak ada, fallback ke agregat dari API.
+  const hadir = hasRincian
+    ? countStatus(s => s === 'hadir')
+    : absensiData?.hadir || 0;
+  const izin = hasRincian
+    ? countStatus(s => s === 'izin')
+    : absensiData?.izin || 0;
+  const sakit = hasRincian
+    ? countStatus(s => s === 'sakit')
+    : absensiData?.sakit || 0;
+  const alpa = hasRincian
+    ? countStatus(
+        s =>
+          s === 'alpa' ||
+          s === 'alfa' ||
+          s === 'alpha' ||
+          s.includes('tidak hadir') ||
+          s.includes('tanpa keterangan'),
+      )
+    : absensiData?.alpa ?? 0;
+
+  const total = absensiData?.total_pertemuan || (hasRincian ? rincian.length : 0);
 
   return (
     <View style={styles.container}>
@@ -135,7 +159,11 @@ const DetailAbsensiScreen = ({ route, navigation }: any) => {
               </View>
               <View style={styles.statRow}>
                 <View style={[styles.dot, { backgroundColor: '#F2994A' }]} />
-                <Text style={styles.statText}>Izin/Sakit: {izin + sakit}</Text>
+                <Text style={styles.statText}>Izin: {izin}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <View style={[styles.dot, { backgroundColor: '#27AE60' }]} />
+                <Text style={styles.statText}>Sakit: {sakit}</Text>
               </View>
               <Text style={styles.totalPertemuan}>Total: {total} Pertemuan</Text>
             </View>
@@ -146,11 +174,11 @@ const DetailAbsensiScreen = ({ route, navigation }: any) => {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Riwayat Pertemuan</Text>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{absensiData?.rincian_absensi?.length || 0} Data</Text>
+                <Text style={styles.badgeText}>{rincian.length} Data</Text>
               </View>
             </View>
 
-            {absensiData?.rincian_absensi?.map((item: any, index: number) => (
+            {rincian.map((item: any, index: number) => (
               <View key={index} style={styles.attendanceItem}>
                 <View style={styles.itemLeft}>
                   <View style={[styles.pertemuanCircle, { backgroundColor: getStatusColor(item.status) + '20' }]}>
@@ -163,7 +191,7 @@ const DetailAbsensiScreen = ({ route, navigation }: any) => {
                       {moment(item.tanggal).isValid() ? moment(item.tanggal).format('DD MMMM YYYY') : '-'}
                     </Text>
                     <Text style={styles.itemKeterangan}>
-                      {item.status === 'Hadir' ? 'Tercatat hadir' : (item.keterangan || '-')}
+                      {normalizeStatus(item.status) === 'hadir' ? 'Tercatat hadir' : (item.keterangan || '-')}
                     </Text>
                   </View>
                 </View>
@@ -174,7 +202,7 @@ const DetailAbsensiScreen = ({ route, navigation }: any) => {
               </View>
             ))}
 
-            {!absensiData?.rincian_absensi?.length && (
+            {!rincian.length && (
               <View style={styles.emptyContainer}>
                 <Icons name="information-outline" size={40} color="#CBD5E0" />
                 <Text style={styles.emptyText}>Belum ada data riwayat pertemuan.</Text>

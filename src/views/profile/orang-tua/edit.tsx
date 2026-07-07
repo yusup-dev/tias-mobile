@@ -148,7 +148,7 @@ const EditOrangTuaProfileScreen = ({ navigation }: any) => {
           </View>
 
           {/* Email (Read Only) */}
-          <View style={[styles.fieldWrapper, { marginBottom: 0 }]}>
+          <View style={styles.fieldWrapper}>
             <Text style={styles.label}>Email Terdaftar</Text>
             <View style={[styles.inputRow, styles.inputRowDisabled]}>
               <View style={styles.iconWrapper}>
@@ -162,6 +162,23 @@ const EditOrangTuaProfileScreen = ({ navigation }: any) => {
               <Icon name="lock-outline" size={18} color="#D1D5DB" />
             </View>
             <Text style={styles.helperText}>Email tidak dapat diubah.</Text>
+          </View>
+
+          {/* NIK (Read Only) */}
+          <View style={[styles.fieldWrapper, { marginBottom: 0 }]}>
+            <Text style={styles.label}>NIK</Text>
+            <View style={[styles.inputRow, styles.inputRowDisabled]}>
+              <View style={styles.iconWrapper}>
+                <Icon name="card-account-details-outline" size={22} color="#9CA3AF" />
+              </View>
+              <TextInput
+                style={[styles.input, { color: '#9CA3AF' }]}
+                value={user?.nik || '-'}
+                editable={false}
+              />
+              <Icon name="lock-outline" size={18} color="#D1D5DB" />
+            </View>
+            <Text style={styles.helperText}>NIK tidak dapat diubah.</Text>
           </View>
         </View>
 

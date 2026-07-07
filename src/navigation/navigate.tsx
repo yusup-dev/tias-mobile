@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTokenStore } from '../store/auth';
 import Login from '../views/login';
-import RegisterScreen from '../views/RegisterScreen';
+import Register from '../views/register';
 import ForgotPasswordScreen from '../views/ForgotPasswordScreen';
 import BottomTabsComponent from './bottom-tabs';
 
@@ -12,7 +12,7 @@ const Stack = createStackNavigator();
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="login" component={Login} />
-    <Stack.Screen name="register" component={RegisterScreen} />
+    <Stack.Screen name="register" component={Register} />
     <Stack.Screen name="forgotPassword" component={ForgotPasswordScreen} />
   </Stack.Navigator>
 );
