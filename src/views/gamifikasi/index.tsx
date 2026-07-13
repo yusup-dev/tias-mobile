@@ -156,7 +156,7 @@ const Gamifikasi = (props: any) => {
 
   return (
     <ScrollView style={styles.rootContainer} showsVerticalScrollIndicator={false}>
-      
+
       {/* Header Gradient */}
       <LinearGradient colors={['#15613F', '#BAEED7']} style={styles.headerGradient} />
 
@@ -170,7 +170,7 @@ const Gamifikasi = (props: any) => {
           <View style={styles.profileTextContainer}>
             <Text style={styles.profileRank}>{data?.data?.rank || 'Level 1'}</Text>
             <Text style={styles.profileScore}>
-              {data?.data?.total_point ? ribuanCast(data?.data?.total_point) : 0} TIAS Score avg
+              {data?.data?.total_point ? ribuanCast(data?.data?.total_point) : 0} UCL Score avg
             </Text>
           </View>
         </View>
@@ -181,7 +181,7 @@ const Gamifikasi = (props: any) => {
       </View>
 
       <View style={styles.contentContainer}>
-        
+
         {/* UCL Club Banner */}
         <View style={styles.clubCard}>
           <View style={styles.clubInfo}>
@@ -189,9 +189,9 @@ const Gamifikasi = (props: any) => {
               <Image source={require('../../../assets/login/mdi_shield-star.png')} style={styles.clubIcon} />
               <Text style={styles.clubTitle}>UCL Club</Text>
             </View>
-            <Text style={styles.clubSubtitle}>Program loyalitas eksklusif TIAS</Text>
+            <Text style={styles.clubSubtitle}>Program loyalitas eksklusif UCL</Text>
           </View>
-          
+
           <TouchableOpacity style={styles.clubButton}>
             <Text style={styles.clubButtonText}>Ikuti Gratis</Text>
           </TouchableOpacity>
@@ -202,8 +202,8 @@ const Gamifikasi = (props: any) => {
 
         {/* Kategori Staggered Grid */}
         <View style={styles.kategoriSection}>
-          <Text style={styles.sectionTitle}>Tias Kategori</Text>
-          
+          <Text style={styles.sectionTitle}>UCL Kategori</Text>
+
           <StaggeredList
             data={listKategori}
             animationType={'FADE_IN_FAST'}

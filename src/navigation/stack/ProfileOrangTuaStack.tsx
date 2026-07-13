@@ -1,7 +1,7 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import ParentProfileScreen from '../../views/profile/parent';
-import EditParentProfileScreen from '../../views/profile/edit-parent';
+import OrangTuaProfileScreen from '../../views/profile/orang-tua/index';
+import EditOrangTuaProfileScreen from '../../views/profile/orang-tua/edit';
 import BantuanScreen from '../../views/profile/bantuan';
 import PengaturanAkunScreen from '../../views/profile/pengaturan-akun';
 import KebijakanPrivasiScreen from '../../views/profile/kebijakan-privasi';
@@ -9,49 +9,49 @@ import BeriNilaiScreen from '../../views/profile/beri-nilai';
 
 const Stack = createStackNavigator();
 
-function ProfileParentStack() {
+function ProfileOrangTuaStack() {
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
       }}>
       <Stack.Screen
-        name="parentProfile.index"
-        component={ParentProfileScreen}
+        name="orangTuaProfile.index"
+        component={OrangTuaProfileScreen}
         options={{
           title: 'Profil',
         }}
       />
       <Stack.Screen
-        name="parentProfile.edit"
-        component={EditParentProfileScreen}
+        name="orangTuaProfile.edit"
+        component={EditOrangTuaProfileScreen}
         options={{
           title: 'Ubah Profil',
         }}
       />
       <Stack.Screen
-        name="parentProfile.pengaturan-akun"
+        name="orangTuaProfile.pengaturan-akun"
         component={PengaturanAkunScreen}
         options={{
           title: 'Pengaturan Akun',
         }}
       />
       <Stack.Screen
-        name="parentProfile.bantuan"
+        name="orangTuaProfile.bantuan"
         component={BantuanScreen}
         options={{
           title: 'Bantuan & Laporan',
         }}
       />
       <Stack.Screen
-        name="parentProfile.kebijakan-privasi"
+        name="orangTuaProfile.kebijakan-privasi"
         component={KebijakanPrivasiScreen}
         options={{
           title: 'Kebijakan Privasi',
         }}
       />
       <Stack.Screen
-        name="parentProfile.beri-nilai"
+        name="orangTuaProfile.beri-nilai"
         component={BeriNilaiScreen}
         options={{
           title: 'Beri Kami Nilai',
@@ -61,4 +61,4 @@ function ProfileParentStack() {
   );
 }
 
-export default ProfileParentStack;
+export default ProfileOrangTuaStack;

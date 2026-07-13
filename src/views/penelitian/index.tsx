@@ -14,8 +14,8 @@ import {
 } from 'react-native-responsive-dimensions';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
-import { useTokenStore } from '../../../../src/store/auth';
-import { getSkripsiParent, getAllDosen } from '../../../../src/services/penelitian/index';
+import { useTokenStore } from '../../store/auth';
+import { getSkripsiOrangTua, getAllDosen } from '../../services/penelitian/index';
 import moment from 'moment';
 
 const SkripsiScreen = (props: any) => {
@@ -23,8 +23,8 @@ const SkripsiScreen = (props: any) => {
   const npm = user?.npm;
 
   const { data: skripsiRes, isLoading: isSkripsiLoading, isError: isSkripsiError } = useQuery({
-    queryKey: ['skripsi-parent', npm],
-    queryFn: () => getSkripsiParent(npm as string),
+    queryKey: ['skripsi-orang-tua', npm],
+    queryFn: () => getSkripsiOrangTua(npm as string),
     enabled: !!npm,
   });
 

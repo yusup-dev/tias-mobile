@@ -59,7 +59,7 @@ const PenunjangScreen = (props: any) => {
           onPress={() => props.navigation.goBack()}>
           <Icons name="arrow-left" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>SKPI</Text>
+        <Text style={styles.headerTitle}>Penunjang</Text>
       </View>
 
       {/* ── Body Wrapper ── */}
@@ -68,7 +68,7 @@ const PenunjangScreen = (props: any) => {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
-          
+
           <View style={styles.docHeader}>
             <Text style={styles.docTitle}>SURAT KETERANGAN</Text>
             <Text style={styles.docTitle}>PENDAMPING IJAZAH</Text>
@@ -141,7 +141,7 @@ const PenunjangScreen = (props: any) => {
             <Text style={[styles.tableHeaderText, { flex: 3 }]}>Competencies</Text>
             <Text style={[styles.tableHeaderText, { flex: 1.5, textAlign: 'center' }]}>Qualification</Text>
           </View>
-          
+
           <View style={styles.tableRow}>
             <Text style={[styles.tableCellText, { flex: 0.5 }]}>1.</Text>
             <Text style={[styles.tableCellText, { flex: 2, fontWeight: 'bold' }]}>Pengetahuan</Text>
@@ -167,12 +167,12 @@ const PenunjangScreen = (props: any) => {
             <Text style={styles.signatureText}>Bogor, 11 September 2023</Text>
             <Text style={styles.signatureText}>Rektor,</Text>
             <Text style={styles.signatureText}>Universitas Ibn Khaldun Bogor</Text>
-            
+
             <View style={styles.signatureSpace}>
               {/* Placeholder for Signature Image */}
-              <Text style={{color: '#ccc', fontStyle: 'italic'}}>(Tanda Tangan)</Text>
+              <Text style={{ color: '#ccc', fontStyle: 'italic' }}>(Tanda Tangan)</Text>
             </View>
-            
+
             <Text style={[styles.signatureText, { fontWeight: 'bold', textDecorationLine: 'underline' }]}>Prof. Dr. H.E. Mujahidin, M.Si</Text>
             <Text style={styles.signatureText}>NIK. 410 100 562</Text>
           </View>
@@ -228,10 +228,10 @@ const styles = StyleSheet.create({
   docTitle: {
     fontSize: responsiveFontSize(2.2),
     fontWeight: 'bold',
-    color: '#00B050',
+    color: '#15613F',
   },
   docNumberBox: {
-    backgroundColor: '#00B050',
+    backgroundColor: '#15613F',
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
   },
   sectionHeader: {
-    backgroundColor: '#00B050',
+    backgroundColor: '#15613F',
     paddingVertical: 6,
     paddingHorizontal: 8,
     marginTop: 16,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#00B050',
+    backgroundColor: '#15613F',
     paddingVertical: 4,
     paddingHorizontal: 4,
     marginBottom: 8,

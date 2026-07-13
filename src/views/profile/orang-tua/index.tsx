@@ -1,41 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View, StyleSheet, ActivityIndicator } from 'react-native';
 import {
   responsiveFontSize,
   responsiveWidth,
   responsiveHeight,
 } from 'react-native-responsive-dimensions';
-import { useTokenStore } from '../../store/auth';
+import { useTokenStore } from '../../../store/auth';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
-import { getProfileParent } from '../../services/auth/profile';
+import { getProfileOrangTua } from '../../../services/auth/profile';
 
-const ParentProfileScreen = (props: any) => {
-  const { user, setUser, setRememberMe, logout } = useTokenStore();
+const OrangTuaProfileScreen = (props: any) => {
+  const { auth, user, setAuthentication, setToken, setUser, setRememberMe } = useTokenStore();
 
+  // Mengambil data profile terbaru dari API
   const { data: profileData, isLoading } = useQuery({
-    queryKey: ['parentProfile'],
-    queryFn: getProfileParent,
+    queryKey: ['orangTuaProfile'],
+    queryFn: getProfileOrangTua,
+    onSuccess: (res) => {
+      if (res?.data) {
+        setUser({ ...user, ...res.data });
+      }
+    }
   });
 
-  useEffect(() => {
-    if (profileData?.data) {
-      setUser({ ...user, ...profileData.data });
-    }
-  }, [profileData]);
-
   const [listProfile] = useState([
-    { id: 1, name: 'Pengaturan Akun', icon: 'cog-outline', action: () => props.navigation.push('parentProfile.pengaturan-akun') },
-    { id: 2, name: 'Bantuan & Laporan Saya', icon: 'help-circle-outline', action: () => props.navigation.push('parentProfile.bantuan') },
+    { id: 1, name: 'Pengaturan Akun', icon: 'cog-outline', action: () => props.navigation.push('orangTuaProfile.pengaturan-akun') },
+    { id: 2, name: 'Bantuan & Laporan Saya', icon: 'help-circle-outline', action: () => props.navigation.push('orangTuaProfile.bantuan') },
   ]);
 
   const [listProfile2] = useState([
-    { id: 3, name: 'Kebijakan Privasi', icon: 'shield-alert-outline', action: () => props.navigation.push('parentProfile.kebijakan-privasi') },
-    { id: 4, name: 'Beri Kami Nilai', icon: 'party-popper', action: () => props.navigation.push('parentProfile.beri-nilai') },
+    { id: 3, name: 'Kebijakan Privasi', icon: 'shield-alert-outline', action: () => props.navigation.push('orangTuaProfile.kebijakan-privasi') },
+    { id: 4, name: 'Beri Kami Nilai', icon: 'party-popper', action: () => props.navigation.push('orangTuaProfile.beri-nilai') },
     {
       id: 5, name: 'Logout', icon: 'logout', action: () => {
-        logout();
+        setUser({});
+        setToken('');
         setRememberMe(false);
+        setAuthentication(false);
       }
     },
   ]);
@@ -62,10 +64,11 @@ const ParentProfileScreen = (props: any) => {
               <Text style={styles.userName}>{displayUser?.nama_lengkap || 'Pengguna'}</Text>
               <Text style={styles.userEmail}>{displayUser?.email || 'email@example.com'}</Text>
               {displayUser?.no_hp && <Text style={styles.userPhone}>{displayUser?.no_hp}</Text>}
+              {displayUser?.nik && <Text style={styles.userNik}>NIK: {displayUser?.nik}</Text>}
             </View>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => props.navigation.push('parentProfile.edit')}>
+              onPress={() => props.navigation.push('orangTuaProfile.edit')}>
               <Icon name="pencil-outline" size={20} color="#15613F" />
             </TouchableOpacity>
           </View>
@@ -184,6 +187,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '600',
   },
+  userNik: {
+    fontSize: responsiveFontSize(1.5),
+    color: '#6B7280',
+    marginTop: 2,
+    fontWeight: '500',
+  },
   editButton: {
     padding: 8,
     backgroundColor: '#F3F4F6',
@@ -248,4 +257,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ParentProfileScreen;
+export default OrangTuaProfileScreen;

@@ -16,7 +16,7 @@ import {
 } from 'react-native-responsive-dimensions';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useQuery } from '@tanstack/react-query';
-import { getPeriodeAkademik, getHasilStudiSiakad } from '../../../services/nilai/index';
+import { getPeriodeAkademik, getHasilStudiSiakad } from '../../services/nilai/index';
 
 // ── Dummy Data ────────────────────────────────────────────────────────────────
 
@@ -56,7 +56,14 @@ const NilaiScreen = (props: any) => {
   });
 
   const periodeList = useMemo(() => {
-    return periodeRes?.data || [];
+    console.log('--- DEBUG PERIODE RES ---', JSON.stringify(periodeRes, null, 2));
+    if (periodeRes && Array.isArray(periodeRes.data)) {
+      return periodeRes.data;
+    }
+    if (Array.isArray(periodeRes)) {
+      return periodeRes;
+    }
+    return [];
   }, [periodeRes]);
 
   // Set default periode
@@ -81,7 +88,7 @@ const NilaiScreen = (props: any) => {
     enabled: !!selectedPeriodeId,
   });
 
-  const isLoading = isLoadingPeriode || isLoadingHasilStudi;
+  const isLoading = isLoadingPeriode || (!!selectedPeriodeId && isLoadingHasilStudi);
 
   const matkulList = useMemo(() => {
     console.log('--- HASIL STUDI RES ---', JSON.stringify(hasilStudiRes, null, 2));
@@ -92,7 +99,7 @@ const NilaiScreen = (props: any) => {
 
   const totalSks = hasilStudiRes?.data?.hasilStudi?.sksDiambil ?? hasilStudiRes?.data?.totalSks ?? 0;
   const ips = hasilStudiRes?.data?.hasilStudi?.ips ?? hasilStudiRes?.data?.ips ?? 0;
-  
+
   const totalBobot = useMemo(() => {
     if (hasilStudiRes?.data?.rincianKrs) {
       return hasilStudiRes.data.rincianKrs.reduce((acc: number, curr: any) => {
@@ -114,7 +121,7 @@ const NilaiScreen = (props: any) => {
           onPress={() => props.navigation.goBack()}>
           <Icon name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nilai Akademik</Text>
+        <Text style={styles.headerTitle}>Pendidikan</Text>
       </View>
 
       {/* ── Body Wrapper (rounded top) ── */}
@@ -131,7 +138,7 @@ const NilaiScreen = (props: any) => {
               <TouchableOpacity
                 style={styles.dropdown}
                 onPress={() => setDropdownVisible(true)}
-                disabled={isLoading || periodeList.length === 0}>
+                disabled={isLoadingPeriode || periodeList.length === 0}>
                 <Text style={styles.dropdownText} numberOfLines={1}>
                   {activePeriodeName || 'Pilih Periode'}
                 </Text>

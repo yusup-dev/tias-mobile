@@ -1,5 +1,5 @@
 import { createStackNavigator } from '@react-navigation/stack';
-import NilaiScreen from '../../views/pendidikan/nilai/index';
+import NilaiScreen from '../../views/pendidikan/index';
 
 const Stack = createStackNavigator();
 

@@ -17,7 +17,7 @@ import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { useTokenStore } from '../../../store/auth';
 import { getEvent, getTantangan } from '../../../services/home/index';
-import { getIpkParent } from '../../../services/nilai/index';
+import { getIpkOrangTua } from '../../../services/nilai/index';
 import moment from 'moment';
 import Geolocation from 'react-native-geolocation-service';
 import { useEffect } from 'react';
@@ -172,10 +172,10 @@ const MenuComponent = (props: any) => {
     }
   }, [isErrorEvent, errorEvent]);
 
-  // Query IPK khusus Parent
+  // Query IPK khusus Orang Tua
   const { data: ipkParentRes, isLoading: isLoadingIpk } = useQuery({
-    queryKey: ['ipk_parent', user?.npm],
-    queryFn: () => getIpkParent(user?.npm as string),
+    queryKey: ['ipk_orang_tua', user?.npm],
+    queryFn: () => getIpkOrangTua(user?.npm as string),
     enabled: user?.role === 'Parent' && !!user?.npm,
   });
   const ipkData = ipkParentRes?.data;

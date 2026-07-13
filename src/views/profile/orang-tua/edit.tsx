@@ -1,17 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ActivityIndicator, ScrollView } from 'react-native';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { editProfileParent } from '../../services/auth/profile';
-import { useTokenStore } from '../../store/auth';
+import { editProfileOrangTua } from '../../../services/auth/profile';
+import { useTokenStore } from '../../../store/auth';
+import { DialogComponent } from '../../../component/dialog';
 
-const EditParentProfileScreen = ({ navigation }: any) => {
+const EditOrangTuaProfileScreen = ({ navigation }: any) => {
   const { user, setUser } = useTokenStore();
   const queryClient = useQueryClient();
 
   const [namaLengkap, setNamaLengkap] = useState('');
   const [noHp, setNoHp] = useState('');
+
+  const [modalQuery, setModalQuery] = useState({
+    visible: false,
+    title: '',
+    desc: { buttonCancel: 'Ok', buttonDone: '', title: '' },
+    onDismiss: () => {},
+  });
+
+  const showDialog = (title: string, message: string, onDismissAction?: () => void) => {
+    setModalQuery({
+      visible: true,
+      title,
+      desc: { buttonCancel: 'Ok', buttonDone: '', title: message },
+      onDismiss: () => {
+        setModalQuery(prev => ({ ...prev, visible: false }));
+        if (onDismissAction) {
+          onDismissAction();
+        }
+      },
+    });
+  };
 
   useEffect(() => {
     if (user) {
@@ -21,25 +43,25 @@ const EditParentProfileScreen = ({ navigation }: any) => {
   }, [user]);
 
   const { mutate, isLoading } = useMutation({
-    mutationFn: editProfileParent,
+    mutationFn: editProfileOrangTua,
     onSuccess: () => {
       setUser({ ...user, nama_lengkap: namaLengkap, no_hp: noHp });
-      queryClient.invalidateQueries(['parentProfile']);
-      Alert.alert('Berhasil', 'Profil berhasil diperbarui.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      queryClient.invalidateQueries(['orangTuaProfile']);
+      showDialog('Berhasil', 'Profil berhasil diperbarui.', () => {
+        navigation.goBack();
+      });
     },
     onError: (err: any) => {
-      Alert.alert(
+      showDialog(
         'Gagal',
-        err?.response?.data?.message || err?.message || 'Gagal memperbarui profil.',
+        'Gagal memperbarui profil.',
       );
     },
   });
 
   const handleSave = () => {
     if (!noHp.trim()) {
-      Alert.alert('Perhatian', 'Nomor handphone wajib diisi.');
+      showDialog('Perhatian', 'Nomor handphone wajib diisi.');
       return;
     }
     mutate({
@@ -51,6 +73,13 @@ const EditParentProfileScreen = ({ navigation }: any) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}>
+
+      <DialogComponent
+        visible={modalQuery.visible}
+        onDismiss={modalQuery.onDismiss}
+        title={modalQuery.title}
+        desc={modalQuery.desc}
+      />
 
       {/* Header */}
       <View style={styles.header}>
@@ -119,7 +148,7 @@ const EditParentProfileScreen = ({ navigation }: any) => {
           </View>
 
           {/* Email (Read Only) */}
-          <View style={[styles.fieldWrapper, { marginBottom: 0 }]}>
+          <View style={styles.fieldWrapper}>
             <Text style={styles.label}>Email Terdaftar</Text>
             <View style={[styles.inputRow, styles.inputRowDisabled]}>
               <View style={styles.iconWrapper}>
@@ -133,6 +162,23 @@ const EditParentProfileScreen = ({ navigation }: any) => {
               <Icon name="lock-outline" size={18} color="#D1D5DB" />
             </View>
             <Text style={styles.helperText}>Email tidak dapat diubah.</Text>
+          </View>
+
+          {/* NIK (Read Only) */}
+          <View style={[styles.fieldWrapper, { marginBottom: 0 }]}>
+            <Text style={styles.label}>NIK</Text>
+            <View style={[styles.inputRow, styles.inputRowDisabled]}>
+              <View style={styles.iconWrapper}>
+                <Icon name="card-account-details-outline" size={22} color="#9CA3AF" />
+              </View>
+              <TextInput
+                style={[styles.input, { color: '#9CA3AF' }]}
+                value={user?.nik || '-'}
+                editable={false}
+              />
+              <Icon name="lock-outline" size={18} color="#D1D5DB" />
+            </View>
+            <Text style={styles.helperText}>NIK tidak dapat diubah.</Text>
           </View>
         </View>
 
@@ -254,4 +300,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditParentProfileScreen;
+export default EditOrangTuaProfileScreen;

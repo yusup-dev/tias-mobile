@@ -1,5 +1,5 @@
 import axios from '../../config/axios-tias';
-import parentAxios from '../../config/axios-parent';
+import axiosOrangTua from '../../config/axios-orang-tua';
 
 // ── REGISTER MAHASISWA ────────────────────────────────────────────────────────
 
@@ -18,6 +18,7 @@ export type RegisterOrangTuaRequest = {
   npm: string;
   nik: string;
   no_hp: string;
+  nik: string;
   password: string;
   password2: string;
 };
@@ -42,7 +43,7 @@ export async function registerOrangTua(
   data: RegisterOrangTuaRequest,
 ): Promise<any> {
   try {
-    const response = await parentAxios.post('parents/register', data, {
+    const response = await axiosOrangTua.post('parents/register', data, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',

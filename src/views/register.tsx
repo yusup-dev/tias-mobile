@@ -41,6 +41,7 @@ const Register = ({ navigation }: Props) => {
   // ── Orang Tua fields ──────────────────────────────────────────────────────
   const [namaOt, setNamaOt] = useState('');
   const [emailOt, setEmailOt] = useState('');
+  const [nikOt, setNikOt] = useState('');
   const [npmOt, setNpmOt] = useState('');
   const [nikOt, setNikOt] = useState('');
   const [noHpOt, setNoHpOt] = useState('');
@@ -166,6 +167,7 @@ const Register = ({ navigation }: Props) => {
         npm: npmOt.trim(),
         nik: nikOt.trim(),
         no_hp: noHpOt.trim(),
+        nik: nikOt.trim(),
         password: passwordOt.value,
         password2: confirmPasswordOt.value,
       });
@@ -305,6 +307,7 @@ const Register = ({ navigation }: Props) => {
 
               {renderTextField('Nama Lengkap', 'account', namaOt, setNamaOt, 'Masukkan nama lengkap')}
               {renderTextField('Email', 'email', emailOt, setEmailOt, 'Masukkan email', 'email-address')}
+              {renderTextField('NIK', 'card-account-details', nikOt, setNikOt, 'Masukkan NIK', 'numeric', 16)}
               {renderTextField('NPM Mahasiswa', 'card-account-details', npmOt, setNpmOt, 'NPM anak/mahasiswa', 'numeric')}
               {renderTextField('NIK (16 digit)', 'card-account-details-outline', nikOt, setNikOt, 'Masukkan NIK orang tua', 'numeric', 16)}
               {renderTextField('No. HP', 'phone', noHpOt, setNoHpOt, 'Masukkan nomor HP', 'phone-pad', 15)}

@@ -3,9 +3,9 @@ import EvotingComp from '../../views/home/menu/evoting';
 import { MenuComponent } from '../../views/home/index';
 import DetailChallange from '../../views/home/menu/detailChallange';
 import DetailPengumuman from '../../views/home/menu/detailPengumuman';
-import NilaiScreen from '../../views/pendidikan/nilai/index';
-import SkripsiScreen from '../../views/penelitian/skripsi/index';
-import KknScreen from '../../views/pengabdian/kkn/index';
+import NilaiScreen from '../../views/pendidikan/index';
+import SkripsiScreen from '../../views/penelitian/index';
+import KknScreen from '../../views/pengabdian/index';
 import KompetensiScreen from '../../views/kompetensi/index';
 import PenunjangScreen from '../../views/penunjang/index';
 

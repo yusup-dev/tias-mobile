@@ -52,55 +52,78 @@ const DetailAbsensiScreen = ({ route, navigation }: any) => {
     );
   }
 
+  const normalizeStatus = (s: any) => (s ?? '').toString().trim().toLowerCase();
+
+  const isAlpaStatus = (s: string) =>
+    s === 'alpa' ||
+    s === 'alfa' ||
+    s === 'alpha' ||
+    s.includes('tidak hadir') ||
+    s.includes('tanpa keterangan');
+
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'hadir':
-        return '#2D9CDB'; // Blue
-      case 'alpa':
-        return '#EB5757'; // Red
-      case 'izin':
-        return '#F2994A'; // Orange
-      case 'sakit':
-        return '#27AE60'; // Green
-      default:
-        return '#828282';
-    }
+    const s = normalizeStatus(status);
+    if (s === 'hadir') return '#2D9CDB'; // Blue
+    if (isAlpaStatus(s)) return '#EB5757'; // Red
+    if (s === 'izin') return '#F2994A'; // Orange
+    if (s === 'sakit') return '#27AE60'; // Green
+    return '#828282';
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'hadir':
-        return 'check-circle';
-      case 'alpa':
-        return 'close-circle';
-      case 'izin':
-        return 'email-open';
-      case 'sakit':
-        return 'medical-bag';
-      default:
-        return 'help-circle';
-    }
+    const s = normalizeStatus(status);
+    if (s === 'hadir') return 'check-circle';
+    if (isAlpaStatus(s)) return 'close-circle';
+    if (s === 'izin') return 'email-open';
+    if (s === 'sakit') return 'medical-bag';
+    return 'help-circle';
   };
 
-  // Safe calculations
-  const total = absensiData?.total_pertemuan || 0;
-  const hadir = absensiData?.hadir || 0;
-  const izin = absensiData?.izin || 0;
-  const sakit = absensiData?.sakit || 0;
-  const alpa = absensiData?.alpa ?? Math.max(0, total - hadir - izin - sakit);
+  // Rincian per pertemuan = sumber kebenaran yang benar-benar ditampilkan ke user.
+  const rincian: any[] = Array.isArray(absensiData?.rincian_absensi)
+    ? absensiData.rincian_absensi
+    : [];
+
+  const countStatus = (predicate: (s: string) => boolean) =>
+    rincian.filter(item => predicate(normalizeStatus(item.status))).length;
+
+  const hasRincian = rincian.length > 0;
+
+  // Kalau ada rincian, hitung langsung dari list agar ringkasan selalu cocok
+  // dengan daftar pertemuan. Kalau tidak ada, fallback ke agregat dari API.
+  const hadir = hasRincian
+    ? countStatus(s => s === 'hadir')
+    : absensiData?.hadir || 0;
+  const izin = hasRincian
+    ? countStatus(s => s === 'izin')
+    : absensiData?.izin || 0;
+  const sakit = hasRincian
+    ? countStatus(s => s === 'sakit')
+    : absensiData?.sakit || 0;
+  const alpa = hasRincian
+    ? countStatus(
+        s =>
+          s === 'alpa' ||
+          s === 'alfa' ||
+          s === 'alpha' ||
+          s.includes('tidak hadir') ||
+          s.includes('tanpa keterangan'),
+      )
+    : absensiData?.alpa ?? 0;
+
+  const total = absensiData?.total_pertemuan || (hasRincian ? rincian.length : 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#15613F" />
-      
-      {/* Header */}
-      <LinearGradient
-        colors={['#15613F', '#219653']}
-        style={styles.header}
-      >
-        <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-            <Icons name="arrow-left" size={20} color="white" />
+
+      {/* ── Header (Fixed Green Section) ── */}
+      <View style={styles.headerContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}>
+            <Icons name="arrow-left" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Detail Absensi</Text>
           <View style={{ width: 40 }} />
@@ -110,78 +133,92 @@ const DetailAbsensiScreen = ({ route, navigation }: any) => {
           <Text style={styles.matkulName}>{absensiData?.nama_matkul || namaMatkul || '-'}</Text>
           <Text style={styles.matkulCode}>{absensiData?.kode || kodeMatkul || '-'}</Text>
         </View>
+      </View>
 
-        {/* Attendance Percentage Card overlaying header and content */}
-        <View style={styles.percentageCard}>
-          <View style={styles.percentageCircle}>
-            <Text style={styles.percentageValue}>{absensiData?.persentase || '0%'}</Text>
-            <Text style={styles.percentageLabel}>Kehadiran</Text>
-          </View>
-          <View style={styles.summaryStats}>
-            <View style={styles.statRow}>
-              <View style={[styles.dot, { backgroundColor: '#2D9CDB' }]} />
-              <Text style={styles.statText}>Hadir: {hadir}</Text>
-            </View>
-            <View style={styles.statRow}>
-              <View style={[styles.dot, { backgroundColor: '#EB5757' }]} />
-              <Text style={styles.statText}>Alpa: {alpa}</Text>
-            </View>
-            <View style={styles.statRow}>
-              <View style={[styles.dot, { backgroundColor: '#F2994A' }]} />
-              <Text style={styles.statText}>Izin/Sakit: {izin + sakit}</Text>
-            </View>
-            <Text style={styles.totalPertemuan}>Total: {total} Pertemuan</Text>
-          </View>
-        </View>
-      </LinearGradient>
+      {/* ── Body Wrapper (White Scrolling Container like SKPI) ── */}
+      <View style={styles.bodyWrapper}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Riwayat Pertemuan</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{absensiData?.rincian_absensi?.length || 0} Data</Text>
-          </View>
-        </View>
-
-        {absensiData?.rincian_absensi?.map((item: any, index: number) => (
-          <View key={index} style={styles.attendanceItem}>
-            <View style={styles.itemLeft}>
-              <View style={[styles.pertemuanCircle, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-                <Text style={[styles.pertemuanNumber, { color: getStatusColor(item.status) }]}>
-                  {item.pertemuan}
-                </Text>
+          {/* Attendance Percentage Card */}
+          <View style={styles.percentageCard}>
+            <View style={styles.percentageCircle}>
+              <Text style={styles.percentageValue}>{absensiData?.persentase || '0%'}</Text>
+              <Text style={styles.percentageLabel}>Kehadiran</Text>
+            </View>
+            <View style={styles.summaryStats}>
+              <View style={styles.statRow}>
+                <View style={[styles.dot, { backgroundColor: '#2D9CDB' }]} />
+                <Text style={styles.statText}>Hadir: {hadir}</Text>
               </View>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemDate}>
-                  {moment(item.tanggal).isValid() ? moment(item.tanggal).format('DD MMMM YYYY') : '-'}
-                </Text>
-                <Text style={styles.itemKeterangan}>
-                  {item.status === 'Hadir' ? 'Tercatat hadir' : (item.keterangan || '-')}
-                </Text>
+              <View style={styles.statRow}>
+                <View style={[styles.dot, { backgroundColor: '#EB5757' }]} />
+                <Text style={styles.statText}>Alpa: {alpa}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <View style={[styles.dot, { backgroundColor: '#F2994A' }]} />
+                <Text style={styles.statText}>Izin: {izin}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <View style={[styles.dot, { backgroundColor: '#27AE60' }]} />
+                <Text style={styles.statText}>Sakit: {sakit}</Text>
+              </View>
+              <Text style={styles.totalPertemuan}>Total: {total} Pertemuan</Text>
+            </View>
+          </View>
+
+          {/* List Container */}
+          <View style={styles.listContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Riwayat Pertemuan</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{rincian.length} Data</Text>
               </View>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-              <Icons name={getStatusIcon(item.status)} size={14} color="white" style={{ marginRight: 4 }} />
-              <Text style={styles.statusText}>{item.status}</Text>
-            </View>
-          </View>
-        ))}
 
-        {!absensiData?.rincian_absensi?.length && (
-          <View style={styles.emptyContainer}>
-            <Icons name="information-outline" size={40} color="#CBD5E0" />
-            <Text style={styles.emptyText}>Belum ada data riwayat pertemuan.</Text>
+            {rincian.map((item: any, index: number) => (
+              <View key={index} style={styles.attendanceItem}>
+                <View style={styles.itemLeft}>
+                  <View style={[styles.pertemuanCircle, { backgroundColor: getStatusColor(item.status) + '20' }]}>
+                    <Text style={[styles.pertemuanNumber, { color: getStatusColor(item.status) }]}>
+                      {item.pertemuan}
+                    </Text>
+                  </View>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemDate}>
+                      {moment(item.tanggal).isValid() ? moment(item.tanggal).format('DD MMMM YYYY') : '-'}
+                    </Text>
+                    <Text style={styles.itemKeterangan}>
+                      {normalizeStatus(item.status) === 'hadir' ? 'Tercatat hadir' : (item.keterangan || '-')}
+                    </Text>
+                  </View>
+                </View>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+                  <Icons name={getStatusIcon(item.status)} size={14} color="white" style={{ marginRight: 4 }} />
+                  <Text style={styles.statusText}>{item.status}</Text>
+                </View>
+              </View>
+            ))}
+
+            {!rincian.length && (
+              <View style={styles.emptyContainer}>
+                <Icons name="information-outline" size={40} color="#CBD5E0" />
+                <Text style={styles.emptyText}>Belum ada data riwayat pertemuan.</Text>
+              </View>
+            )}
           </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#15613F',
   },
   loadingContainer: {
     flex: 1,
@@ -217,34 +254,32 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+  headerContainer: {
+    backgroundColor: '#15613F',
+    paddingBottom: 25,
+  },
   header: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 80,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  headerTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    paddingTop: responsiveHeight(5),
+    paddingHorizontal: responsiveWidth(4),
+    justifyContent: 'space-between',
   },
-  iconButton: {
+  backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    color: '#fff',
+    fontSize: responsiveFontSize(2.4),
     fontWeight: 'bold',
-    color: 'white',
   },
   matkulInfo: {
     alignItems: 'center',
+    marginTop: 15,
+    paddingHorizontal: 20,
   },
   matkulName: {
     fontSize: 22,
@@ -257,21 +292,35 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
   },
+  bodyWrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 20,
+    paddingBottom: 30,
+  },
   percentageCard: {
-    position: 'absolute',
-    bottom: -60,
-    left: 20,
-    right: 20,
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 10,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   percentageCircle: {
     width: 90,
@@ -317,10 +366,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontStyle: 'italic',
   },
-  scrollContent: {
-    paddingTop: 80,
+  listContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 30,
+    paddingBottom: 10,
   },
   sectionHeader: {
     flexDirection: 'row',

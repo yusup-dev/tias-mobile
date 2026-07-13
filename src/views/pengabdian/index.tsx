@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -14,29 +14,24 @@ import {
 } from 'react-native-responsive-dimensions';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
-import { useTokenStore } from '../../../src/store/auth';
-import { getKompetensiOrangTua } from '../../../src/services/kompetensi/index';
 import moment from 'moment';
+import { useTokenStore } from '../../store/auth';
+import { getPengabdianOrangTua } from '../../services/pengabdian/index';
 
-const KompetensiScreen = (props: any) => {
+const PengabdianScreen = (props: any) => {
   const { user } = useTokenStore();
   const npm = user?.npm;
-  const [activeTab, setActiveTab] = useState<'sertifikasi' | 'tes'>('sertifikasi');
+  const [activeTab, setActiveTab] = React.useState<'pengabdian' | 'pembicara'>('pengabdian');
 
-  const { data: kompetensiRes, isLoading, isError } = useQuery({
-    queryKey: ['kompetensi-orang-tua', npm],
-    queryFn: () => getKompetensiOrangTua(npm as string),
+  const { data: pengabdianRes, isLoading, isError } = useQuery({
+    queryKey: ['pengabdian-orang-tua', npm],
+    queryFn: () => getPengabdianOrangTua(npm as string),
     enabled: !!npm,
   });
 
-  const kompetensiData = kompetensiRes?.data || {
-    sertifikasi: [],
-    tes: [],
-  };
-
-  const sertifikasiData: any[] = kompetensiData.sertifikasi || [];
-  const tesData: any[] = kompetensiData.tes || [];
-  const currentData = activeTab === 'sertifikasi' ? sertifikasiData : tesData;
+  const pengabdianData: any[] = pengabdianRes?.data?.pengabdian || [];
+  const pembicaraData: any[] = pengabdianRes?.data?.pembicara || [];
+  const currentData = activeTab === 'pengabdian' ? pengabdianData : pembicaraData;
 
   return (
     <View style={styles.container}>
@@ -47,7 +42,7 @@ const KompetensiScreen = (props: any) => {
           onPress={() => props.navigation.goBack()}>
           <Icons name="arrow-left" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Kompetensi</Text>
+        <Text style={styles.headerTitle}>Pengabdian</Text>
       </View>
 
       {/* ── Body Wrapper ── */}
@@ -55,17 +50,17 @@ const KompetensiScreen = (props: any) => {
         {/* Tabs */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'sertifikasi' && styles.activeTabButton]}
-            onPress={() => setActiveTab('sertifikasi')}>
-            <Text style={[styles.tabButtonText, activeTab === 'sertifikasi' && styles.activeTabButtonText]}>
-              Sertifikasi ({sertifikasiData.length})
+            style={[styles.tabButton, activeTab === 'pengabdian' && styles.activeTabButton]}
+            onPress={() => setActiveTab('pengabdian')}>
+            <Text style={[styles.tabButtonText, activeTab === 'pengabdian' && styles.activeTabButtonText]}>
+              Pengabdian ({pengabdianData.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'tes' && styles.activeTabButton]}
-            onPress={() => setActiveTab('tes')}>
-            <Text style={[styles.tabButtonText, activeTab === 'tes' && styles.activeTabButtonText]}>
-              Tes Bahasa/Lain ({tesData.length})
+            style={[styles.tabButton, activeTab === 'pembicara' && styles.activeTabButton]}
+            onPress={() => setActiveTab('pembicara')}>
+            <Text style={[styles.tabButtonText, activeTab === 'pembicara' && styles.activeTabButtonText]}>
+              Pembicara ({pembicaraData.length})
             </Text>
           </TouchableOpacity>
         </View>
@@ -79,7 +74,7 @@ const KompetensiScreen = (props: any) => {
           <View style={styles.infoBanner}>
             <Icons name="information-outline" size={18} color="#1565C0" style={{ marginRight: 8 }} />
             <Text style={styles.infoBannerText}>
-              Data {activeTab === 'sertifikasi' ? 'sertifikasi kompetensi/pelatihan' : 'riwayat tes akademik'} NPM {npm || '-'}
+              Data {activeTab === 'pengabdian' ? 'pengabdian masyarakat' : 'pembicara seminar'} NPM {npm || '-'}
             </Text>
           </View>
 
@@ -100,13 +95,13 @@ const KompetensiScreen = (props: any) => {
             </View>
           ) : (
             currentData.map((item: any, index: number) => {
-              if (activeTab === 'sertifikasi') {
+              if (activeTab === 'pengabdian') {
                 return (
-                  <View key={item.sertifikat_id || index} style={styles.card}>
+                  <View key={item.pengabdian_id || index} style={styles.card}>
                     {/* Card Header */}
                     <View style={styles.cardHeader}>
                       <View style={styles.semesterBadge}>
-                        <Text style={styles.semesterText}>{item.bidang_studi || 'Kompetensi'}</Text>
+                        <Text style={styles.semesterText}>{item.kelompok_bidang || 'Pengabdian'}</Text>
                       </View>
                       <View style={styles.pointBadge}>
                         <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
@@ -115,9 +110,9 @@ const KompetensiScreen = (props: any) => {
 
                     {/* Card Body */}
                     <View style={styles.cardBody}>
-                      {/* Nama Sertifikasi */}
-                      <Text style={styles.judulLabel}>Nama Sertifikasi / Pelatihan:</Text>
-                      <Text style={styles.judulText}>{item.nama_serti || '-'}</Text>
+                      {/* Judul Kegiatan */}
+                      <Text style={styles.judulLabel}>Judul Kegiatan:</Text>
+                      <Text style={styles.judulText}>{item.judul_kegiatan || '-'}</Text>
 
                       {/* Kategori */}
                       <View style={styles.detailRow}>
@@ -125,23 +120,25 @@ const KompetensiScreen = (props: any) => {
                         <Text style={styles.detailText}>{item.nama_kategori || '-'}</Text>
                       </View>
 
-                      {/* Penyelenggara */}
+                      {/* Lokasi & Durasi */}
                       <View style={styles.detailRow}>
-                        <Icons name="office-building" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>Penyelenggara: {item.penyelenggara || '-'}</Text>
+                        <Icons name="map-marker-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Lokasi: {item.lokasi_kegiatan || '-'} ({item.lama_kegiatan || '-'})
+                        </Text>
                       </View>
 
-                      {/* Jenis Sertifikat */}
+                      {/* SK Penugasan */}
                       <View style={styles.detailRow}>
-                        <Icons name="tag-outline" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>Jenis: {item.jenis_serti || '-'}</Text>
+                        <Icons name="file-document-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>SK: {item.no_sk_penugasan || '-'}</Text>
                       </View>
 
-                      {/* Tanggal Terbit */}
+                      {/* Tanggal SK */}
                       <View style={styles.detailRow}>
                         <Icons name="calendar-range" size={16} color="#6B7280" />
                         <Text style={styles.detailText}>
-                          Tanggal Sertifikasi: {item.tgl_serti ? moment(item.tgl_serti).format('DD MMMM YYYY') : '-'}
+                          Tanggal SK: {item.tgl_sk_penugasan ? moment(item.tgl_sk_penugasan).format('DD MMMM YYYY') : '-'}
                         </Text>
                       </View>
                     </View>
@@ -149,12 +146,12 @@ const KompetensiScreen = (props: any) => {
                 );
               } else {
                 return (
-                  <View key={item.tes_id || index} style={styles.card}>
+                  <View key={item.pembicara_id || index} style={styles.card}>
                     {/* Card Header */}
                     <View style={styles.cardHeader}>
                       <View style={[styles.semesterBadge, { backgroundColor: '#E3F2FD' }]}>
                         <Text style={[styles.semesterText, { color: '#1565C0' }]}>
-                          {item.jenis_tes || 'Tes'}
+                          {item.kategori_pembicara || 'Pembicara'}
                         </Text>
                       </View>
                       <View style={styles.pointBadge}>
@@ -164,9 +161,9 @@ const KompetensiScreen = (props: any) => {
 
                     {/* Card Body */}
                     <View style={styles.cardBody}>
-                      {/* Nama Tes */}
-                      <Text style={styles.judulLabel}>Nama Tes:</Text>
-                      <Text style={styles.judulText}>{item.nama_tes || '-'}</Text>
+                      {/* Judul Makalah */}
+                      <Text style={styles.judulLabel}>Judul Makalah / Materi:</Text>
+                      <Text style={styles.judulText}>{item.judul_makalah || '-'}</Text>
 
                       {/* Kategori */}
                       <View style={styles.detailRow}>
@@ -174,11 +171,11 @@ const KompetensiScreen = (props: any) => {
                         <Text style={styles.detailText}>{item.nama_kategori || '-'}</Text>
                       </View>
 
-                      {/* Skor Tes */}
+                      {/* Pertemuan */}
                       <View style={styles.detailRow}>
-                        <Icons name="chart-bell-curve-cumulative" size={16} color="#15613F" />
-                        <Text style={[styles.detailText, { fontWeight: 'bold', color: '#15613F' }]}>
-                          Skor: {item.skor_tes || '-'}
+                        <Icons name="account-group-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Pertemuan: {item.nama_pertemuan || '-'} ({item.tingkat_pertemuan || '-'})
                         </Text>
                       </View>
 
@@ -188,11 +185,23 @@ const KompetensiScreen = (props: any) => {
                         <Text style={styles.detailText}>Penyelenggara: {item.penyelenggara || '-'}</Text>
                       </View>
 
-                      {/* Tanggal Tes */}
+                      {/* Bahasa */}
+                      <View style={styles.detailRow}>
+                        <Icons name="translate" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Bahasa: {item.bahasa || '-'}</Text>
+                      </View>
+
+                      {/* SK Penugasan */}
+                      <View style={styles.detailRow}>
+                        <Icons name="file-document-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>SK: {item.no_sk_penugasan || '-'}</Text>
+                      </View>
+
+                      {/* Tanggal SK */}
                       <View style={styles.detailRow}>
                         <Icons name="calendar-range" size={16} color="#6B7280" />
                         <Text style={styles.detailText}>
-                          Tanggal Tes: {item.tgl_tes ? moment(item.tgl_tes).format('DD MMMM YYYY') : '-'}
+                          Tanggal SK: {item.tgl_sk_penugasan ? moment(item.tgl_sk_penugasan).format('DD MMMM YYYY') : '-'}
                         </Text>
                       </View>
                     </View>
@@ -376,4 +385,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default KompetensiScreen;
+export default PengabdianScreen;
