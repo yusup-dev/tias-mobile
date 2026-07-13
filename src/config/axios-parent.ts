@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useTokenStore } from '../store/auth';
 
 const instance = axios.create({
-  baseURL: 'https://api-tias.ti.ft.uika-bogor.ac.id/',
+  baseURL: 'https://api-tias.ti.ft.uika-bogor.ac.id/staging/',
   validateStatus: status => status < 500,
   timeout: 15000,
   headers: {

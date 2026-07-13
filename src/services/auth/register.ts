@@ -16,6 +16,7 @@ export type RegisterOrangTuaRequest = {
   nama_lengkap: string;
   email: string;
   npm: string;
+  nik: string;
   no_hp: string;
   password: string;
   password2: string;

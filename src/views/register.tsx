@@ -42,6 +42,7 @@ const Register = ({ navigation }: Props) => {
   const [namaOt, setNamaOt] = useState('');
   const [emailOt, setEmailOt] = useState('');
   const [npmOt, setNpmOt] = useState('');
+  const [nikOt, setNikOt] = useState('');
   const [noHpOt, setNoHpOt] = useState('');
   const [passwordOt, setPasswordOt] = useState({ value: '', secure: true });
   const [confirmPasswordOt, setConfirmPasswordOt] = useState({ value: '', secure: true });
@@ -121,8 +122,16 @@ const Register = ({ navigation }: Props) => {
         return false;
       }
     } else {
-      if (!namaOt.trim() || !emailOt.trim() || !npmOt.trim() || !noHpOt.trim() || !passwordOt.value) {
+      if (!namaOt.trim() || !emailOt.trim() || !npmOt.trim() || !nikOt.trim() || !noHpOt.trim() || !passwordOt.value) {
         showDialog('Perhatian', 'Semua field wajib diisi.');
+        return false;
+      }
+      if (nikOt.trim().length !== 16) {
+        showDialog('Perhatian', 'NIK harus 16 digit.');
+        return false;
+      }
+      if (!/^\d+$/.test(nikOt.trim())) {
+        showDialog('Perhatian', 'NIK hanya boleh berisi angka.');
         return false;
       }
       if (passwordOt.value !== confirmPasswordOt.value) {
@@ -155,6 +164,7 @@ const Register = ({ navigation }: Props) => {
         nama_lengkap: namaOt.trim(),
         email: emailOt.trim(),
         npm: npmOt.trim(),
+        nik: nikOt.trim(),
         no_hp: noHpOt.trim(),
         password: passwordOt.value,
         password2: confirmPasswordOt.value,
@@ -296,6 +306,7 @@ const Register = ({ navigation }: Props) => {
               {renderTextField('Nama Lengkap', 'account', namaOt, setNamaOt, 'Masukkan nama lengkap')}
               {renderTextField('Email', 'email', emailOt, setEmailOt, 'Masukkan email', 'email-address')}
               {renderTextField('NPM Mahasiswa', 'card-account-details', npmOt, setNpmOt, 'NPM anak/mahasiswa', 'numeric')}
+              {renderTextField('NIK (16 digit)', 'card-account-details-outline', nikOt, setNikOt, 'Masukkan NIK orang tua', 'numeric', 16)}
               {renderTextField('No. HP', 'phone', noHpOt, setNoHpOt, 'Masukkan nomor HP', 'phone-pad', 15)}
               {renderPasswordField('Password', passwordOt, setPasswordOt, 'Masukkan password')}
               {renderPasswordField('Konfirmasi Password', confirmPasswordOt, setConfirmPasswordOt, 'Ulangi password')}

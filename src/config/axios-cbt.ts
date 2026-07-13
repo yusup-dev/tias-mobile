@@ -19,9 +19,13 @@ axiosCbt.interceptors.request.use(
     }
     // PENTING: paksa JSON supaya server tidak balas halaman HTML login saat sesi mati
     config.headers.Accept = 'application/json';
+    console.log(`[AXIOS-CBT] >> ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || config.data || '');
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.log('[AXIOS-CBT] Request Error:', error?.message);
+    return Promise.reject(error);
+  }
 );
 
 // --- Deteksi expiry secara LUAS, bukan cuma 401 ---
@@ -46,6 +50,7 @@ function isAuthExpired(error: any): boolean {
 
 axiosCbt.interceptors.response.use(
   (response) => {
+    console.log(`[AXIOS-CBT] << ${response.status} ${response.config.url}`, JSON.stringify(response.data).substring(0, 300));
     // Tangkap "sukses palsu": status 200 tapi isinya HTML login
     const ct = response.headers?.['content-type'] ?? '';
     if (ct.includes('text/html') && typeof response.data === 'string') {
@@ -56,6 +61,10 @@ axiosCbt.interceptors.response.use(
   async (error) => {
     const original = error.config;
     const expired = error?.__authExpired || isAuthExpired(error);
+
+    console.log('[AXIOS-CBT] Response Error:', error?.message);
+    console.log('[AXIOS-CBT] Response Status:', error?.response?.status);
+    console.log('[AXIOS-CBT] Response Data:', JSON.stringify(error?.response?.data)?.substring(0, 300));
 
     if (expired && original && !original.__isRetry) {
       original.__isRetry = true; // hanya retry SEKALI → cegah loop tak hingga
