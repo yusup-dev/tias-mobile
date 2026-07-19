@@ -43,7 +43,6 @@ const Register = ({ navigation }: Props) => {
   const [emailOt, setEmailOt] = useState('');
   const [nikOt, setNikOt] = useState('');
   const [npmOt, setNpmOt] = useState('');
-  const [nikOt, setNikOt] = useState('');
   const [noHpOt, setNoHpOt] = useState('');
   const [passwordOt, setPasswordOt] = useState({ value: '', secure: true });
   const [confirmPasswordOt, setConfirmPasswordOt] = useState({ value: '', secure: true });
