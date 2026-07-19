@@ -68,7 +68,8 @@ export type AbsenRequest = {
 // 1. Fungsi untuk Submit Absen (Sudah Benar)
 export async function absensi(data: AbsenRequest): Promise<AbsenResponse> {
   const authToken = useTokenStore.getState().token;
-  const response = await axios.post('absensi/scan-qr', data, {
+  // Langsung tembak ke fts-absen Laravel
+  const response = await axiosTi.post('absensi/scan-qr', data, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       token: authToken,
@@ -83,7 +84,8 @@ export async function get_pembelajaran(data: {
   token: string;
 }): Promise<AbsenResponse> {
   const authToken = useTokenStore.getState().token;
-  const response = await axios.get('absensi/get-pembelajaran', {
+  // Langsung tembak ke fts-absen (axiosTi) tanpa lewat proxy
+  const response = await axiosTi.get('pembelajaran', {
     params: {
       'filter[]': 'token',
       'filterValue[]': data.token,
