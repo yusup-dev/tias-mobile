@@ -83,7 +83,8 @@ export async function get_pembelajaran(data: {
   token: string;
 }): Promise<AbsenResponse> {
   const authToken = useTokenStore.getState().token;
-  const response = await axios.get('absensi/get-pembelajaran', {
+  // Langsung tembak ke fts-absen (axiosTi) tanpa lewat proxy
+  const response = await axiosTi.get('pembelajaran', {
     params: {
       'filter[]': 'token',
       'filterValue[]': data.token,
