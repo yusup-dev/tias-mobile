@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Camera } from 'react-native-vision-camera';
 import { faceRecognitionService, FaceServiceError } from '../services/faceRecognitionService';
 import { useSecureLocation } from './useSecureLocation';
-import { attendanceService } from '../services/attendanceService';
-
+import { absensi } from '../services/absen/index';
+import { useTokenStore } from '../store/auth';
 export type AttendanceStep =
   | 'checking_enrollment'
   | 'not_enrolled'
@@ -82,16 +82,23 @@ export const useAttendanceFace = (params: AttendanceFaceParams) => {
 
       // 4. Submit Attendance
       setStep('submitting');
-      await attendanceService.submit({
+      
+      const user = useTokenStore.getState().user;
+      if (!user || !user.npm) {
+        throw new Error('Data user (NPM) tidak ditemukan. Silakan login kembali.');
+      }
+
+      const response = await absensi({
         token: params.token,
-        meetingId: params.meetingId,
-        latitude: location.latitude,
-        longitude: location.longitude,
-        locationAccuracy: location.accuracy,
-        locationSource: location.source,
-        faceVerified: true,
-        faceSimilarity: similarity,
-      }, params.authToken);
+        coordinate: `${location.latitude},${location.longitude}`,
+        npm: user.npm,
+        status_absen: 1, // Default hadir
+      });
+
+      // Tangkap pesan error dari respons Laravel
+      if (response.message && response.message !== 'success' && response.message !== 'Anda sudah melakukan absen') {
+        throw new Error(response.message);
+      }
 
       setStep('success');
     } catch (error: any) {
