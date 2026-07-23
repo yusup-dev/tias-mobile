@@ -61,7 +61,7 @@ export type AbsenResponse = {
 export type AbsenRequest = {
   token: string;
   coordinate: string;
-  status_absen: number;
+  status_absen: string;
   npm: string;
 };
 

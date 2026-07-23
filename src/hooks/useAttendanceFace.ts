@@ -92,7 +92,7 @@ export const useAttendanceFace = (params: AttendanceFaceParams) => {
         token: params.token,
         coordinate: `${location.latitude},${location.longitude}`,
         npm: user.npm,
-        status_absen: 1, // Default hadir
+        status_absen: '1', // Default hadir (hardcode)
       });
 
       // Tangkap pesan error dari respons Laravel
