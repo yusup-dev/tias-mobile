@@ -54,7 +54,7 @@ export async function faceEnroll(npm: string, imageUri: string): Promise<void> {
 export async function faceVerify(
   npm: string,
   imageUri: string,
-  threshold: number = 0.6,
+  threshold?: number,
 ): Promise<FaceVerifyResponse> {
   console.log('[FACE-API] >> POST /v1/faces/verify');
   console.log('[FACE-API] subject_id (npm):', npm);
@@ -62,7 +62,9 @@ export async function faceVerify(
 
   const formData = new FormData();
   formData.append('subject_id', npm);
-  formData.append('threshold', threshold.toString());
+  if (threshold !== undefined) {
+    formData.append('threshold', threshold.toString());
+  }
   formData.append('image', {
     uri: imageUri,
     name: 'face_verify.jpg',
