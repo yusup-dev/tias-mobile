@@ -43,11 +43,13 @@ export const faceRecognitionService = {
     }
   },
 
-  async verify(subjectId: string, imageUri: string, threshold: number = 0.6): Promise<{ verified: boolean; similarity: number }> {
+  async verify(subjectId: string, imageUri: string, threshold?: number): Promise<{ verified: boolean; similarity: number }> {
     try {
       const formData = new FormData();
       formData.append('subject_id', subjectId);
-      formData.append('threshold', threshold.toString());
+      if (threshold !== undefined) {
+        formData.append('threshold', threshold.toString());
+      }
       formData.append('image', {
         uri: imageUri,
         name: 'verify.jpg',
