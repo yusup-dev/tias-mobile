@@ -39,12 +39,7 @@ export async function getNilai(): Promise<any> {
 }
 
 export async function getPeriodeAkademik(): Promise<any> {
-  const token = useTokenStore.getState().token;
-  const response = await siakadAxios.get('periode-akademik/dropdown', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await siakadAxios.get('periode-akademik/dropdown');
   return response.data;
 }
 
@@ -53,11 +48,8 @@ export async function getHasilStudiSiakad(periodeId: string): Promise<any> {
   const user = useTokenStore.getState().user;
 
   if (user?.role === 'Parent' && user?.npm) {
-    const response = await siakadAxios.get(`orang-tua/hasil-studi?npm=${user.npm}&periodeId=${periodeId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    // Endpoint orang tua tidak memerlukan Authorization header
+    const response = await siakadAxios.get(`orang-tua/hasil-studi?npm=${user.npm}&periodeId=${periodeId}`);
     return response.data;
   } else {
     const response = await siakadAxios.get(`hasil-studi?periodeId=${periodeId}`, {
