@@ -1,6 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import ProfileScreen from '../../views/profile/index';
 import SignaturePage from '../../views/profile/signature';
+import FaceEnrollScreen from '../../views/profile/faceEnroll';
 import KependudukanScreen from '../../views/profile/kependudukan';
 import AlamatScreen from '../../views/profile/alamat';
 import TiasClubScreen from '../../views/profile/tias-club';
@@ -29,6 +30,13 @@ function ProfileStack() {
         component={SignaturePage}
         options={{
           title: 'Tanda Tangan',
+        }}
+      />
+      <Stack.Screen
+        name="profile.daftar-wajah"
+        component={FaceEnrollScreen}
+        options={{
+          title: 'Daftar Wajah',
         }}
       />
       <Stack.Screen

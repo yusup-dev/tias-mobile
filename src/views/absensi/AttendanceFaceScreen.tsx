@@ -180,6 +180,7 @@ const AttendanceFaceScreen = () => {
         device={device}
         isActive={true}
         photo={true}
+        photoQualityBalance="speed"
       />
 
       {/* Dark Overlay gradient top */}

@@ -15,9 +15,10 @@ const ProfileScreen = (props: any) => {
     { id: 2, name: 'Alamat', icon: 'card-account-details-outline', action: () => props.navigation.push('profile.alamat') },
     { id: 3, name: 'Tias Club', icon: 'star-outline', action: () => props.navigation.push('profile.tias-club') },
     { id: 4, name: 'Tias Signature', icon: 'draw-pen', action: () => props.navigation.push('profile.signature') },
-    { id: 5, name: 'Bantuan & Laporan Saya', icon: 'help-circle-outline', action: () => props.navigation.push('profile.bantuan') },
-    { id: 6, name: 'Notifikasi', icon: 'bell-outline', action: () => props.navigation.push('profile.notifikasi') },
-    { id: 7, name: 'Pengaturan Akun', icon: 'cog-outline', action: () => props.navigation.push('profile.pengaturan-akun') },
+    { id: 5, name: 'Daftar Wajah', icon: 'face-recognition', action: () => props.navigation.push('profile.daftar-wajah') },
+    { id: 6, name: 'Bantuan & Laporan Saya', icon: 'help-circle-outline', action: () => props.navigation.push('profile.bantuan') },
+    { id: 7, name: 'Notifikasi', icon: 'bell-outline', action: () => props.navigation.push('profile.notifikasi') },
+    { id: 8, name: 'Pengaturan Akun', icon: 'cog-outline', action: () => props.navigation.push('profile.pengaturan-akun') },
   ]);
 
   const [listProfile2] = useState([

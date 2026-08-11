@@ -171,22 +171,6 @@ const AbsensiComponent = (props: any) => {
           )}
 
           <TouchableOpacity
-            onPress={() => {
-              props.navigation.push('absensi.face.dev', {
-                token: 'DEV-TEST-TOKEN',
-                matkul: 'Pemrograman Mobile (DEV)',
-                dosen: 'Dr. Dev Mode',
-                pertemuan: '9',
-                kelas: 'IF-DEV',
-              });
-            }}
-            style={styles.devBtn}
-            activeOpacity={0.85}>
-            <Icon name="cog-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.devBtnText}>[DEV] Bypass ke Face Recognition</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             onPress={() => props.navigation.goBack()}
             style={styles.cancelBtn}
             activeOpacity={0.7}>
@@ -318,26 +302,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   manualBtnText: {
-    color: '#FFFFFF',
-    fontSize: responsiveFontSize(1.9),
-    fontWeight: 'bold',
-    letterSpacing: 0.3,
-  },
-  devBtn: {
-    backgroundColor: '#D97706',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: responsiveWidth(4),
-    borderRadius: 14,
-    gap: 10,
-    elevation: 3,
-    shadowColor: '#D97706',
-    shadowOffset: {width: 0, height: 3},
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-  },
-  devBtnText: {
     color: '#FFFFFF',
     fontSize: responsiveFontSize(1.9),
     fontWeight: 'bold',

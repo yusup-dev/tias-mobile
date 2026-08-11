@@ -11,7 +11,7 @@ export type AttendancePayload = {
   faceSimilarity: number;
 };
 
-const UCL_API_URL = 'https://ucl.uika-bogor.ac.id';
+const UCL_API_URL = 'https://ucl.uika-bogor.ac.id/staging';
 
 export const attendanceService = {
   async submit(payload: AttendancePayload, authToken: string): Promise<any> {

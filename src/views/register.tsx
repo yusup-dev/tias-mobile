@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
+  Modal,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -22,6 +23,8 @@ import { useMutation } from '@tanstack/react-query';
 import { registerMahasiswa, registerOrangTua } from '../services/auth/register';
 import { DialogComponent } from '../component/dialog';
 import { LogoUika } from '../../assets/svg';
+import { faceRecognitionService } from '../services/faceRecognitionService';
+import FaceCaptureCamera from '../component/faceCapture/FaceCaptureCamera';
 
 type Role = 'mahasiswa' | 'orang_tua';
 
@@ -37,6 +40,8 @@ const Register = ({ navigation }: Props) => {
   const [emailMhs, setEmailMhs] = useState('');
   const [passwordMhs, setPasswordMhs] = useState({ value: '', secure: true });
   const [confirmPasswordMhs, setConfirmPasswordMhs] = useState({ value: '', secure: true });
+  const [faceUri, setFaceUri] = useState<string | null>(null);
+  const [showFaceCamera, setShowFaceCamera] = useState(false);
 
   // ── Orang Tua fields ──────────────────────────────────────────────────────
   const [namaOt, setNamaOt] = useState('');
@@ -70,10 +75,22 @@ const Register = ({ navigation }: Props) => {
         : (typeof data?.data === 'string' ? data.data : (data?.message || err?.message || 'Registrasi gagal. Silakan coba lagi.'));
       showDialog('Gagal', msg);
     },
-    onSuccess: (res: any) => {
+    onSuccess: async (res: any) => {
       const isOk = res?.isSuccess || res?.message?.toLowerCase().includes('success') || res?.responseMessage?.toLowerCase().includes('success');
       if (isOk) {
-        showDialog('Berhasil', res?.responseMessage || 'Akun berhasil dibuat! Silakan cek email Anda untuk verifikasi.');
+        if (faceUri) {
+          try {
+            await faceRecognitionService.enroll(npm.trim(), faceUri);
+            showDialog('Berhasil', 'Akun berhasil dibuat & wajah berhasil didaftarkan! Silakan cek email Anda untuk verifikasi.');
+          } catch (enrollError: any) {
+            showDialog(
+              'Berhasil (Sebagian)',
+              `Akun berhasil dibuat! Namun pendaftaran wajah gagal (${enrollError?.message || 'kesalahan tidak diketahui'}). Silakan coba lagi lewat menu Profil > Daftar Wajah setelah login.`,
+            );
+          }
+        } else {
+          showDialog('Berhasil', res?.responseMessage || 'Akun berhasil dibuat! Silakan cek email Anda untuk verifikasi.');
+        }
       } else {
         const errorMsg = (res?.responseMessage && res?.responseMessage !== 'error' && res?.responseMessage !== 'Error')
           ? res.responseMessage
@@ -121,13 +138,21 @@ const Register = ({ navigation }: Props) => {
         showDialog('Perhatian', 'Password minimal 6 karakter.');
         return false;
       }
+      if (!faceUri) {
+        showDialog('Perhatian', 'Silakan ambil foto wajah Anda terlebih dahulu.');
+        return false;
+      }
     } else {
-      if (!namaOt.trim() || !emailOt.trim() || !nikOt.trim() || !npmOt.trim() || !noHpOt.trim() || !passwordOt.value) {
+      if (!namaOt.trim() || !emailOt.trim() || !npmOt.trim() || !nikOt.trim() || !noHpOt.trim() || !passwordOt.value) {
         showDialog('Perhatian', 'Semua field wajib diisi.');
         return false;
       }
       if (nikOt.trim().length !== 16) {
-        showDialog('Perhatian', 'NIK harus terdiri dari 16 digit.');
+        showDialog('Perhatian', 'NIK harus 16 digit.');
+        return false;
+      }
+      if (!/^\d+$/.test(nikOt.trim())) {
+        showDialog('Perhatian', 'NIK hanya boleh berisi angka.');
         return false;
       }
       if (passwordOt.value !== confirmPasswordOt.value) {
@@ -160,6 +185,7 @@ const Register = ({ navigation }: Props) => {
         nama_lengkap: namaOt.trim(),
         email: emailOt.trim(),
         npm: npmOt.trim(),
+        nik: nikOt.trim(),
         no_hp: noHpOt.trim(),
         nik: nikOt.trim(),
         password: passwordOt.value,
@@ -282,6 +308,25 @@ const Register = ({ navigation }: Props) => {
               {renderTextField('Email', 'email', emailMhs, setEmailMhs, 'Masukkan email', 'email-address')}
               {renderPasswordField('Password', passwordMhs, setPasswordMhs, 'Masukkan password')}
               {renderPasswordField('Konfirmasi Password', confirmPasswordMhs, setConfirmPasswordMhs, 'Ulangi password')}
+
+              <View style={styles.fieldWrapper}>
+                <Text style={styles.label}>Foto Wajah *</Text>
+                <TouchableOpacity
+                  style={styles.faceCaptureRow}
+                  onPress={() => setShowFaceCamera(true)}>
+                  <View style={styles.faceThumbWrapper}>
+                    {faceUri ? (
+                      <Image source={{ uri: faceUri }} style={styles.faceThumb} />
+                    ) : (
+                      <Icon name="face-recognition" size={26} color="#15613F" />
+                    )}
+                  </View>
+                  <Text style={styles.faceCaptureText}>
+                    {faceUri ? 'Ganti Foto Wajah' : 'Ambil Foto Wajah'}
+                  </Text>
+                  <Icon name="chevron-right" size={22} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
             </>
           )}
 
@@ -303,6 +348,7 @@ const Register = ({ navigation }: Props) => {
               {renderTextField('Email', 'email', emailOt, setEmailOt, 'Masukkan email', 'email-address')}
               {renderTextField('NIK', 'card-account-details', nikOt, setNikOt, 'Masukkan NIK', 'numeric', 16)}
               {renderTextField('NPM Mahasiswa', 'card-account-details', npmOt, setNpmOt, 'NPM anak/mahasiswa', 'numeric')}
+              {renderTextField('NIK (16 digit)', 'card-account-details-outline', nikOt, setNikOt, 'Masukkan NIK orang tua', 'numeric', 16)}
               {renderTextField('No. HP', 'phone', noHpOt, setNoHpOt, 'Masukkan nomor HP', 'phone-pad', 15)}
               {renderPasswordField('Password', passwordOt, setPasswordOt, 'Masukkan password')}
               {renderPasswordField('Konfirmasi Password', confirmPasswordOt, setConfirmPasswordOt, 'Ulangi password')}
@@ -335,6 +381,17 @@ const Register = ({ navigation }: Props) => {
           <ActivityIndicator color="#15613F" />
         </View>
       )}
+
+      {/* Modal Kamera Foto Wajah */}
+      <Modal visible={showFaceCamera} animationType="slide" onRequestClose={() => setShowFaceCamera(false)}>
+        <FaceCaptureCamera
+          onConfirm={(uri) => {
+            setFaceUri(uri);
+            setShowFaceCamera(false);
+          }}
+          onCancel={() => setShowFaceCamera(false)}
+        />
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -504,6 +561,34 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.4),
     lineHeight: 20,
     textAlign: 'justify',
+  },
+  faceCaptureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F1FD',
+    borderRadius: responsiveWidth(2),
+    paddingHorizontal: responsiveWidth(2),
+    paddingVertical: responsiveWidth(2),
+  },
+  faceThumbWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E5FBEF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  faceThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  faceCaptureText: {
+    flex: 1,
+    marginLeft: responsiveWidth(3),
+    fontSize: responsiveFontSize(1.8),
+    color: '#333',
   },
 });
 
