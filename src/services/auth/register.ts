@@ -18,7 +18,6 @@ export type RegisterOrangTuaRequest = {
   npm: string;
   nik: string;
   no_hp: string;
-  nik: string;
   password: string;
   password2: string;
 };

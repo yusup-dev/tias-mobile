@@ -24,12 +24,13 @@ const OrangTuaProfileScreen = (props: any) => {
     }
   });
 
-  const [listProfile] = useState([
-    { id: 1, name: 'Pengaturan Akun', icon: 'cog-outline', action: () => props.navigation.push('orangTuaProfile.pengaturan-akun') },
-    { id: 2, name: 'Bantuan & Laporan Saya', icon: 'help-circle-outline', action: () => props.navigation.push('orangTuaProfile.bantuan') },
-  ]);
+  const listProfile = [
+    { id: 'menu-surat-pengunduran-diri', name: 'Surat Pengunduran Diri', icon: 'file-document-outline', action: () => props.navigation.push('orangTuaProfile.surat-pengunduran-diri') },
+    { id: 2, name: 'Pengaturan Akun', icon: 'cog-outline', action: () => props.navigation.push('orangTuaProfile.pengaturan-akun') },
+    { id: 3, name: 'Bantuan & Laporan Saya', icon: 'help-circle-outline', action: () => props.navigation.push('orangTuaProfile.bantuan') },
+  ];
 
-  const [listProfile2] = useState([
+  const listProfile2 = [
     { id: 3, name: 'Kebijakan Privasi', icon: 'shield-alert-outline', action: () => props.navigation.push('orangTuaProfile.kebijakan-privasi') },
     { id: 4, name: 'Beri Kami Nilai', icon: 'party-popper', action: () => props.navigation.push('orangTuaProfile.beri-nilai') },
     {
@@ -40,7 +41,7 @@ const OrangTuaProfileScreen = (props: any) => {
         setAuthentication(false);
       }
     },
-  ]);
+  ];
 
   const displayUser = profileData?.data || user;
 

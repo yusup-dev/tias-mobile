@@ -170,12 +170,6 @@ const SkripsiScreen = (props: any) => {
                     </View>
                   </View>
 
-                  <View style={styles.cardFooter}>
-                    <Icons name="clock-outline" size={14} color="#9CA3AF" />
-                    <Text style={styles.footerText}>
-                      Pembaruan: {item.updated_at ? moment(item.updated_at).format('DD MMM YYYY, HH:mm') : '-'}
-                    </Text>
-                  </View>
                 </View>
               );
             })
@@ -362,20 +356,6 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.6),
     color: '#1F2937',
     fontWeight: '500',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: responsiveWidth(4),
-    paddingVertical: responsiveWidth(2.5),
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  footerText: {
-    fontSize: responsiveFontSize(1.3),
-    color: '#9CA3AF',
-    marginLeft: 6,
   },
 });
 

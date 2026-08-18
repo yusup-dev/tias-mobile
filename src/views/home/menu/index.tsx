@@ -100,28 +100,6 @@ const MenuComponent = (props: any) => {
         />
       ),
     },
-    // {
-    //   value: 'Artikel',
-    //   icon: () => (
-    //     <Image
-    //       source={require('../../../../assets/home/artikel.png')}
-    //       style={{
-    //         alignSelf: 'center',
-    //       }}
-    //     />
-    //   ),
-    // },
-    // {
-    //   value: 'Dokumen',
-    //   icon: () => (
-    //     <Image
-    //       source={require('../../../../assets/home/dokumen.png')}
-    //       style={{
-    //         alignSelf: 'center',
-    //       }}
-    //     />
-    //   ),
-    // },
   ];
   const { data, isLoading, isSuccess, isError, error }: { data: any; isLoading: boolean; isSuccess: boolean; isError: boolean; error: any } = useQuery({
     queryKey: ['list_event', {}],
