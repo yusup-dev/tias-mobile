@@ -167,6 +167,14 @@ const NilaiScreen = (props: any) => {
               <Icon name="school" size={48} color="#CBD5E0" />
               <Text style={styles.centerText}>Belum ada data nilai</Text>
             </View>
+          ) : matkulList.length === 0 ? (
+            <View style={styles.centerBox}>
+              <Icon name="assignment" size={48} color="#CBD5E0" />
+              <Text style={styles.centerText}>Tidak ada data nilai</Text>
+              <Text style={styles.centerSubText}>
+                Periode {activePeriodeName} belum memiliki data mata kuliah
+              </Text>
+            </View>
           ) : (
             <>
               {/* ── Table ── */}
@@ -185,50 +193,44 @@ const NilaiScreen = (props: any) => {
                   <Text style={[styles.thText, styles.colNilai]}>Nilai</Text>
                 </View>
 
-                {matkulList.length === 0 ? (
-                  <View style={styles.emptyRow}>
-                    <Text style={styles.emptyRowText}>Tidak ada data mata kuliah.</Text>
-                  </View>
-                ) : (
-                  matkulList.map((mk: any, idx: number) => (
-                    <View
-                      key={`mk-${idx}`}
-                      style={[
-                        styles.tableRow,
-                        idx % 2 === 1 && styles.tableRowAlt,
-                      ]}>
-                      <Text style={[styles.tdText, styles.colNo]}>{idx + 1}</Text>
-                      <Text style={[styles.tdText, styles.colKode, styles.tdKode]}>
-                        {mk.kelasKuliah?.mataKuliah?.kode ?? mk.kode ?? mk.curr_code ?? mk.code ?? '-'}
-                      </Text>
-                      <Text style={[styles.tdText, styles.colNama]} numberOfLines={2}>
-                        {mk.kelasKuliah?.mataKuliah?.nama ?? mk.namaMataKuliah ?? mk.name ?? mk.nama ?? '-'}
-                      </Text>
-                      <Text style={[styles.tdText, styles.colSks, { textAlign: 'center' }]}>
-                        {mk.kelasKuliah?.mataKuliah?.totalSks ?? mk.sks ?? '-'}
-                      </Text>
-                      <Text style={[styles.tdText, styles.colMutu, { textAlign: 'center' }]}>
-                        {mk.angkaMutu ?? (typeof mk.nilaiMutu === 'number'
-                          ? mk.nilaiMutu.toFixed(2)
-                          : mk.nilaiMutu ?? '-')}
-                      </Text>
-                      <Text style={[styles.tdText, styles.colBobot, { textAlign: 'center' }]}>
-                        {mk.nilaiAkhir ?? mk.bobot ?? '-'}
-                      </Text>
-                      <View style={[styles.colNilai, { alignItems: 'center' }]}>
-                        <View
-                          style={[
-                            styles.nilaiBadge,
-                            { backgroundColor: getNilaiColor(mk.hurufMutu ?? mk.nilai ?? mk.grade) },
-                          ]}>
-                          <Text style={styles.nilaiBadgeText}>
-                            {mk.hurufMutu ?? mk.nilai ?? mk.grade ?? '-'}
-                          </Text>
-                        </View>
+                {matkulList.map((mk: any, idx: number) => (
+                  <View
+                    key={`mk-${idx}`}
+                    style={[
+                      styles.tableRow,
+                      idx % 2 === 1 && styles.tableRowAlt,
+                    ]}>
+                    <Text style={[styles.tdText, styles.colNo]}>{idx + 1}</Text>
+                    <Text style={[styles.tdText, styles.colKode, styles.tdKode]}>
+                      {mk.kelasKuliah?.mataKuliah?.kode ?? mk.kode ?? mk.curr_code ?? mk.code ?? '-'}
+                    </Text>
+                    <Text style={[styles.tdText, styles.colNama]} numberOfLines={2}>
+                      {mk.kelasKuliah?.mataKuliah?.nama ?? mk.namaMataKuliah ?? mk.name ?? mk.nama ?? '-'}
+                    </Text>
+                    <Text style={[styles.tdText, styles.colSks, { textAlign: 'center' }]}>
+                      {mk.kelasKuliah?.mataKuliah?.totalSks ?? mk.sks ?? '-'}
+                    </Text>
+                    <Text style={[styles.tdText, styles.colMutu, { textAlign: 'center' }]}>
+                      {mk.angkaMutu ?? (typeof mk.nilaiMutu === 'number'
+                        ? mk.nilaiMutu.toFixed(2)
+                        : mk.nilaiMutu ?? '-')}
+                    </Text>
+                    <Text style={[styles.tdText, styles.colBobot, { textAlign: 'center' }]}>
+                      {mk.nilaiAkhir ?? mk.bobot ?? '-'}
+                    </Text>
+                    <View style={[styles.colNilai, { alignItems: 'center' }]}>
+                      <View
+                        style={[
+                          styles.nilaiBadge,
+                          { backgroundColor: getNilaiColor(mk.hurufMutu ?? mk.nilai ?? mk.grade) },
+                        ]}>
+                        <Text style={styles.nilaiBadgeText}>
+                          {mk.hurufMutu ?? mk.nilai ?? mk.grade ?? '-'}
+                        </Text>
                       </View>
                     </View>
-                  ))
-                )}
+                  </View>
+                ))}
 
                 <View style={styles.summaryRow}>
                   <Text style={[styles.summaryLabel, { flex: 1 }]}>Total SKS</Text>

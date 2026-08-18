@@ -6,6 +6,7 @@ import BantuanScreen from '../../views/profile/bantuan';
 import PengaturanAkunScreen from '../../views/profile/pengaturan-akun';
 import KebijakanPrivasiScreen from '../../views/profile/kebijakan-privasi';
 import BeriNilaiScreen from '../../views/profile/beri-nilai';
+import SuratPengunduranDiriScreen from '../../views/profile/orang-tua/surat-pengunduran-diri';
 
 const Stack = createStackNavigator();
 
@@ -55,6 +56,13 @@ function ProfileOrangTuaStack() {
         component={BeriNilaiScreen}
         options={{
           title: 'Beri Kami Nilai',
+        }}
+      />
+      <Stack.Screen
+        name="orangTuaProfile.surat-pengunduran-diri"
+        component={SuratPengunduranDiriScreen}
+        options={{
+          title: 'Surat Pengunduran Diri',
         }}
       />
     </Stack.Navigator>
