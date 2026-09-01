@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Image,
@@ -19,16 +19,53 @@ import { profile } from '../../services/auth/profile';
 import StaggeredList from '@mindinventory/react-native-stagger-view';
 import LinearGradient from 'react-native-linear-gradient';
 
+const getBadgeInfo = (totalPoint: number) => {
+  if (totalPoint >= 10000) {
+    return {
+      rank: 'Legend',
+      badge: require('../../../assets/lencana/lencana_legend.png'),
+    };
+  } else if (totalPoint >= 7500) {
+    return {
+      rank: 'Superior',
+      badge: require('../../../assets/lencana/lencana_superior.png'),
+    };
+  } else if (totalPoint >= 5400) {
+    return {
+      rank: 'Specialist',
+      badge: require('../../../assets/lencana/lencana_spesialist.png'),
+    };
+  } else if (totalPoint >= 3900) {
+    return {
+      rank: 'Professional',
+      badge: require('../../../assets/lencana/lencana_professional.png'),
+    };
+  } else if (totalPoint >= 2400) {
+    return {
+      rank: 'Proficient',
+      badge: require('../../../assets/lencana/lencana_proficient.png'),
+    };
+  } else if (totalPoint >= 1100) {
+    return {
+      rank: 'Qualified',
+      badge: require('../../../assets/lencana/lencana_qualified.png'),
+    };
+  }
+  return {
+    rank: 'Novice',
+    badge: require('../../../assets/lencana/lencana_novice.png'),
+  };
+};
+
 // --- KOMPONEN LIST STATISTIK ---
-const ListStatistik = ({ data }: { data: any }) => {
-  // Menggunakan array untuk mempersingkat kode agar tidak berulang
+const ListStatistik = ({ data, navigation }: { data: any; navigation: any }) => {
   const stats = [
-    { id: 1, label: 'Pendidikan', value: data?.data?.point_pendidikan, color: '#4ADE80' }, // Hijau
-    { id: 2, label: 'Publikasi', value: data?.data?.point_publikasi, color: '#60A5FA' }, // Biru
-    { id: 3, label: 'Penelitian', value: data?.data?.point_penelitian, color: '#F472B6' }, // Merah Muda
-    { id: 4, label: 'Pengabdian', value: data?.data?.point_pengabdian, color: '#FBBF24' }, // Kuning
-    { id: 5, label: 'Kompetensi', value: data?.data?.point_kompetensi, color: '#A78BFA' }, // Ungu
-    { id: 6, label: 'Penunjang', value: data?.data?.point_penunjang, color: '#FB923C' }, // Oranye
+    { id: 1, label: 'Pendidikan', value: data?.data?.point_pendidikan, color: '#4ADE80', route: 'home.pendidikan' },
+    { id: 2, label: 'Penelitian', value: data?.data?.point_penelitian, color: '#F472B6', route: 'home.penelitian' },
+    { id: 3, label: 'Pengabdian', value: data?.data?.point_pengabdian, color: '#FBBF24', route: 'home.pengabdian' },
+    { id: 4, label: 'Kompetensi', value: data?.data?.point_kompetensi, color: '#A78BFA', route: 'home.kompetensi' },
+    { id: 5, label: 'Penunjang', value: data?.data?.point_penunjang, color: '#FB923C', route: 'home.penunjang' },
+    { id: 6, label: 'Rekomendasi', value: data?.data?.point_rekomendasi, color: '#38BDF8', route: 'gamifikasi.leaderboard' },
   ];
 
   return (
@@ -37,13 +74,21 @@ const ListStatistik = ({ data }: { data: any }) => {
       showsHorizontalScrollIndicator={false}
       horizontal={true}>
       {stats.map((item) => (
-        <View key={item.id} style={styles.statistikCard}>
+        <TouchableOpacity
+          key={item.id}
+          activeOpacity={0.8}
+          onPress={() => {
+            if (navigation && item.route) {
+              navigation.navigate(item.route);
+            }
+          }}
+          style={styles.statistikCard}>
           <Text style={styles.statistikValue}>
             {item.value ? ribuanCast(item.value) : 0}
           </Text>
           <Text style={styles.statistikLabel}>{item.label}</Text>
           <View style={[styles.statistikProgress, { backgroundColor: item.color }]} />
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
@@ -51,8 +96,8 @@ const ListStatistik = ({ data }: { data: any }) => {
 
 // --- KOMPONEN UTAMA GAMIFIKASI ---
 const Gamifikasi = (props: any) => {
-  const { data, isSuccess, isError, error }: { data: any; isSuccess: boolean; isError: boolean; error: any } = useQuery({
-    queryKey: ['profile', {}],
+  const { data, isError, error } = useQuery({
+    queryKey: ['profile'],
     queryFn: () => profile(),
   });
 
@@ -62,51 +107,59 @@ const Gamifikasi = (props: any) => {
     }
   }, [isError, error]);
 
-  const [listKategori] = useState([
+  const totalPoint = data?.data?.total_point || 0;
+  const badgeInfo = useMemo(() => getBadgeInfo(totalPoint), [totalPoint]);
+
+  const listKategori = [
     {
       id: 1,
-      title: 'Lencana',
-      deskripsi: 'Koleksi semua lencana',
+      title: 'Pencapaian',
+      deskripsi: 'Lihat progres & hadiah',
       width: responsiveWidth(43),
-      height: responsiveHeight(20),
-      backgroundColor: '#FEE2E2', // Merah muda pastel
-      image: require('../../../assets/lencana/icon-lencana.png'),
+      height: responsiveHeight(26),
+      backgroundColor: '#FEF3C7',
+      image: require('../../../assets/lencana/icon-pencapaian.png'),
+      route: 'gamifikasi.pencapaian',
     },
     {
       id: 2,
-      title: 'Pencapaian',
-      deskripsi: 'Lihat progresmu',
+      title: 'Misi',
+      deskripsi: 'Tugas & tantangan',
       width: responsiveWidth(43),
-      height: responsiveHeight(28),
-      backgroundColor: '#FEF3C7', // Kuning pastel
-      image: require('../../../assets/lencana/icon-acara.png'),
+      height: responsiveHeight(20),
+      backgroundColor: '#E0F2FE',
+      image: require('../../../assets/lencana/icon-misi.png'),
+      route: 'gamifikasi.misi',
     },
     {
       id: 3,
-      title: 'Misi',
-      deskripsi: 'Selesaikan tugas harian',
+      title: 'Leaderboard',
+      deskripsi: 'Papan peringkat',
       width: responsiveWidth(43),
       height: responsiveHeight(22),
-      backgroundColor: '#E0F2FE', // Biru pastel
-      image: require('../../../assets/lencana/icon-misi.png'),
+      backgroundColor: '#E0F2FE',
+      image: require('../../../assets/lencana/icon-papan-peringkat.png'),
+      route: 'gamifikasi.leaderboard',
     },
     {
       id: 4,
-      title: 'Acara',
-      deskripsi: 'Ikuti event spesial',
+      title: 'Statistik',
+      deskripsi: 'Grafik IPK & Poin',
       width: responsiveWidth(43),
-      height: responsiveHeight(20),
-      backgroundColor: '#F3E8FF', // Ungu pastel
-      image: require('../../../assets/lencana/icon-acara.png'),
+      height: responsiveHeight(24),
+      backgroundColor: '#F3E8FF',
+      image: require('../../../assets/lencana/icon-statistik.png'),
+      route: 'gamifikasi.statistik',
     },
     {
       id: 5,
       title: 'Aktivitas',
-      deskripsi: 'Log aktivitas terbaru',
+      deskripsi: 'Log kehadiran',
       width: responsiveWidth(43),
-      height: responsiveHeight(24),
+      height: responsiveHeight(22),
       backgroundColor: '#FEF3C7',
       image: require('../../../assets/lencana/icon-aktivitas.png'),
+      route: 'gamifikasi.aktivitas',
     },
     {
       id: 6,
@@ -116,47 +169,18 @@ const Gamifikasi = (props: any) => {
       height: responsiveHeight(20),
       backgroundColor: '#FEE2E2',
       image: require('../../../assets/lencana/icon-ulasan.png'),
+      route: 'profile.beri-nilai',
     },
-    {
-      id: 7,
-      title: 'Statistik',
-      deskripsi: 'Analisis performamu',
-      width: responsiveWidth(43),
-      height: responsiveHeight(22),
-      backgroundColor: '#F3E8FF',
-      image: require('../../../assets/lencana/icon-statistik.png'),
-    },
-    {
-      id: 8,
-      title: 'Leaderboard',
-      deskripsi: 'Papan peringkat global',
-      width: responsiveWidth(43),
-      height: responsiveHeight(20),
-      backgroundColor: '#E0F2FE',
-      image: require('../../../assets/lencana/icon-papan-peringkat.png'),
-    },
-  ]);
+  ];
 
   const handlePressKategori = (item: any) => {
-    if (item.title === 'Misi') {
-      props.navigation.navigate('gamifikasi.misi');
-    } else if (item.title === 'Leaderboard') {
-      props.navigation.navigate('gamifikasi.leaderboard');
-    } else if (item.title === 'Pencapaian') {
-      props.navigation.navigate('gamifikasi.pencapaian');
-    } else if (item.title === 'Aktivitas') {
-      props.navigation.navigate('gamifikasi.aktivitas');
-    } else if (item.title === 'Statistik') {
-      props.navigation.navigate('gamifikasi.statistik');
-    } else {
-      // Implementasi kategori lain menyusul
-      console.log('Navigasi ke:', item.title);
+    if (item.route) {
+      props.navigation.navigate(item.route);
     }
   };
 
   return (
     <ScrollView style={styles.rootContainer} showsVerticalScrollIndicator={false}>
-
       {/* Header Gradient */}
       <LinearGradient colors={['#15613F', '#BAEED7']} style={styles.headerGradient} />
 
@@ -165,23 +189,26 @@ const Gamifikasi = (props: any) => {
         <View style={styles.profileInfo}>
           <Image
             style={styles.profileAvatar}
-            source={require('../../../assets/login/logo_uika.png')}
+            source={
+              data?.data?.image
+                ? { uri: data?.data?.image }
+                : require('../../../assets/login/logo_uika.png')
+            }
           />
           <View style={styles.profileTextContainer}>
-            <Text style={styles.profileRank}>{data?.data?.rank || 'Level 1'}</Text>
+            <Text style={styles.profileRank}>{badgeInfo.rank}</Text>
             <Text style={styles.profileScore}>
-              {data?.data?.total_point ? ribuanCast(data?.data?.total_point) : 0} UCL Score avg
+              {totalPoint ? ribuanCast(totalPoint) : 0} UCL Score
             </Text>
           </View>
         </View>
         <Image
           style={styles.profileBadge}
-          source={require('../../../assets/lencana/lencana_novice.png')}
+          source={badgeInfo.badge}
         />
       </View>
 
       <View style={styles.contentContainer}>
-
         {/* UCL Club Banner */}
         <View style={styles.clubCard}>
           <View style={styles.clubInfo}>
@@ -192,23 +219,26 @@ const Gamifikasi = (props: any) => {
             <Text style={styles.clubSubtitle}>Program loyalitas eksklusif UCL</Text>
           </View>
 
-          <TouchableOpacity style={styles.clubButton}>
-            <Text style={styles.clubButtonText}>Ikuti Gratis</Text>
+          <TouchableOpacity
+            style={styles.clubButton}
+            onPress={() => props.navigation.navigate('profile.tias-club')}
+          >
+            <Text style={styles.clubButtonText}>Buka Club</Text>
           </TouchableOpacity>
         </View>
 
         {/* Statistik Horizontal */}
-        <ListStatistik data={data} />
+        <ListStatistik data={data} navigation={props.navigation} />
 
         {/* Kategori Staggered Grid */}
         <View style={styles.kategoriSection}>
-          <Text style={styles.sectionTitle}>UCL Kategori</Text>
+          <Text style={styles.sectionTitle}>UCL Kategori Gamifikasi</Text>
 
           <StaggeredList
             data={listKategori}
             animationType={'FADE_IN_FAST'}
             showsVerticalScrollIndicator={false}
-            scrollEnabled={false} // Dimatikan karena sudah di dalam ScrollView utama
+            scrollEnabled={false}
             renderItem={({ item }: { item: any }) => (
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -242,9 +272,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#1E293B', // Warna gelap agar kontras dengan avatar dan lencana
+    backgroundColor: '#1E293B',
     marginHorizontal: responsiveWidth(5),
-    marginTop: -responsiveHeight(7), // Overlapping gradient
+    marginTop: -responsiveHeight(7),
     borderRadius: 20,
     padding: responsiveWidth(5),
     elevation: 6,
@@ -256,18 +286,20 @@ const styles = StyleSheet.create({
   profileInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   profileAvatar: {
     width: responsiveWidth(14),
     height: responsiveWidth(14),
     borderRadius: responsiveWidth(7),
-    backgroundColor: 'white', // Jika logo transparan
+    backgroundColor: 'white',
   },
   profileTextContainer: {
     marginLeft: responsiveWidth(3),
+    flex: 1,
   },
   profileRank: {
-    color: '#FBBF24', // Warna emas/kuning untuk rank
+    color: '#FBBF24',
     fontWeight: 'bold',
     fontSize: responsiveFontSize(2.2),
   },
@@ -319,12 +351,12 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   clubSubtitle: {
-    fontSize: responsiveFontSize(1.5),
+    fontSize: responsiveFontSize(1.4),
     color: '#6B7280',
     marginTop: 4,
   },
   clubButton: {
-    backgroundColor: '#15613F', // Hijau UIKA
+    backgroundColor: '#15613F',
     paddingHorizontal: responsiveWidth(4),
     paddingVertical: responsiveWidth(2.5),
     borderRadius: 10,
@@ -332,7 +364,7 @@ const styles = StyleSheet.create({
   clubButtonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: responsiveFontSize(1.5),
+    fontSize: responsiveFontSize(1.4),
   },
   statistikContainer: {
     flexDirection: 'row',
@@ -353,12 +385,12 @@ const styles = StyleSheet.create({
   },
   statistikValue: {
     fontWeight: '900',
-    fontSize: responsiveFontSize(2.4),
+    fontSize: responsiveFontSize(2.2),
     color: '#1F2937',
   },
   statistikLabel: {
     marginTop: 4,
-    fontSize: responsiveFontSize(1.6),
+    fontSize: responsiveFontSize(1.4),
     color: '#6B7280',
     fontWeight: '500',
   },
@@ -373,7 +405,7 @@ const styles = StyleSheet.create({
     paddingBottom: responsiveWidth(10),
   },
   sectionTitle: {
-    fontSize: responsiveFontSize(2.2),
+    fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: responsiveWidth(3),
@@ -392,11 +424,11 @@ const styles = StyleSheet.create({
   },
   kategoriTitle: {
     fontWeight: '800',
-    fontSize: responsiveFontSize(2),
+    fontSize: responsiveFontSize(1.8),
     color: '#1F2937',
   },
   kategoriDesc: {
-    fontSize: responsiveFontSize(1.4),
+    fontSize: responsiveFontSize(1.3),
     color: '#4B5563',
     marginTop: 2,
   },

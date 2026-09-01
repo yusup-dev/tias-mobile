@@ -187,7 +187,6 @@ const Register = ({ navigation }: Props) => {
         npm: npmOt.trim(),
         nik: nikOt.trim(),
         no_hp: noHpOt.trim(),
-        nik: nikOt.trim(),
         password: passwordOt.value,
         password2: confirmPasswordOt.value,
       });

@@ -1,10 +1,11 @@
-import { NavigationContainer } from '@react-navigation/native';
+﻿import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTokenStore } from '../store/auth';
 import Login from '../views/login';
 import Register from '../views/register';
 import ForgotPasswordScreen from '../views/ForgotPasswordScreen';
+import FaceLoginVerificationScreen from '../views/FaceLoginVerificationScreen';
 import BottomTabsComponent from './bottom-tabs';
 
 const Stack = createStackNavigator();
@@ -14,6 +15,7 @@ const AuthStack = () => (
     <Stack.Screen name="login" component={Login} />
     <Stack.Screen name="register" component={Register} />
     <Stack.Screen name="forgotPassword" component={ForgotPasswordScreen} />
+    <Stack.Screen name="faceLoginVerification" component={FaceLoginVerificationScreen} />
   </Stack.Navigator>
 );
 
@@ -29,11 +31,9 @@ const AppNavigation = () => {
   const isLoggedIn = Boolean(auth && token && (user?.npm || user?.email));
 
   return (
-    
-      <NavigationContainer>
-        {isLoggedIn ? <BottomTabsComponent /> : <AuthStack />}
-      </NavigationContainer>
-    
+    <NavigationContainer>
+      {isLoggedIn ? <BottomTabsComponent /> : <AuthStack />}
+    </NavigationContainer>
   );
 };
 

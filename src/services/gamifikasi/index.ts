@@ -1,4 +1,4 @@
-import axios from '../../config/axios-tias';
+﻿import axios from '../../config/axios-tias';
 import {useTokenStore} from '../../store/auth';
 
 export async function getLeaderboard(params: any = {}): Promise<any> {
@@ -42,3 +42,42 @@ export async function getActivity(): Promise<any> {
   return response.data;
 }
 
+export async function getAcademicStats(): Promise<any> {
+  const token = useTokenStore.getState().token;
+  const response = await axios.get('ipMhs/getDataIp', {
+    headers: {
+      token: token,
+    },
+  });
+  return response.data;
+}
+
+export async function getChallenges(): Promise<any> {
+  const token = useTokenStore.getState().token;
+  const response = await axios.get('berita/active-tantangan', {
+    headers: {
+      token: token,
+    },
+  });
+  return response.data;
+}
+
+export async function getEvents(): Promise<any> {
+  const token = useTokenStore.getState().token;
+  const response = await axios.get('berita/active-event', {
+    headers: {
+      token: token,
+    },
+  });
+  return response.data;
+}
+
+export async function getDetailEvent(id: string | number): Promise<any> {
+  const token = useTokenStore.getState().token;
+  const response = await axios.get(`berita/detail/${id}`, {
+    headers: {
+      token: token,
+    },
+  });
+  return response.data;
+}

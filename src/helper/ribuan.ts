@@ -1,4 +1,5 @@
-export const ribuanCast = (bilangan: string) => {
+﻿export const ribuanCast = (bilangan: string | number) => {
+  if (bilangan === undefined || bilangan === null) return '0';
   var number_string = bilangan.toString(),
     sisa = number_string.length % 3,
     data = number_string.substr(0, sisa),
@@ -8,5 +9,5 @@ export const ribuanCast = (bilangan: string) => {
     let separator = sisa ? '.' : '';
     data += separator + ribuan.join('.');
   }
-  return data;
+  return data || '0';
 };

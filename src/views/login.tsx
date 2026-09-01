@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -23,17 +23,13 @@ import { useMutation } from '@tanstack/react-query';
 import { login, loginOrangTua } from '../services/auth/index';
 import { useTokenStore } from '../store/auth';
 import { DialogComponent } from '../component/dialog';
-import { LogoUika } from '../../assets/svg';
 
 type Role = 'mahasiswa' | 'orang_tua';
-
-type Props = {
-  navigation?: any;
-};
 
 const Login = (props: any) => {
   const [role, setRole] = useState<Role>('mahasiswa');
   const [rememberMe, setRememberMe] = useState(false);
+  const [useFaceVerification, setUseFaceVerification] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState({ value: '', secure: true });
   const [modalQuery, setModalQuery] = useState({
@@ -54,7 +50,8 @@ const Login = (props: any) => {
   };
 
   const handleSuccess = (succ: any, expectedRole: 'Parent' | 'Mahasiswa') => {
-    const isSuccess = succ?.isSuccess ||
+    const isSuccess =
+      succ?.isSuccess ||
       succ?.message?.toLowerCase().includes('success') ||
       succ?.responseMessage?.toLowerCase().includes('success') ||
       succ?.data?.token;
@@ -64,14 +61,29 @@ const Login = (props: any) => {
         ...succ?.data,
         role: succ?.data?.role || expectedRole,
       };
-      setUser(userData);
-      setToken(succ?.data?.token);
-      storeSetRememberMe(rememberMe);
-      setAuthentication(true);
+
+      // Jika role Mahasiswa dan verifikasi wajah aktif, alihkan ke layar verifikasi biometrik wajah
+      if (role === 'mahasiswa' && useFaceVerification) {
+        props.navigation.navigate('faceLoginVerification', {
+          pendingUserData: userData,
+          token: succ?.data?.token,
+          rememberMe: rememberMe,
+        });
+      } else {
+        setUser(userData);
+        setToken(succ?.data?.token);
+        storeSetRememberMe(rememberMe);
+        setAuthentication(true);
+      }
     } else {
-      const errorMsg = (succ?.responseMessage && succ?.responseMessage !== 'error' && succ?.responseMessage !== 'Error')
-        ? succ.responseMessage
-        : (typeof succ?.data === 'string' ? succ.data : (succ?.message || 'Login gagal. Periksa kembali email dan password Anda.'));
+      const errorMsg =
+        succ?.responseMessage &&
+        succ?.responseMessage !== 'error' &&
+        succ?.responseMessage !== 'Error'
+          ? succ.responseMessage
+          : typeof succ?.data === 'string'
+          ? succ.data
+          : succ?.message || 'Login gagal. Periksa kembali email dan password Anda.';
 
       showDialog('Gagal', errorMsg);
     }
@@ -79,22 +91,27 @@ const Login = (props: any) => {
 
   const handleError = (err: any) => {
     const data = err?.response?.data;
-    const msg = (data?.responseMessage && data?.responseMessage !== 'error' && data?.responseMessage !== 'Error')
-      ? data.responseMessage
-      : (typeof data?.data === 'string' ? data.data : (data?.message || err?.message || 'Terjadi kesalahan. Silakan coba lagi.'));
+    const msg =
+      data?.responseMessage &&
+      data?.responseMessage !== 'error' &&
+      data?.responseMessage !== 'Error'
+        ? data.responseMessage
+        : typeof data?.data === 'string'
+        ? data.data
+        : data?.message || err?.message || 'Terjadi kesalahan. Silakan coba lagi.';
     showDialog('Gagal', msg);
   };
 
   const { mutate: mutateMhs, isLoading: loadingMhs } = useMutation({
     mutationFn: login,
     onError: handleError,
-    onSuccess: (data) => handleSuccess(data, 'Mahasiswa'),
+    onSuccess: data => handleSuccess(data, 'Mahasiswa'),
   });
 
   const { mutate: mutateOt, isLoading: loadingOt } = useMutation({
     mutationFn: loginOrangTua,
     onError: handleError,
-    onSuccess: (data) => handleSuccess(data, 'Parent'),
+    onSuccess: data => handleSuccess(data, 'Parent'),
   });
 
   const isLoading = loadingMhs || loadingOt;
@@ -105,7 +122,6 @@ const Login = (props: any) => {
       return;
     }
 
-    // Validasi format email sederhana
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       showDialog('Perhatian', 'Format email tidak valid.');
@@ -118,6 +134,7 @@ const Login = (props: any) => {
     }
 
     const payload = { email: email.trim(), password: password.value };
+
     if (role === 'mahasiswa') {
       mutateMhs(payload);
     } else {
@@ -127,49 +144,66 @@ const Login = (props: any) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}>
+      <DialogComponent
+        visible={modalQuery.visible}
+        title={modalQuery.title}
+        desc={modalQuery.desc}
+        onDismiss={() => setModalQuery({ ...modalQuery, visible: false })}
+        onDone={() => setModalQuery({ ...modalQuery, visible: false })}
+      />
 
-      {/* Hero image */}
       <View style={styles.hero}>
         <Image
-          source={require('../../assets/login/ikhwan.png')}
-          resizeMode="contain"
+          source={require('../../assets/login/bg_login.png')}
           style={styles.heroImage}
+          resizeMode="contain"
         />
-        {/* Title & Logo at bottom of hero */}
         <View style={styles.heroBottom}>
-          <Text style={styles.titleText}>Sign In</Text>
-          <Image source={LogoUika} resizeMode="contain" style={styles.logo} />
+          <Text style={styles.titleText}>Masuk Akun</Text>
+          <Image
+            source={require('../../assets/login/logo_uika.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
       </View>
 
-      <DialogComponent
-        visible={modalQuery.visible}
-        onDismiss={() => setModalQuery({ ...modalQuery, visible: false })}
-        title={modalQuery.title}
-        desc={modalQuery.desc}
-      />
-
-      {/* Card */}
       <View style={styles.card}>
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-
-          {/* Role Toggle */}
+          {/* Role selector */}
           <View style={styles.roleWrapper}>
             <TouchableOpacity
               style={[styles.roleBtn, role === 'mahasiswa' && styles.roleBtnActive]}
               onPress={() => setRole('mahasiswa')}>
-              <Icon name="school" size={18} color={role === 'mahasiswa' ? '#fff' : '#15613F'} />
-              <Text style={[styles.roleBtnText, role === 'mahasiswa' && styles.roleBtnTextActive]}>
-                Akademik
+              <Icon
+                name="school"
+                size={18}
+                color={role === 'mahasiswa' ? '#fff' : '#15613F'}
+              />
+              <Text
+                style={[
+                  styles.roleBtnText,
+                  role === 'mahasiswa' && styles.roleBtnTextActive,
+                ]}>
+                Mahasiswa / Dosen
               </Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={[styles.roleBtn, role === 'orang_tua' && styles.roleBtnActive]}
               onPress={() => setRole('orang_tua')}>
-              <Icon name="account-supervisor" size={18} color={role === 'orang_tua' ? '#fff' : '#15613F'} />
-              <Text style={[styles.roleBtnText, role === 'orang_tua' && styles.roleBtnTextActive]}>
+              <Icon
+                name="account-supervisor"
+                size={18}
+                color={role === 'orang_tua' ? '#fff' : '#15613F'}
+              />
+              <Text
+                style={[
+                  styles.roleBtnText,
+                  role === 'orang_tua' && styles.roleBtnTextActive,
+                ]}>
                 Orang Tua
               </Text>
             </TouchableOpacity>
@@ -210,91 +244,73 @@ const Login = (props: any) => {
               <TouchableOpacity
                 onPress={() => setPassword({ ...password, secure: !password.secure })}>
                 <View style={styles.inputIcon}>
-                  <Icon name={password.secure ? 'eye' : 'eye-off'} size={22} color="gray" />
+                  <Icon
+                    name={password.secure ? 'eye' : 'eye-off'}
+                    size={22}
+                    color="gray"
+                  />
                 </View>
               </TouchableOpacity>
             </View>
           </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: responsiveWidth(1),
-          }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignSelf: 'center',
-            }}>
-            <Checkbox
-              status={rememberMe ? 'checked' : 'unchecked'}
-              onPress={() => {
-                setRememberMe(!rememberMe);
-              }}
-            />
 
-            <Text
-              style={{
-                alignSelf: 'center',
-              }}>
-              Ingat Saya
-            </Text>
+          {/* Face verification toggle */}
+          {role === 'mahasiswa' && (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.faceVerifyRow}
+              onPress={() => setUseFaceVerification(!useFaceVerification)}>
+              <View style={styles.faceVerifyLeft}>
+                <Icon
+                  name="face-recognition"
+                  size={20}
+                  color={useFaceVerification ? '#15613F' : '#9CA3AF'}
+                />
+                <Text style={styles.faceVerifyLabel}>Verifikasi Biometrik Wajah</Text>
+              </View>
+              <Checkbox
+                status={useFaceVerification ? 'checked' : 'unchecked'}
+                onPress={() => setUseFaceVerification(!useFaceVerification)}
+                color="#15613F"
+              />
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.optionsRow}>
+            <View style={styles.rememberRow}>
+              <Checkbox
+                status={rememberMe ? 'checked' : 'unchecked'}
+                onPress={() => {
+                  setRememberMe(!rememberMe);
+                }}
+                color="#15613F"
+              />
+              <Text style={styles.rememberText}>Ingat Saya</Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => props.navigation.navigate('forgotPassword')}>
+              <Text style={styles.forgotText}>Lupa Password?</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() => props.navigation.navigate('forgotPassword')}
-            style={{
-              flexDirection: 'row',
-              alignSelf: 'center',
-            }}>
-            <Text
-              style={{
-                alignSelf: 'center',
-                color: 'gray',
-              }}>
-              Lupa Password?
-            </Text>
+
+          <TouchableOpacity onPress={submit} style={styles.submitBtn}>
+            <Text style={styles.submitText}>Masuk</Text>
           </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-          onPress={submit}
-          style={{
-            backgroundColor: '#15613F',
-            paddingVertical: responsiveWidth(3),
-            borderRadius: responsiveWidth(3),
-            marginVertical: responsiveWidth(3),
-          }}>
-          <Text
-            style={{
-              color: 'white',
-              textAlign: 'center',
-            }}>
-            Login
-          </Text>
-        </TouchableOpacity>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-evenly',
-            marginTop: responsiveWidth(2),
-          }}>
-          <Text>Belum punya akun?</Text>
-          <TouchableOpacity onPress={() => props.navigation.navigate('register')}>
-            <Text
-              style={{
-                color: '#15613F',
-                fontWeight: '700',
-              }}>
-              Daftar Sekarang
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+
+          <View style={styles.registerRow}>
+            <Text style={styles.registerHint}>Belum punya akun? </Text>
+            <TouchableOpacity onPress={() => props.navigation.navigate('register')}>
+              <Text style={styles.registerLink}>Daftar Sekarang</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
 
       {/* Loading overlay */}
       {isLoading && (
         <View style={styles.loadingOverlay}>
-          <Text style={styles.loadingText}>Mohon tunggu...</Text>
+          <Text style={styles.loadingText}>Memproses data login...</Text>
           <ActivityIndicator color="#15613F" />
         </View>
       )}
@@ -313,7 +329,7 @@ const styles = StyleSheet.create({
     paddingTop: responsiveHeight(2),
   },
   heroImage: {
-    height: responsiveHeight(28),
+    height: responsiveHeight(24),
     width: responsiveWidth(65),
   },
   heroBottom: {
@@ -332,16 +348,10 @@ const styles = StyleSheet.create({
     paddingTop: responsiveWidth(2),
     paddingBottom: responsiveWidth(6),
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: responsiveWidth(3),
-  },
   titleText: {
     color: '#15613F',
     fontWeight: '700',
-    fontSize: responsiveFontSize(3.2),
+    fontSize: responsiveFontSize(3),
   },
   logo: {
     width: responsiveWidth(11),
@@ -351,7 +361,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#F1F1FD',
     borderRadius: responsiveWidth(3),
-    marginBottom: responsiveWidth(4),
+    marginBottom: responsiveWidth(3.5),
     padding: responsiveWidth(1),
   },
   roleBtn: {
@@ -368,17 +378,17 @@ const styles = StyleSheet.create({
   roleBtnText: {
     color: '#15613F',
     fontWeight: '600',
-    fontSize: responsiveFontSize(1.8),
+    fontSize: responsiveFontSize(1.6),
     marginLeft: 4,
   },
   roleBtnTextActive: {
     color: '#fff',
   },
   fieldWrapper: {
-    marginBottom: responsiveWidth(3),
+    marginBottom: responsiveWidth(2.5),
   },
   label: {
-    fontSize: responsiveFontSize(1.7),
+    fontSize: responsiveFontSize(1.6),
     marginBottom: responsiveWidth(1),
     color: '#333',
     fontWeight: '500',
@@ -392,19 +402,41 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     justifyContent: 'center',
-    paddingVertical: responsiveWidth(2.5),
+    paddingVertical: responsiveWidth(2),
   },
   input: {
     flex: 1,
     marginLeft: responsiveWidth(2),
-    fontSize: responsiveFontSize(1.8),
+    fontSize: responsiveFontSize(1.6),
     color: '#333',
+  },
+  faceVerifyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: responsiveWidth(2.5),
+    paddingHorizontal: responsiveWidth(3),
+    paddingVertical: responsiveWidth(1),
+    marginVertical: responsiveWidth(1.5),
+  },
+  faceVerifyLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  faceVerifyLabel: {
+    fontSize: responsiveFontSize(1.4),
+    fontWeight: '600',
+    color: '#065F46',
+    marginLeft: 8,
   },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: responsiveWidth(2),
+    marginVertical: responsiveWidth(1),
   },
   rememberRow: {
     flexDirection: 'row',
@@ -412,36 +444,38 @@ const styles = StyleSheet.create({
   },
   rememberText: {
     color: '#333',
-    fontSize: responsiveFontSize(1.7),
+    fontSize: responsiveFontSize(1.5),
   },
   forgotText: {
     color: 'gray',
-    fontSize: responsiveFontSize(1.7),
+    fontSize: responsiveFontSize(1.5),
   },
   submitBtn: {
     backgroundColor: '#15613F',
-    paddingVertical: responsiveWidth(3),
+    paddingVertical: responsiveWidth(3.2),
     borderRadius: responsiveWidth(3),
-    marginTop: responsiveWidth(3),
+    marginTop: responsiveWidth(2),
     marginBottom: responsiveWidth(3),
   },
   submitText: {
     color: '#fff',
     textAlign: 'center',
     fontWeight: '600',
-    fontSize: responsiveFontSize(2),
+    fontSize: responsiveFontSize(1.9),
   },
   registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: responsiveWidth(4),
+    marginBottom: responsiveWidth(3),
   },
   registerHint: {
     color: '#555',
+    fontSize: responsiveFontSize(1.5),
   },
   registerLink: {
     color: '#15613F',
     fontWeight: '700',
+    fontSize: responsiveFontSize(1.5),
   },
   loadingOverlay: {
     position: 'absolute',
@@ -458,6 +492,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginRight: responsiveWidth(2),
     color: '#333',
+    fontSize: responsiveFontSize(1.5),
   },
 });
 

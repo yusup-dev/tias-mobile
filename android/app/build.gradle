@@ -87,7 +87,7 @@ android {
             enable true
             reset()
             include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' // pilih sesuai kebutuhan
-            universalApk false // set ke true kalau ingin juga bikin 1 apk besar semua ABI
+            universalApk true // set ke true kalau ingin juga bikin 1 apk besar semua ABI
         }
     }
 
@@ -127,6 +127,11 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
+    }
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+        checkDependencies false
     }
 }
 

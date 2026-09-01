@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   FlatList,
   Text,
@@ -31,13 +31,13 @@ const AktivitasScreen = (props: any) => {
       <View style={[styles.iconContainer, { backgroundColor: '#ECFDF5' }]}>
         <Icon name="calendar-check" size={24} color="#15613F" />
       </View>
-      <div style={styles.contentContainer}>
-        <Text style={styles.activityTitle}>Absensi: {item.pembelajaran?.matkul?.name || 'Mata Kuliah'}</Text>
-        <Text style={styles.activityTime}>{moment(item.created_at).format('DD MMMM YYYY, HH:mm')}</Text>
+      <View style={styles.contentContainer}>
+        <Text style={styles.activityTitle}>Absensi: {item.pembelajaran?.matkul?.name || item.name || 'Kegiatan Perkuliahan'}</Text>
+        <Text style={styles.activityTime}>{item.created_at ? moment(item.created_at).format('DD MMMM YYYY, HH:mm') : '-'}</Text>
         <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>Berhasil</Text>
+          <Text style={styles.statusText}>{item.status || 'Hadir'}</Text>
         </View>
-      </div>
+      </View>
     </View>
   );
 
