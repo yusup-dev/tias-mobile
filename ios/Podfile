@@ -23,26 +23,9 @@ platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
 setup_permissions([
-  'AppTrackingTransparency',
-  'Bluetooth',
-  'Calendars',
-  'CalendarsWriteOnly',
   'Camera',
-  'Contacts',
-  'FaceID',
-  'LocationAccuracy',
-  'LocationAlways',
   'LocationWhenInUse',
-  'MediaLibrary',
-  'Microphone',
-  'Motion',
-  'Notifications',
   'PhotoLibrary',
-  'PhotoLibraryAddOnly',
-  'Reminders',
-  # 'Siri',
-  'SpeechRecognition',
-  'StoreKit',
 ])
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -75,14 +58,3 @@ target 'newTias' do
     )
   end
 end
-
-
-# pod 'Permission-LocationWhenInUse', :path => "../node_modules/react-native-permissions/ios/LocationWhenInUse/Permission-LocationWhenInUse.podspec" 
-# pod 'Permission-LocationAlways', :path => "../node_modules/react-native-permissions/ios/LocationAlways/Permission-LocationAlways.podspec"
-# permissions_path = '../node_modules/react-native-permissions/ios'
-# pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
-# pod 'react-native-camera', path: '../node_modules/react-native-camera'
-
-# permissions_path = '../node_modules/react-native-permissions/ios'
-# pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
-pod 'react-native-camera', path: '../node_modules/react-native-camera'

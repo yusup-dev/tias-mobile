@@ -1,33 +1,23 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   SafeAreaView,
-  Image,
 } from 'react-native';
 import {
   responsiveFontSize,
-  responsiveHeight,
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FaceCaptureCamera from '../component/faceCapture/FaceCaptureCamera';
-import { faceRecognitionService } from '../services/faceRecognitionService';
+import { loginWithFace } from '../services/auth/index';
 import { useTokenStore } from '../store/auth';
 
 const FaceLoginVerificationScreen = (props: any) => {
-  const { pendingUserData, token, rememberMe } = props.route?.params || {};
-  const subjectId =
-    pendingUserData?.npm ||
-    pendingUserData?.nidn ||
-    pendingUserData?.nip ||
-    pendingUserData?.email ||
-    pendingUserData?.id ||
-    'USER';
+  const { npm, rememberMe } = props.route?.params || {};
 
   const [isVerifying, setIsVerifying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,81 +25,29 @@ const FaceLoginVerificationScreen = (props: any) => {
   const { setAuthentication, setToken, setUser, setRememberMe: storeSetRememberMe } =
     useTokenStore();
 
-  const handleCompleteLogin = () => {
-    setUser(pendingUserData);
-    setToken(token);
-    storeSetRememberMe(Boolean(rememberMe));
-    setAuthentication(true);
-  };
-
   const handleConfirmPhoto = async (photoUri: string) => {
     setIsVerifying(true);
     setErrorMessage(null);
 
     try {
-      console.log('[FACE-LOGIN] Verifying subject:', subjectId, 'uri:', photoUri);
-      const result = await faceRecognitionService.verify(subjectId, photoUri);
+      const result = await loginWithFace(npm, photoUri);
+      const token = result?.data?.token;
 
-      if (result.verified) {
-        Alert.alert(
-          'Verifikasi Berhasil',
-          `Selamat datang, ${pendingUserData?.nama_lengkap || pendingUserData?.name || 'Pengguna'}!`,
-          [
-            {
-              text: 'Lanjutkan',
-              onPress: () => {
-                handleCompleteLogin();
-              },
-            },
-          ]
-        );
+      if (token) {
+        setUser({ ...result?.data, role: result?.data?.role || 'Mahasiswa' });
+        setToken(token);
+        storeSetRememberMe(Boolean(rememberMe));
+        setAuthentication(true);
       } else {
-        setErrorMessage('Wajah tidak cocok. Pastikan wajah Anda terlihat jelas dan pencahayaan cukup.');
+        setErrorMessage(result?.message || 'Verifikasi wajah gagal. Silakan coba lagi.');
       }
     } catch (err: any) {
-      console.log('[FACE-LOGIN] Error verification:', err);
-      const msg = err?.message || 'Gagal memverifikasi wajah.';
-      
-      // Jika wajah belum di-enroll di server atau service error, beri opsi lanjutkan
-      if (err?.code === 'NOT_ENROLLED' || err?.code === 'SERVICE_UNAVAILABLE') {
-        Alert.alert(
-          'Informasi Biometrik',
-          msg + '\n\nApakah Anda ingin melanjutkan login?',
-          [
-            {
-              text: 'Batal',
-              style: 'cancel',
-            },
-            {
-              text: 'Lanjut Masuk',
-              onPress: () => {
-                handleCompleteLogin();
-              },
-            },
-          ]
-        );
-      } else {
-        setErrorMessage(msg);
-      }
+      const data = err?.response?.data;
+      const msg = data?.message || err?.message || 'Gagal memverifikasi wajah.';
+      setErrorMessage(msg);
     } finally {
       setIsVerifying(false);
     }
-  };
-
-  const handleBypass = () => {
-    Alert.alert(
-      'Lewati Verifikasi Wajah',
-      'Apakah Anda yakin ingin masuk tanpa verifikasi biometrik wajah?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Ya, Masuk',
-          onPress: () => {
-            handleCompleteLogin();
-          },
-        },
-      ]
-    );
   };
 
   return (
@@ -124,10 +62,8 @@ const FaceLoginVerificationScreen = (props: any) => {
         <View style={styles.headerCard}>
           <Icon name="face-recognition" size={24} color="#15613F" />
           <View style={styles.headerTextCol}>
-            <Text style={styles.headerTitle}>Verifikasi Wajah Login</Text>
-            <Text style={styles.headerSub}>
-              {pendingUserData?.nama_lengkap || pendingUserData?.email} ({subjectId})
-            </Text>
+            <Text style={styles.headerTitle}>Login dengan Wajah</Text>
+            <Text style={styles.headerSub}>NPM {npm}</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -140,10 +76,10 @@ const FaceLoginVerificationScreen = (props: any) => {
         </View>
       )}
 
-      {/* Bypass Action Button at Bottom */}
+      {/* Back to password login */}
       <View style={styles.bottomBypassContainer}>
-        <TouchableOpacity style={styles.bypassBtn} onPress={handleBypass}>
-          <Text style={styles.bypassBtnText}>Lewati Verifikasi Wajah</Text>
+        <TouchableOpacity style={styles.bypassBtn} onPress={() => props.navigation.goBack()}>
+          <Text style={styles.bypassBtnText}>Kembali ke Login Password</Text>
         </TouchableOpacity>
       </View>
 

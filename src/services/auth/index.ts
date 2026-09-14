@@ -27,6 +27,29 @@ export async function login(data: LoginRequest): Promise<any> {
   }
 }
 
+/** Login mahasiswa dengan verifikasi wajah (tanpa password), diidentifikasi lewat NPM */
+export async function loginWithFace(npm: string, photoUri: string): Promise<any> {
+  try {
+    const formData = new FormData();
+    formData.append('npm', npm);
+    formData.append('image', {
+      uri: photoUri,
+      name: 'login-face.jpg',
+      type: 'image/jpeg',
+    } as any);
+
+    const response = await axios.post('auth/login-face', formData, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+}
+
 export async function register(data: any): Promise<any> {
   try {
     const response = await axios.post('auth/register', data, {

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -25,13 +25,15 @@ import { useTokenStore } from '../store/auth';
 import { DialogComponent } from '../component/dialog';
 
 type Role = 'mahasiswa' | 'orang_tua';
+type LoginMethod = 'password' | 'face';
 
 const Login = (props: any) => {
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('password');
   const [role, setRole] = useState<Role>('mahasiswa');
   const [rememberMe, setRememberMe] = useState(false);
-  const [useFaceVerification, setUseFaceVerification] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState({ value: '', secure: true });
+  const [npm, setNpm] = useState('');
   const [modalQuery, setModalQuery] = useState({
     visible: false,
     title: '',
@@ -62,19 +64,10 @@ const Login = (props: any) => {
         role: succ?.data?.role || expectedRole,
       };
 
-      // Jika role Mahasiswa dan verifikasi wajah aktif, alihkan ke layar verifikasi biometrik wajah
-      if (role === 'mahasiswa' && useFaceVerification) {
-        props.navigation.navigate('faceLoginVerification', {
-          pendingUserData: userData,
-          token: succ?.data?.token,
-          rememberMe: rememberMe,
-        });
-      } else {
-        setUser(userData);
-        setToken(succ?.data?.token);
-        storeSetRememberMe(rememberMe);
-        setAuthentication(true);
-      }
+      setUser(userData);
+      setToken(succ?.data?.token);
+      storeSetRememberMe(rememberMe);
+      setAuthentication(true);
     } else {
       const errorMsg =
         succ?.responseMessage &&
@@ -116,7 +109,7 @@ const Login = (props: any) => {
 
   const isLoading = loadingMhs || loadingOt;
 
-  const submit = () => {
+  const submitPassword = () => {
     if (!email.trim() || !password.value) {
       showDialog('Perhatian', 'Email dan Password wajib diisi.');
       return;
@@ -142,6 +135,26 @@ const Login = (props: any) => {
     }
   };
 
+  const submitFace = () => {
+    if (!npm.trim()) {
+      showDialog('Perhatian', 'NPM wajib diisi.');
+      return;
+    }
+
+    props.navigation.navigate('faceLoginVerification', {
+      npm: npm.trim(),
+      rememberMe,
+    });
+  };
+
+  const submit = () => {
+    if (loginMethod === 'password') {
+      submitPassword();
+    } else {
+      submitFace();
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -156,7 +169,7 @@ const Login = (props: any) => {
 
       <View style={styles.hero}>
         <Image
-          source={require('../../assets/login/bg_login.png')}
+          source={require('../../assets/login/ikhwan.png')}
           style={styles.heroImage}
           resizeMode="contain"
         />
@@ -172,108 +185,155 @@ const Login = (props: any) => {
 
       <View style={styles.card}>
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {/* Role selector */}
+          {/* Metode login */}
           <View style={styles.roleWrapper}>
             <TouchableOpacity
-              style={[styles.roleBtn, role === 'mahasiswa' && styles.roleBtnActive]}
-              onPress={() => setRole('mahasiswa')}>
+              style={[styles.roleBtn, loginMethod === 'password' && styles.roleBtnActive]}
+              onPress={() => setLoginMethod('password')}>
               <Icon
-                name="school"
+                name="lock"
                 size={18}
-                color={role === 'mahasiswa' ? '#fff' : '#15613F'}
+                color={loginMethod === 'password' ? '#fff' : '#15613F'}
               />
               <Text
                 style={[
                   styles.roleBtnText,
-                  role === 'mahasiswa' && styles.roleBtnTextActive,
+                  loginMethod === 'password' && styles.roleBtnTextActive,
                 ]}>
-                Mahasiswa / Dosen
+                Email & Password
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.roleBtn, role === 'orang_tua' && styles.roleBtnActive]}
-              onPress={() => setRole('orang_tua')}>
+              style={[styles.roleBtn, loginMethod === 'face' && styles.roleBtnActive]}
+              onPress={() => setLoginMethod('face')}>
               <Icon
-                name="account-supervisor"
+                name="face-recognition"
                 size={18}
-                color={role === 'orang_tua' ? '#fff' : '#15613F'}
+                color={loginMethod === 'face' ? '#fff' : '#15613F'}
               />
               <Text
                 style={[
                   styles.roleBtnText,
-                  role === 'orang_tua' && styles.roleBtnTextActive,
+                  loginMethod === 'face' && styles.roleBtnTextActive,
                 ]}>
-                Orang Tua
+                Verifikasi Wajah
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Email */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.label}>Email</Text>
-            <View style={styles.inputRow}>
-              <View style={styles.inputIcon}>
-                <Icon name="email" size={22} color="gray" />
-              </View>
-              <TextInput
-                placeholder="Masukkan email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                style={styles.input}
-              />
-            </View>
-          </View>
-
-          {/* Password */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.inputRow}>
-              <View style={styles.inputIcon}>
-                <Icon name="lock" size={22} color="gray" />
-              </View>
-              <TextInput
-                placeholder="Masukkan password"
-                secureTextEntry={password.secure}
-                value={password.value}
-                onChangeText={val => setPassword({ ...password, value: val })}
-                style={styles.input}
-              />
-              <TouchableOpacity
-                onPress={() => setPassword({ ...password, secure: !password.secure })}>
-                <View style={styles.inputIcon}>
+          {loginMethod === 'password' ? (
+            <>
+              {/* Role selector */}
+              <View style={styles.roleWrapper}>
+                <TouchableOpacity
+                  style={[styles.roleBtn, role === 'mahasiswa' && styles.roleBtnActive]}
+                  onPress={() => setRole('mahasiswa')}>
                   <Icon
-                    name={password.secure ? 'eye' : 'eye-off'}
-                    size={22}
-                    color="gray"
+                    name="school"
+                    size={18}
+                    color={role === 'mahasiswa' ? '#fff' : '#15613F'}
+                  />
+                  <Text
+                    style={[
+                      styles.roleBtnText,
+                      role === 'mahasiswa' && styles.roleBtnTextActive,
+                    ]}>
+                    Mahasiswa / Dosen
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.roleBtn, role === 'orang_tua' && styles.roleBtnActive]}
+                  onPress={() => setRole('orang_tua')}>
+                  <Icon
+                    name="account-supervisor"
+                    size={18}
+                    color={role === 'orang_tua' ? '#fff' : '#15613F'}
+                  />
+                  <Text
+                    style={[
+                      styles.roleBtnText,
+                      role === 'orang_tua' && styles.roleBtnTextActive,
+                    ]}>
+                    Orang Tua
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Email */}
+              <View style={styles.fieldWrapper}>
+                <Text style={styles.label}>Email</Text>
+                <View style={styles.inputRow}>
+                  <View style={styles.inputIcon}>
+                    <Icon name="email" size={22} color="gray" />
+                  </View>
+                  <TextInput
+                    placeholder="Masukkan email"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    style={styles.input}
                   />
                 </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Face verification toggle */}
-          {role === 'mahasiswa' && (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.faceVerifyRow}
-              onPress={() => setUseFaceVerification(!useFaceVerification)}>
-              <View style={styles.faceVerifyLeft}>
-                <Icon
-                  name="face-recognition"
-                  size={20}
-                  color={useFaceVerification ? '#15613F' : '#9CA3AF'}
-                />
-                <Text style={styles.faceVerifyLabel}>Verifikasi Biometrik Wajah</Text>
               </View>
-              <Checkbox
-                status={useFaceVerification ? 'checked' : 'unchecked'}
-                onPress={() => setUseFaceVerification(!useFaceVerification)}
-                color="#15613F"
-              />
-            </TouchableOpacity>
+
+              {/* Password */}
+              <View style={styles.fieldWrapper}>
+                <Text style={styles.label}>Password</Text>
+                <View style={styles.inputRow}>
+                  <View style={styles.inputIcon}>
+                    <Icon name="lock" size={22} color="gray" />
+                  </View>
+                  <TextInput
+                    placeholder="Masukkan password"
+                    secureTextEntry={password.secure}
+                    value={password.value}
+                    onChangeText={val => setPassword({ ...password, value: val })}
+                    style={styles.input}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setPassword({ ...password, secure: !password.secure })}>
+                    <View style={styles.inputIcon}>
+                      <Icon
+                        name={password.secure ? 'eye' : 'eye-off'}
+                        size={22}
+                        color="gray"
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.faceVerifyRow}>
+                <View style={styles.faceVerifyLeft}>
+                  <Icon name="information" size={20} color="#15613F" />
+                  <Text style={styles.faceVerifyLabel}>
+                    Login wajah hanya untuk Mahasiswa yang wajahnya sudah didaftarkan di menu Profil.
+                  </Text>
+                </View>
+              </View>
+
+              {/* NPM */}
+              <View style={styles.fieldWrapper}>
+                <Text style={styles.label}>NPM</Text>
+                <View style={styles.inputRow}>
+                  <View style={styles.inputIcon}>
+                    <Icon name="card-account-details" size={22} color="gray" />
+                  </View>
+                  <TextInput
+                    placeholder="Masukkan NPM"
+                    value={npm}
+                    onChangeText={setNpm}
+                    keyboardType="number-pad"
+                    style={styles.input}
+                  />
+                </View>
+              </View>
+            </>
           )}
 
           <View style={styles.optionsRow}>
@@ -288,14 +348,18 @@ const Login = (props: any) => {
               <Text style={styles.rememberText}>Ingat Saya</Text>
             </View>
 
-            <TouchableOpacity
-              onPress={() => props.navigation.navigate('forgotPassword')}>
-              <Text style={styles.forgotText}>Lupa Password?</Text>
-            </TouchableOpacity>
+            {loginMethod === 'password' && (
+              <TouchableOpacity
+                onPress={() => props.navigation.navigate('forgotPassword')}>
+                <Text style={styles.forgotText}>Lupa Password?</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <TouchableOpacity onPress={submit} style={styles.submitBtn}>
-            <Text style={styles.submitText}>Masuk</Text>
+            <Text style={styles.submitText}>
+              {loginMethod === 'password' ? 'Masuk' : 'Verifikasi Wajah & Masuk'}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.registerRow}>
