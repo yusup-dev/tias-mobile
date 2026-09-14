@@ -19,6 +19,7 @@ import SkripsiScreen from '../../views/penelitian/index';
 import KknScreen from '../../views/pengabdian/index';
 import KompetensiScreen from '../../views/kompetensi/index';
 import PenunjangScreen from '../../views/penunjang/index';
+import KualifikasiScreen from '../../views/kualifikasi/index';
 
 const Stack = createStackNavigator();
 function DosenStack() {
@@ -129,6 +130,13 @@ function DosenStack() {
         component={PenunjangScreen}
         options={{
           title: 'Penunjang',
+        }}
+      />
+      <Stack.Screen
+        name="home.kualifikasi"
+        component={KualifikasiScreen}
+        options={{
+          title: 'Kualifikasi',
         }}
       />
     </Stack.Navigator>

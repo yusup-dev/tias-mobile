@@ -19,6 +19,21 @@ import {getEvent, getTantangan} from '../../../services/home/index';
 import moment from 'moment';
 import LinearGradient from 'react-native-linear-gradient';
 
+const triDharmaIcon = (name: string, backgroundColor: string) => () => (
+  <View
+    style={{
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+    }}>
+    <Icons name={name} size={22} color="#fff" />
+  </View>
+);
+
 const DosenMenuComponent = (props: any) => {
   const {user} = useTokenStore();
 
@@ -56,42 +71,32 @@ const DosenMenuComponent = (props: any) => {
     {
       value: 'Pendidikan',
       route: 'home.pendidikan',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/artikel.png')}
-          style={{ alignSelf: 'center' }}
-        />
-      ),
+      icon: triDharmaIcon('school', '#3B82F6'),
     },
     {
       value: 'Penelitian',
       route: 'home.penelitian',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/kompetensi.png')}
-          style={{ alignSelf: 'center' }}
-        />
-      ),
+      icon: triDharmaIcon('flask-outline', '#14B8A6'),
     },
     {
       value: 'Pengabdian',
       route: 'home.pengabdian',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/penunjang.png')}
-          style={{ alignSelf: 'center' }}
-        />
-      ),
+      icon: triDharmaIcon('hand-heart-outline', '#EC4899'),
     },
     {
       value: 'Kompetensi',
       route: 'home.kompetensi',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/kualifikasi.png')}
-          style={{ alignSelf: 'center' }}
-        />
-      ),
+      icon: triDharmaIcon('medal-outline', '#8B5CF6'),
+    },
+    {
+      value: 'Penunjang',
+      route: 'home.penunjang',
+      icon: triDharmaIcon('account-group-outline', '#F59E0B'),
+    },
+    {
+      value: 'Kualifikasi',
+      route: 'home.kualifikasi',
+      icon: triDharmaIcon('certificate-outline', '#6366F1'),
     },
     {
       value: 'Presensi',

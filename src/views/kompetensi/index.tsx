@@ -16,26 +16,42 @@ import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
 import { useTokenStore } from '../../../src/store/auth';
 import { getKompetensiOrangTua } from '../../../src/services/kompetensi/index';
+import { getKompetensiSertifikatSaya, getKompetensiTesSaya } from '../../../src/services/triDharma/index';
 import moment from 'moment';
 
 const KompetensiScreen = (props: any) => {
   const { user } = useTokenStore();
   const npm = user?.npm;
+  const isParent = user?.role === 'Parent';
   const [activeTab, setActiveTab] = useState<'sertifikasi' | 'tes'>('sertifikasi');
 
-  const { data: kompetensiRes, isLoading, isError } = useQuery({
+  const { data: kompetensiRes, isLoading: isLoadingParent, isError: isErrorParent } = useQuery({
     queryKey: ['kompetensi-orang-tua', npm],
     queryFn: () => getKompetensiOrangTua(npm as string),
-    enabled: !!npm,
+    enabled: isParent && !!npm,
   });
 
-  const kompetensiData = kompetensiRes?.data || {
-    sertifikasi: [],
-    tes: [],
-  };
+  const { data: sertifikatRes, isLoading: isLoadingSerti, isError: isErrorSerti } = useQuery({
+    queryKey: ['kompetensi-sertifikat-saya'],
+    queryFn: getKompetensiSertifikatSaya,
+    enabled: !isParent,
+  });
 
-  const sertifikasiData: any[] = kompetensiData.sertifikasi || [];
-  const tesData: any[] = kompetensiData.tes || [];
+  const { data: tesRes, isLoading: isLoadingTes, isError: isErrorTes } = useQuery({
+    queryKey: ['kompetensi-tes-saya'],
+    queryFn: getKompetensiTesSaya,
+    enabled: !isParent,
+  });
+
+  const isLoading = isParent ? isLoadingParent : isLoadingSerti || isLoadingTes;
+  const isError = isParent ? isErrorParent : isErrorSerti || isErrorTes;
+
+  const sertifikasiData: any[] = isParent
+    ? kompetensiRes?.data?.sertifikasi || []
+    : sertifikatRes?.data || [];
+  const tesData: any[] = isParent
+    ? kompetensiRes?.data?.tes || []
+    : tesRes?.data || [];
   const currentData = activeTab === 'sertifikasi' ? sertifikasiData : tesData;
 
   return (
@@ -79,7 +95,8 @@ const KompetensiScreen = (props: any) => {
           <View style={styles.infoBanner}>
             <Icons name="information-outline" size={18} color="#1565C0" style={{ marginRight: 8 }} />
             <Text style={styles.infoBannerText}>
-              Data {activeTab === 'sertifikasi' ? 'sertifikasi kompetensi/pelatihan' : 'riwayat tes akademik'} NPM {npm || '-'}
+              Data {activeTab === 'sertifikasi' ? 'sertifikasi kompetensi/pelatihan' : 'riwayat tes akademik'}
+              {isParent ? ` NPM ${npm || '-'}` : ' milik Anda'}
             </Text>
           </View>
 

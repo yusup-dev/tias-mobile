@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import {
   responsiveFontSize,
@@ -12,43 +13,45 @@ import {
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useQuery } from '@tanstack/react-query';
+import { useTokenStore } from '../../store/auth';
+import { getPenunjangOrangTua } from '../../services/penunjang/index';
+import { getPenunjangPenghargaanSaya, getPenunjangProfesiSaya } from '../../services/triDharma/index';
 
 const PenunjangScreen = (props: any) => {
+  const { user } = useTokenStore();
+  const npm = user?.npm;
+  const isParent = user?.role === 'Parent';
+  const [activeTab, setActiveTab] = React.useState<'penghargaan' | 'organisasi'>('penghargaan');
 
-  const SectionHeader = ({ title }: { title: string }) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionHeaderText}>{title}</Text>
-    </View>
-  );
+  const { data: penunjangRes, isLoading: isLoadingParent, isError: isErrorParent } = useQuery({
+    queryKey: ['penunjang-orang-tua', npm],
+    queryFn: () => getPenunjangOrangTua(npm as string),
+    enabled: isParent && !!npm,
+  });
 
-  const InfoRow = ({ label, value }: { label: string; value: string }) => (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
-    </View>
-  );
+  const { data: penghargaanRes, isLoading: isLoadingPenghargaan, isError: isErrorPenghargaan } = useQuery({
+    queryKey: ['penunjang-penghargaan-saya'],
+    queryFn: getPenunjangPenghargaanSaya,
+    enabled: !isParent,
+  });
 
-  const InfoRowHalf = ({ label, value }: { label: string; value: string }) => (
-    <View style={styles.infoRowHalf}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
-    </View>
-  );
+  const { data: profesiRes, isLoading: isLoadingProfesi, isError: isErrorProfesi } = useQuery({
+    queryKey: ['penunjang-profesi-saya'],
+    queryFn: getPenunjangProfesiSaya,
+    enabled: !isParent,
+  });
 
-  const RatingRow = ({ letter, label, rating, stars }: { letter: string, label: string, rating: string, stars: number }) => (
-    <View style={styles.ratingRow}>
-      <Text style={styles.ratingLetter}>{letter}).</Text>
-      <Text style={styles.ratingLabel}>{label}</Text>
-      <View style={styles.ratingValueBox}>
-        <View style={styles.starsContainer}>
-          {[1, 2, 3, 4, 5].map(i => (
-            <Icons key={i} name="star" size={14} color={i <= stars ? '#F59E0B' : '#E5E7EB'} />
-          ))}
-        </View>
-        <Text style={styles.ratingText}>{rating}</Text>
-      </View>
-    </View>
-  );
+  const isLoading = isParent ? isLoadingParent : isLoadingPenghargaan || isLoadingProfesi;
+  const isError = isParent ? isErrorParent : isErrorPenghargaan || isErrorProfesi;
+
+  const penghargaanData: any[] = isParent
+    ? penunjangRes?.data?.penghargaan || []
+    : penghargaanRes?.data || [];
+  const organisasiData: any[] = isParent
+    ? penunjangRes?.data?.organisasi || []
+    : profesiRes?.data || [];
+  const currentData = activeTab === 'penghargaan' ? penghargaanData : organisasiData;
 
   return (
     <View style={styles.container}>
@@ -64,119 +67,120 @@ const PenunjangScreen = (props: any) => {
 
       {/* ── Body Wrapper ── */}
       <View style={styles.bodyWrapper}>
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'penghargaan' && styles.activeTabButton]}
+            onPress={() => setActiveTab('penghargaan')}>
+            <Text style={[styles.tabButtonText, activeTab === 'penghargaan' && styles.activeTabButtonText]}>
+              Penghargaan ({penghargaanData.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'organisasi' && styles.activeTabButton]}
+            onPress={() => setActiveTab('organisasi')}>
+            <Text style={[styles.tabButtonText, activeTab === 'organisasi' && styles.activeTabButtonText]}>
+              Organisasi Profesi ({organisasiData.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
 
-          <View style={styles.docHeader}>
-            <Text style={styles.docTitle}>SURAT KETERANGAN</Text>
-            <Text style={styles.docTitle}>PENDAMPING IJAZAH</Text>
-            <View style={styles.docNumberBox}>
-              <Text style={styles.docNumberText}>Nomor: 0037/K.14/SKPI-UIKA/2023</Text>
-            </View>
-            <Text style={styles.docDescription}>
-              Surat Keterangan Pendamping Ijazah (SKPI) ini mengacu pada Kerangka Kualifikasi Nasional Indonesia (KKNI). Tujuan dari diterbitkannya dokumen SKPI bagi setiap lulusan Universitas Ibn Khaldun Bogor adalah untuk menerangkan dan menyatakan kemampuan kerja, penguasaan pengetahuan, dan sikap/moral pemegangnya.
+          {/* Info Banner */}
+          <View style={styles.infoBanner}>
+            <Icons name="information-outline" size={18} color="#1565C0" style={{ marginRight: 8 }} />
+            <Text style={styles.infoBannerText}>
+              Data {activeTab === 'penghargaan' ? 'penghargaan/prestasi' : 'keanggotaan organisasi profesi'}
+              {isParent ? ` NPM ${npm || '-'}` : ' milik Anda'}
             </Text>
           </View>
 
-          {/* Section 1 */}
-          <SectionHeader title="INFORMASI TENTANG IDENTITAS DIRI PEMEGANG SKPI" />
-          <View style={styles.sectionBody}>
-            <View style={styles.rowWrapper}>
-              <InfoRowHalf label="Nama Lengkap / Full Name" value="MIRNA ARYANI SOFIA" />
-              <InfoRowHalf label="Tahun Lulus / Year of Completion" value="2023" />
+          {isLoading ? (
+            <View style={styles.centerBox}>
+              <ActivityIndicator size="large" color="#15613F" />
+              <Text style={styles.centerText}>Memuat data...</Text>
             </View>
-            <View style={styles.rowWrapper}>
-              <InfoRowHalf label="Tempat dan Tanggal Lahir / Date and Place of Birth" value="BOGOR, 31 Juli 1999" />
-              <InfoRowHalf label="Nomor Ijazah / Diploma Number" value="132012023001003" />
+          ) : isError ? (
+            <View style={styles.centerBox}>
+              <Icons name="alert-circle-outline" size={60} color="#EF4444" />
+              <Text style={styles.centerText}>Gagal memuat data</Text>
             </View>
-            <View style={styles.rowWrapper}>
-              <InfoRowHalf label="Nomor Pokok Mahasiswa / Student Identification Number" value="201207010749" />
-              <InfoRowHalf label="Gelar / Name of Qualification" value="Sarjana Kesehatan Masyarakat (SKM)" />
+          ) : currentData.length === 0 ? (
+            <View style={styles.centerBox}>
+              <Icons name="file-document-outline" size={60} color="#CBD5E0" />
+              <Text style={styles.centerText}>Belum ada data</Text>
             </View>
-          </View>
+          ) : (
+            currentData.map((item: any, index: number) => {
+              if (activeTab === 'penghargaan') {
+                return (
+                  <View key={item.peng_id || index} style={styles.card}>
+                    <View style={styles.cardHeader}>
+                      <View style={styles.semesterBadge}>
+                        <Text style={styles.semesterText}>{item.nama_kategori || 'Penghargaan'}</Text>
+                      </View>
+                      <View style={styles.pointBadge}>
+                        <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
+                      </View>
+                    </View>
 
-          {/* Section 2 */}
-          <SectionHeader title="INFORMASI TENTANG IDENTITAS PENYELENGGARA PROGRAM" />
-          <View style={styles.sectionBody}>
-            <View style={styles.rowWrapper}>
-              <InfoRowHalf label="SK Pendirian Perguruan Tinggi" value="Nomor 31PPP1961" />
-              <InfoRowHalf label="Nama Perguruan Tinggi" value="Universitas Ibn Khaldun Bogor" />
-            </View>
-            <View style={styles.rowWrapper}>
-              <InfoRowHalf label="Program Studi / Major" value="Kesehatan Masyarakat" />
-              <InfoRowHalf label="Sistem Penilaian / Grading System" value="Skala 1-4; A=4; AB=3,5; B=3; BC=2,5; C=2; CD=1,5; D=1; E=0" />
-            </View>
-            <View style={styles.rowWrapper}>
-              <InfoRowHalf label="Kelas / Class" value="REGULER_B" />
-              <InfoRowHalf label="Lama Studi Reguler / Reguler Length of Studi" value="8 Semester" />
-            </View>
-            <View style={styles.rowWrapper}>
-              <InfoRowHalf label="Jenis dan Jenjang Pendidikan" value="Akademik & Sarjana (Strata 1)" />
-              <InfoRowHalf label="Jenjang Kualifikasi Sesuai KKNI" value="Level 6" />
-            </View>
-            <View style={styles.rowWrapper}>
-              <InfoRowHalf label="Persyaratan Penerimaan / Entry Requirement" value="Lulus pendidikan menengah atas/sederajat" />
-              <InfoRowHalf label="Jenis dan Jenjang Pendidikan Lanjut" value="Program Magister" />
-            </View>
-          </View>
+                    <View style={styles.cardBody}>
+                      <Text style={styles.judulLabel}>Nama Penghargaan:</Text>
+                      <Text style={styles.judulText}>{item.nama_peng || '-'}</Text>
 
-          {/* Section 3 */}
-          <SectionHeader title="KUALIFIKASI DAN HASIL YANG DICAPAI" />
-          <View style={styles.sectionBody}>
-            <Text style={styles.subHeading}>A. Capaian Pembelajaran</Text>
-            <View style={styles.bulletList}>
-              <Text style={styles.bulletItem}>• Menunjukkan sikap dan nilai religiusitas yang tinggi sebagai wujud pemahaman yang baik terhadap ajaran Islam dalam merefleksikan diri sebagai sarjana yang bertanggung jawab secara profesional dan sosial</Text>
-              <Text style={styles.bulletItem}>• Mencapai kemampuan intelektualitas yang baik dengan penguasaan ilmu pengetahuan dan Teknologi serta kemampuan literasi bidang keahliannya</Text>
-              <Text style={styles.bulletItem}>• Memiliki Keterampilan penyelesaian masalah, komunikatif, kolaboratif, kreatif dan inovatif serta mampu bekerja dalam tim sebagai seorang profesional yang adaptif dengan perkembangan dan tuntutan zaman</Text>
-            </View>
-            <Text style={[styles.subHeading, { marginTop: 12 }]}>B. Aktivitas Prestasi dan Penghargaan</Text>
-          </View>
+                      <View style={styles.detailRow}>
+                        <Icons name="office-building" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Pemberi: {item.instansi_pemberi || '-'}</Text>
+                      </View>
 
-          <SectionHeader title="Daftar Skill Set Mahasiswa*" />
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, { flex: 0.5 }]}>No</Text>
-            <Text style={[styles.tableHeaderText, { flex: 2 }]}>Skill Set</Text>
-            <Text style={[styles.tableHeaderText, { flex: 3 }]}>Competencies</Text>
-            <Text style={[styles.tableHeaderText, { flex: 1.5, textAlign: 'center' }]}>Qualification</Text>
-          </View>
+                      <View style={styles.detailRow}>
+                        <Icons name="podium-gold" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Tingkat: {item.tingkat_peng || '-'} ({item.jenis_peng || '-'})
+                        </Text>
+                      </View>
 
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCellText, { flex: 0.5 }]}>1.</Text>
-            <Text style={[styles.tableCellText, { flex: 2, fontWeight: 'bold' }]}>Pengetahuan</Text>
-            <View style={{ flex: 4.5 }}>
-              <RatingRow letter="a" label="DASAR EPIDEMIOLOGI" rating="Very Good" stars={4} />
-              <RatingRow letter="b" label="DASAR ILMU KESEHATAN MASYARAKAT" rating="Excellent" stars={5} />
-              <RatingRow letter="c" label="ISU KESEHATAN GLOBAL" rating="Excellent" stars={5} />
-            </View>
-          </View>
+                      <View style={styles.detailRow}>
+                        <Icons name="calendar-range" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Tahun: {item.tahun_peng || '-'}</Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              } else {
+                return (
+                  <View key={item.prof_id || index} style={styles.card}>
+                    <View style={styles.cardHeader}>
+                      <View style={[styles.semesterBadge, { backgroundColor: '#E3F2FD' }]}>
+                        <Text style={[styles.semesterText, { color: '#1565C0' }]}>
+                          {item.peran || 'Anggota'}
+                        </Text>
+                      </View>
+                      <View style={styles.pointBadge}>
+                        <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
+                      </View>
+                    </View>
 
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCellText, { flex: 0.5 }]}>2.</Text>
-            <Text style={[styles.tableCellText, { flex: 2, fontWeight: 'bold' }]}>Keterampilan Khusus</Text>
-            <View style={{ flex: 4.5 }}>
-              <RatingRow letter="a" label="LATIHAN KERJA PEMINATAN K3" rating="Excellent" stars={5} />
-              <RatingRow letter="b" label="PKL/PBL KESEHATAN MASYARAKAT" rating="Excellent" stars={5} />
-            </View>
-          </View>
+                    <View style={styles.cardBody}>
+                      <Text style={styles.judulLabel}>Organisasi:</Text>
+                      <Text style={styles.judulText}>{item.nama_organisasi || '-'}</Text>
 
-          {/* Section 4 */}
-          <SectionHeader title="Pengesahan SKPI" />
-          <View style={styles.signatureSection}>
-            <Text style={styles.signatureText}>Bogor, 11 September 2023</Text>
-            <Text style={styles.signatureText}>Rektor,</Text>
-            <Text style={styles.signatureText}>Universitas Ibn Khaldun Bogor</Text>
-
-            <View style={styles.signatureSpace}>
-              {/* Placeholder for Signature Image */}
-              <Text style={{ color: '#ccc', fontStyle: 'italic' }}>(Tanda Tangan)</Text>
-            </View>
-
-            <Text style={[styles.signatureText, { fontWeight: 'bold', textDecorationLine: 'underline' }]}>Prof. Dr. H.E. Mujahidin, M.Si</Text>
-            <Text style={styles.signatureText}>NIK. 410 100 562</Text>
-          </View>
-
+                      <View style={styles.detailRow}>
+                        <Icons name="calendar-range" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>
+                          Periode: {item.mulai_bulan || '-'}/{item.mulai_tahun || '-'} — {item.selesai_bulan || '-'}/{item.selesai_tahun || '-'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              }
+            })
+          )}
         </ScrollView>
       </View>
     </View>
@@ -186,7 +190,6 @@ const PenunjangScreen = (props: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#15613F' },
 
-  // Header
   header: {
     backgroundColor: '#15613F',
     flexDirection: 'row',
@@ -208,167 +211,141 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
-  // Body wrapper
   bodyWrapper: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F0F4F8',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
   },
+
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    padding: responsiveWidth(2),
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: responsiveWidth(3),
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  activeTabButton: {
+    backgroundColor: '#E8F5E9',
+  },
+  tabButtonText: {
+    fontSize: responsiveFontSize(1.6),
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  activeTabButtonText: {
+    color: '#15613F',
+    fontWeight: 'bold',
+  },
+
   scrollView: { flex: 1 },
   scrollContent: {
     padding: responsiveWidth(4),
     paddingBottom: responsiveWidth(10),
   },
 
-  docHeader: {
-    marginBottom: 16,
+  infoBanner: {
+    backgroundColor: '#E3F2FD',
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: responsiveWidth(3.5),
+    paddingVertical: responsiveWidth(2.5),
+    marginBottom: responsiveWidth(4),
   },
-  docTitle: {
-    fontSize: responsiveFontSize(2.2),
+  infoBannerText: {
+    fontSize: responsiveFontSize(1.5),
+    color: '#1565C0',
+    flex: 1,
+  },
+
+  centerBox: {
+    alignItems: 'center',
+    paddingTop: responsiveWidth(15),
+    paddingBottom: responsiveWidth(10),
+  },
+  centerText: {
+    marginTop: responsiveWidth(4),
+    fontSize: responsiveFontSize(1.9),
+    color: '#718096',
+    fontWeight: '600',
+  },
+
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    marginBottom: responsiveWidth(4),
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8FAF9',
+    paddingHorizontal: responsiveWidth(4),
+    paddingVertical: responsiveWidth(3),
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F4F8',
+  },
+  semesterBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  semesterText: {
+    fontSize: responsiveFontSize(1.6),
     fontWeight: 'bold',
     color: '#15613F',
   },
-  docNumberBox: {
-    backgroundColor: '#15613F',
-    alignSelf: 'flex-start',
+  pointBadge: {
+    backgroundColor: '#FFF3E0',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    marginTop: 8,
-    marginBottom: 8,
+    borderRadius: 8,
   },
-  docNumberText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  pointText: {
     fontSize: responsiveFontSize(1.4),
-  },
-  docDescription: {
-    fontSize: responsiveFontSize(1.3),
-    color: '#333',
-    lineHeight: 18,
-    textAlign: 'justify',
-  },
-  sectionHeader: {
-    backgroundColor: '#15613F',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    marginTop: 16,
-    marginBottom: 8,
-    borderTopRightRadius: 12,
-  },
-  sectionHeaderText: {
-    color: '#fff',
     fontWeight: 'bold',
+    color: '#E65100',
+  },
+  cardBody: {
+    padding: responsiveWidth(4),
+  },
+  judulLabel: {
     fontSize: responsiveFontSize(1.4),
-  },
-  sectionBody: {
-    paddingHorizontal: 4,
-  },
-  rowWrapper: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  infoRowHalf: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  infoRow: {
-    marginBottom: 8,
-  },
-  infoLabel: {
-    fontSize: responsiveFontSize(1.2),
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: responsiveFontSize(1.2),
-    color: '#333',
-  },
-  subHeading: {
-    fontSize: responsiveFontSize(1.3),
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  bulletList: {
-    marginTop: 4,
-    paddingLeft: 8,
-  },
-  bulletItem: {
-    fontSize: responsiveFontSize(1.2),
-    color: '#333',
-    lineHeight: 18,
+    color: '#6B7280',
     marginBottom: 4,
-    textAlign: 'justify',
   },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#15613F',
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-    marginBottom: 8,
-  },
-  tableHeaderText: {
-    color: '#fff',
+  judulText: {
+    fontSize: responsiveFontSize(2),
     fontWeight: 'bold',
-    fontSize: responsiveFontSize(1.2),
+    color: '#1F2937',
+    marginBottom: 10,
+    lineHeight: 24,
   },
-  tableRow: {
+  detailRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  tableCellText: {
-    fontSize: responsiveFontSize(1.2),
-    color: '#333',
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  ratingLetter: {
-    fontSize: responsiveFontSize(1.2),
-    color: '#333',
-    width: 20,
-  },
-  ratingLabel: {
+  detailText: {
+    fontSize: responsiveFontSize(1.6),
+    color: '#4B5563',
+    marginLeft: 6,
     flex: 1,
-    fontSize: responsiveFontSize(1.2),
-    color: '#333',
-  },
-  ratingValueBox: {
-    alignItems: 'center',
-    width: 80,
-  },
-  starsContainer: {
-    flexDirection: 'row',
-  },
-  ratingText: {
-    fontSize: responsiveFontSize(1.1),
-    color: '#333',
-    fontStyle: 'italic',
-    marginTop: 2,
-  },
-  signatureSection: {
-    alignItems: 'flex-end',
-    marginTop: 16,
-    paddingRight: 16,
-  },
-  signatureText: {
-    fontSize: responsiveFontSize(1.2),
-    color: '#000',
-    textAlign: 'right',
-  },
-  signatureSpace: {
-    height: 80,
-    width: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
 

@@ -8,6 +8,7 @@ import SkripsiScreen from '../../views/penelitian/index';
 import KknScreen from '../../views/pengabdian/index';
 import KompetensiScreen from '../../views/kompetensi/index';
 import PenunjangScreen from '../../views/penunjang/index';
+import KualifikasiScreen from '../../views/kualifikasi/index';
 
 // Persuratan
 import SuratScreen from '../../views/surat/index';
@@ -87,6 +88,13 @@ function HomeStack() {
         component={PenunjangScreen}
         options={{
           title: 'Data Penunjang',
+        }}
+      />
+      <Stack.Screen
+        name="home.kualifikasi"
+        component={KualifikasiScreen}
+        options={{
+          title: 'Kualifikasi',
         }}
       />
 

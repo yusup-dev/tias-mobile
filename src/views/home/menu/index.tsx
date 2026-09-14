@@ -24,6 +24,22 @@ import { useEffect } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import { LoncengIcon } from '../../../../assets/svg';
 // import LoncengIcon from '';
+
+const triDharmaIcon = (name: string, backgroundColor: string) => () => (
+  <View
+    style={{
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+    }}>
+    <Icons name={name} size={22} color="#fff" />
+  </View>
+);
+
 const MenuComponent = (props: any) => {
   const { auth, user, setAuthentication, setToken, setUser } = useTokenStore();
 
@@ -31,74 +47,32 @@ const MenuComponent = (props: any) => {
     {
       value: 'Pendidikan',
       type: 'pendidikan',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/pendidikan.png')}
-          style={{
-            alignSelf: 'center',
-          }}
-        />
-      ),
+      icon: triDharmaIcon('school', '#3B82F6'),
     },
     {
       value: 'Penelitian',
       type: 'penelitian',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/penelitian.png')}
-          style={{
-            alignSelf: 'center',
-          }}
-        />
-      ),
+      icon: triDharmaIcon('flask-outline', '#14B8A6'),
     },
     {
       value: 'Pengabdian',
       type: 'pengabdian',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/pengabdian.png')}
-          style={{
-            alignSelf: 'center',
-          }}
-        />
-      ),
+      icon: triDharmaIcon('hand-heart-outline', '#EC4899'),
     },
     {
       value: 'Kualifikasi',
       type: 'kualifikasi',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/kualifikasi.png')}
-          style={{
-            alignSelf: 'center',
-          }}
-        />
-      ),
+      icon: triDharmaIcon('certificate-outline', '#6366F1'),
     },
     {
       value: 'Kompetensi',
       type: 'kompetensi',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/kompetensi.png')}
-          style={{
-            alignSelf: 'center',
-          }}
-        />
-      ),
+      icon: triDharmaIcon('medal-outline', '#8B5CF6'),
     },
     {
       value: 'Penunjang',
       type: 'penunjang',
-      icon: () => (
-        <Image
-          source={require('../../../../assets/home/penunjang.png')}
-          style={{
-            alignSelf: 'center',
-          }}
-        />
-      ),
+      icon: triDharmaIcon('account-group-outline', '#F59E0B'),
     },
   ];
   const { data, isLoading, isSuccess, isError, error }: { data: any; isLoading: boolean; isSuccess: boolean; isError: boolean; error: any } = useQuery({
@@ -307,25 +281,17 @@ const MenuComponent = (props: any) => {
               }}
               onPress={() => {
                 if (list.type === 'pendidikan') {
-                  if (user?.role === 'Parent') {
-                    props.navigation.push('home.pendidikan');
-                  }
+                  props.navigation.push('home.pendidikan');
                 } else if (list.type === 'penelitian') {
-                  if (user?.role === 'Parent') {
-                    props.navigation.push('home.penelitian');
-                  }
+                  props.navigation.push('home.penelitian');
                 } else if (list.type === 'pengabdian') {
-                  if (user?.role === 'Parent') {
-                    props.navigation.push('home.pengabdian');
-                  }
+                  props.navigation.push('home.pengabdian');
+                } else if (list.type === 'kualifikasi') {
+                  props.navigation.push('home.kualifikasi');
                 } else if (list.type === 'kompetensi') {
-                  if (user?.role === 'Parent') {
-                    props.navigation.push('home.kompetensi');
-                  }
+                  props.navigation.push('home.kompetensi');
                 } else if (list.type === 'penunjang') {
-                  if (user?.role === 'Parent') {
-                    props.navigation.push('home.penunjang');
-                  }
+                  props.navigation.push('home.penunjang');
                 }
               }}>
               {list.icon()}

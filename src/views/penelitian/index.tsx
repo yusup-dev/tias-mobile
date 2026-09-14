@@ -16,25 +16,35 @@ import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
 import { useTokenStore } from '../../store/auth';
 import { getSkripsiOrangTua, getAllDosen } from '../../services/penelitian/index';
+import { getPenelitianSaya } from '../../services/triDharma/index';
 import moment from 'moment';
 
 const SkripsiScreen = (props: any) => {
   const { user } = useTokenStore();
   const npm = user?.npm;
+  const isParent = user?.role === 'Parent';
 
   const { data: skripsiRes, isLoading: isSkripsiLoading, isError: isSkripsiError } = useQuery({
     queryKey: ['skripsi-orang-tua', npm],
     queryFn: () => getSkripsiOrangTua(npm as string),
-    enabled: !!npm,
+    enabled: isParent && !!npm,
   });
 
   const { data: dosenRes, isLoading: isDosenLoading } = useQuery({
     queryKey: ['all-dosen'],
     queryFn: getAllDosen,
+    enabled: isParent,
+  });
+
+  const { data: penelitianSayaRes, isLoading: isPenelitianSayaLoading, isError: isPenelitianSayaError } = useQuery({
+    queryKey: ['penelitian-saya'],
+    queryFn: getPenelitianSaya,
+    enabled: !isParent,
   });
 
   const skripsiData = skripsiRes?.data || [];
   const dosenData = dosenRes?.data || [];
+  const penelitianSayaData: any[] = penelitianSayaRes?.data || [];
 
   const getDosenName = (userId: string) => {
     if (!userId) return 'Belum ditentukan';
@@ -97,11 +107,65 @@ const SkripsiScreen = (props: any) => {
           <View style={styles.infoBanner}>
             <Icons name="information-outline" size={18} color="#1565C0" style={{ marginRight: 8 }} />
             <Text style={styles.infoBannerText}>
-              Status penelitian mahasiswa NPM {npm || '-'}
+              {isParent
+                ? `Status penelitian mahasiswa NPM ${npm || '-'}`
+                : 'Riwayat kegiatan penelitian (Tri Dharma) milik Anda'}
             </Text>
           </View>
 
-          {isSkripsiLoading || isDosenLoading ? (
+          {!isParent ? (
+            isPenelitianSayaLoading ? (
+              <View style={styles.centerBox}>
+                <ActivityIndicator size="large" color="#15613F" />
+                <Text style={styles.centerText}>Memuat data penelitian...</Text>
+              </View>
+            ) : isPenelitianSayaError ? (
+              <View style={styles.centerBox}>
+                <Icons name="alert-circle-outline" size={48} color="#EF4444" />
+                <Text style={styles.centerText}>Gagal memuat data penelitian</Text>
+              </View>
+            ) : penelitianSayaData.length === 0 ? (
+              <View style={styles.centerBox}>
+                <Icons name="file-document-outline" size={60} color="#CBD5E0" />
+                <Text style={styles.centerText}>Belum ada data</Text>
+              </View>
+            ) : (
+              penelitianSayaData.map((item: any, index: number) => (
+                <View key={`penelitian-${item.id || index}`} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <View style={styles.semesterBadge}>
+                      <Text style={styles.semesterText}>{item.nama_kategori || 'Penelitian'}</Text>
+                    </View>
+                    <View style={styles.pointBadge}>
+                      <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.cardBody}>
+                    <Text style={styles.judulLabel}>Judul Kegiatan:</Text>
+                    <Text style={styles.judulText}>{item.judul_kegiatan || '-'}</Text>
+
+                    <View style={styles.detailRow}>
+                      <Icons name="map-marker-outline" size={16} color="#6B7280" />
+                      <Text style={styles.detailText}>{item.lokasi_kegiatan || '-'}</Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Icons name="calendar-range" size={16} color="#6B7280" />
+                      <Text style={styles.detailText}>
+                        Tahun Pelaksanaan: {item.tahun_pelaksanaan || '-'} ({item.lama_kegiatan || '-'})
+                      </Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Icons name="podium-gold" size={16} color="#6B7280" />
+                      <Text style={styles.detailText}>Tingkat: {item.tingkatan || '-'}</Text>
+                    </View>
+                  </View>
+                </View>
+              ))
+            )
+          ) : isSkripsiLoading || isDosenLoading ? (
             <View style={styles.centerBox}>
               <ActivityIndicator size="large" color="#15613F" />
               <Text style={styles.centerText}>Memuat data skripsi...</Text>
@@ -277,6 +341,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+  },
+  pointBadge: {
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  pointText: {
+    fontSize: responsiveFontSize(1.4),
+    fontWeight: 'bold',
+    color: '#E65100',
   },
   semesterText: {
     fontSize: responsiveFontSize(1.6),

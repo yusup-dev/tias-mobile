@@ -34,6 +34,7 @@ const Login = (props: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState({ value: '', secure: true });
   const [npm, setNpm] = useState('');
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [modalQuery, setModalQuery] = useState({
     visible: false,
     title: '',
@@ -173,52 +174,63 @@ const Login = (props: any) => {
           style={styles.heroImage}
           resizeMode="contain"
         />
-        <View style={styles.heroBottom}>
-          <Text style={styles.titleText}>Masuk Akun</Text>
-          <Image
-            source={require('../../assets/login/logo_uika.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
       </View>
 
       <View style={styles.card}>
-        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {/* Metode login */}
-          <View style={styles.roleWrapper}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.cardContent}>
+          <View style={styles.cardHeader}>
+            <View>
+              <Text style={styles.titleText}>Masuk Akun</Text>
+              <Text style={styles.subtitleText}>Selamat datang kembali di TIAS</Text>
+            </View>
+            <Image
+              source={require('../../assets/login/logo_uika.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* Metode login — underline tabs */}
+          <View style={styles.methodTabs}>
             <TouchableOpacity
-              style={[styles.roleBtn, loginMethod === 'password' && styles.roleBtnActive]}
+              activeOpacity={0.75}
+              style={styles.methodTab}
               onPress={() => setLoginMethod('password')}>
               <Icon
-                name="lock"
-                size={18}
-                color={loginMethod === 'password' ? '#fff' : '#15613F'}
+                name="lock-outline"
+                size={17}
+                color={loginMethod === 'password' ? '#15613F' : '#9CA3AF'}
               />
               <Text
                 style={[
-                  styles.roleBtnText,
-                  loginMethod === 'password' && styles.roleBtnTextActive,
+                  styles.methodTabText,
+                  loginMethod === 'password' && styles.methodTabTextActive,
                 ]}>
                 Email & Password
               </Text>
+              {loginMethod === 'password' && <View style={styles.methodTabIndicator} />}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.roleBtn, loginMethod === 'face' && styles.roleBtnActive]}
+              activeOpacity={0.75}
+              style={styles.methodTab}
               onPress={() => setLoginMethod('face')}>
               <Icon
                 name="face-recognition"
-                size={18}
-                color={loginMethod === 'face' ? '#fff' : '#15613F'}
+                size={17}
+                color={loginMethod === 'face' ? '#15613F' : '#9CA3AF'}
               />
               <Text
                 style={[
-                  styles.roleBtnText,
-                  loginMethod === 'face' && styles.roleBtnTextActive,
+                  styles.methodTabText,
+                  loginMethod === 'face' && styles.methodTabTextActive,
                 ]}>
                 Verifikasi Wajah
               </Text>
+              {loginMethod === 'face' && <View style={styles.methodTabIndicator} />}
             </TouchableOpacity>
           </View>
 
@@ -227,11 +239,12 @@ const Login = (props: any) => {
               {/* Role selector */}
               <View style={styles.roleWrapper}>
                 <TouchableOpacity
+                  activeOpacity={0.8}
                   style={[styles.roleBtn, role === 'mahasiswa' && styles.roleBtnActive]}
                   onPress={() => setRole('mahasiswa')}>
                   <Icon
-                    name="school"
-                    size={18}
+                    name="school-outline"
+                    size={16}
                     color={role === 'mahasiswa' ? '#fff' : '#15613F'}
                   />
                   <Text
@@ -244,11 +257,12 @@ const Login = (props: any) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  activeOpacity={0.8}
                   style={[styles.roleBtn, role === 'orang_tua' && styles.roleBtnActive]}
                   onPress={() => setRole('orang_tua')}>
                   <Icon
-                    name="account-supervisor"
-                    size={18}
+                    name="account-supervisor-outline"
+                    size={16}
                     color={role === 'orang_tua' ? '#fff' : '#15613F'}
                   />
                   <Text
@@ -264,14 +278,23 @@ const Login = (props: any) => {
               {/* Email */}
               <View style={styles.fieldWrapper}>
                 <Text style={styles.label}>Email</Text>
-                <View style={styles.inputRow}>
-                  <View style={styles.inputIcon}>
-                    <Icon name="email" size={22} color="gray" />
-                  </View>
+                <View
+                  style={[
+                    styles.inputRow,
+                    focusedField === 'email' && styles.inputRowFocused,
+                  ]}>
+                  <Icon
+                    name="email-outline"
+                    size={20}
+                    color={focusedField === 'email' ? '#15613F' : '#9CA3AF'}
+                  />
                   <TextInput
                     placeholder="Masukkan email"
+                    placeholderTextColor="#B0B4BB"
                     value={email}
                     onChangeText={setEmail}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     style={styles.input}
@@ -282,26 +305,35 @@ const Login = (props: any) => {
               {/* Password */}
               <View style={styles.fieldWrapper}>
                 <Text style={styles.label}>Password</Text>
-                <View style={styles.inputRow}>
-                  <View style={styles.inputIcon}>
-                    <Icon name="lock" size={22} color="gray" />
-                  </View>
+                <View
+                  style={[
+                    styles.inputRow,
+                    focusedField === 'password' && styles.inputRowFocused,
+                  ]}>
+                  <Icon
+                    name="lock-outline"
+                    size={20}
+                    color={focusedField === 'password' ? '#15613F' : '#9CA3AF'}
+                  />
                   <TextInput
                     placeholder="Masukkan password"
+                    placeholderTextColor="#B0B4BB"
                     secureTextEntry={password.secure}
                     value={password.value}
                     onChangeText={val => setPassword({ ...password, value: val })}
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField(null)}
                     style={styles.input}
                   />
                   <TouchableOpacity
+                    activeOpacity={0.6}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     onPress={() => setPassword({ ...password, secure: !password.secure })}>
-                    <View style={styles.inputIcon}>
-                      <Icon
-                        name={password.secure ? 'eye' : 'eye-off'}
-                        size={22}
-                        color="gray"
-                      />
-                    </View>
+                    <Icon
+                      name={password.secure ? 'eye-outline' : 'eye-off-outline'}
+                      size={20}
+                      color="#9CA3AF"
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -309,25 +341,32 @@ const Login = (props: any) => {
           ) : (
             <>
               <View style={styles.faceVerifyRow}>
-                <View style={styles.faceVerifyLeft}>
-                  <Icon name="information" size={20} color="#15613F" />
-                  <Text style={styles.faceVerifyLabel}>
-                    Login wajah hanya untuk Mahasiswa yang wajahnya sudah didaftarkan di menu Profil.
-                  </Text>
-                </View>
+                <Icon name="information-outline" size={19} color="#15613F" />
+                <Text style={styles.faceVerifyLabel}>
+                  Login wajah hanya untuk Mahasiswa yang wajahnya sudah didaftarkan di menu Profil.
+                </Text>
               </View>
 
               {/* NPM */}
               <View style={styles.fieldWrapper}>
                 <Text style={styles.label}>NPM</Text>
-                <View style={styles.inputRow}>
-                  <View style={styles.inputIcon}>
-                    <Icon name="card-account-details" size={22} color="gray" />
-                  </View>
+                <View
+                  style={[
+                    styles.inputRow,
+                    focusedField === 'npm' && styles.inputRowFocused,
+                  ]}>
+                  <Icon
+                    name="card-account-details-outline"
+                    size={20}
+                    color={focusedField === 'npm' ? '#15613F' : '#9CA3AF'}
+                  />
                   <TextInput
                     placeholder="Masukkan NPM"
+                    placeholderTextColor="#B0B4BB"
                     value={npm}
                     onChangeText={setNpm}
+                    onFocus={() => setFocusedField('npm')}
+                    onBlur={() => setFocusedField(null)}
                     keyboardType="number-pad"
                     style={styles.input}
                   />
@@ -337,34 +376,37 @@ const Login = (props: any) => {
           )}
 
           <View style={styles.optionsRow}>
-            <View style={styles.rememberRow}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.rememberRow}
+              onPress={() => setRememberMe(!rememberMe)}>
               <Checkbox
                 status={rememberMe ? 'checked' : 'unchecked'}
-                onPress={() => {
-                  setRememberMe(!rememberMe);
-                }}
+                onPress={() => setRememberMe(!rememberMe)}
                 color="#15613F"
               />
               <Text style={styles.rememberText}>Ingat Saya</Text>
-            </View>
+            </TouchableOpacity>
 
             {loginMethod === 'password' && (
               <TouchableOpacity
+                activeOpacity={0.7}
                 onPress={() => props.navigation.navigate('forgotPassword')}>
                 <Text style={styles.forgotText}>Lupa Password?</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <TouchableOpacity onPress={submit} style={styles.submitBtn}>
+          <TouchableOpacity activeOpacity={0.85} onPress={submit} style={styles.submitBtn}>
             <Text style={styles.submitText}>
               {loginMethod === 'password' ? 'Masuk' : 'Verifikasi Wajah & Masuk'}
             </Text>
+            <Icon name="arrow-right" size={20} color="#fff" />
           </TouchableOpacity>
 
           <View style={styles.registerRow}>
             <Text style={styles.registerHint}>Belum punya akun? </Text>
-            <TouchableOpacity onPress={() => props.navigation.navigate('register')}>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => props.navigation.navigate('register')}>
               <Text style={styles.registerLink}>Daftar Sekarang</Text>
             </TouchableOpacity>
           </View>
@@ -385,155 +427,214 @@ const Login = (props: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#15613F',
   },
   hero: {
-    backgroundColor: '#fff',
     alignItems: 'center',
-    paddingTop: responsiveHeight(2),
+    justifyContent: 'flex-end',
+    paddingTop: responsiveHeight(3),
   },
   heroImage: {
-    height: responsiveHeight(24),
-    width: responsiveWidth(65),
-  },
-  heroBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: responsiveWidth(5),
-    paddingVertical: responsiveWidth(2),
-    backgroundColor: '#fff',
+    height: responsiveHeight(22),
+    width: responsiveWidth(60),
   },
   card: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: responsiveWidth(5),
-    paddingTop: responsiveWidth(2),
-    paddingBottom: responsiveWidth(6),
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    marginTop: responsiveHeight(1.5),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  cardContent: {
+    paddingHorizontal: responsiveWidth(6),
+    paddingTop: responsiveHeight(3.2),
+    paddingBottom: responsiveHeight(3),
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: responsiveHeight(2.6),
   },
   titleText: {
-    color: '#15613F',
+    color: '#1A1A1A',
     fontWeight: '700',
-    fontSize: responsiveFontSize(3),
+    fontSize: responsiveFontSize(2.9),
+    letterSpacing: 0.2,
+  },
+  subtitleText: {
+    color: '#8A8F98',
+    fontSize: responsiveFontSize(1.55),
+    marginTop: 4,
   },
   logo: {
-    width: responsiveWidth(11),
-    height: responsiveWidth(11),
+    width: responsiveWidth(10),
+    height: responsiveWidth(10),
+  },
+  methodTabs: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF0F3',
+    marginBottom: responsiveHeight(2.4),
+  },
+  methodTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingBottom: 12,
+    marginRight: responsiveWidth(6),
+  },
+  methodTabText: {
+    color: '#9CA3AF',
+    fontWeight: '600',
+    fontSize: responsiveFontSize(1.55),
+  },
+  methodTabTextActive: {
+    color: '#15613F',
+  },
+  methodTabIndicator: {
+    position: 'absolute',
+    bottom: -1,
+    left: 0,
+    right: 0,
+    height: 2.5,
+    borderRadius: 2,
+    backgroundColor: '#15613F',
   },
   roleWrapper: {
     flexDirection: 'row',
-    backgroundColor: '#F1F1FD',
-    borderRadius: responsiveWidth(3),
-    marginBottom: responsiveWidth(3.5),
-    padding: responsiveWidth(1),
+    backgroundColor: '#F5F6F9',
+    borderRadius: 14,
+    marginBottom: responsiveHeight(2.2),
+    padding: 4,
   },
   roleBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: responsiveWidth(2.5),
-    borderRadius: responsiveWidth(2.5),
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 11,
   },
   roleBtnActive: {
     backgroundColor: '#15613F',
+    shadowColor: '#15613F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   roleBtnText: {
     color: '#15613F',
     fontWeight: '600',
-    fontSize: responsiveFontSize(1.6),
-    marginLeft: 4,
+    fontSize: responsiveFontSize(1.45),
   },
   roleBtnTextActive: {
     color: '#fff',
   },
   fieldWrapper: {
-    marginBottom: responsiveWidth(2.5),
+    marginBottom: responsiveHeight(2),
   },
   label: {
-    fontSize: responsiveFontSize(1.6),
-    marginBottom: responsiveWidth(1),
-    color: '#333',
-    fontWeight: '500',
+    fontSize: responsiveFontSize(1.5),
+    marginBottom: 7,
+    color: '#4B5563',
+    fontWeight: '600',
   },
   inputRow: {
     flexDirection: 'row',
-    backgroundColor: '#F1F1FD',
-    borderRadius: responsiveWidth(2),
-    paddingHorizontal: responsiveWidth(2),
     alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F7F8FA',
+    borderRadius: 14,
+    borderWidth: 1.3,
+    borderColor: '#F7F8FA',
+    paddingHorizontal: 14,
+    height: responsiveHeight(6.2),
   },
-  inputIcon: {
-    justifyContent: 'center',
-    paddingVertical: responsiveWidth(2),
+  inputRowFocused: {
+    borderColor: '#15613F',
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
-    marginLeft: responsiveWidth(2),
     fontSize: responsiveFontSize(1.6),
-    color: '#333',
+    color: '#1A1A1A',
+    padding: 0,
   },
   faceVerifyRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: 8,
     backgroundColor: '#ECFDF5',
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-    borderRadius: responsiveWidth(2.5),
-    paddingHorizontal: responsiveWidth(3),
-    paddingVertical: responsiveWidth(1),
-    marginVertical: responsiveWidth(1.5),
-  },
-  faceVerifyLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: responsiveHeight(2.2),
   },
   faceVerifyLabel: {
+    flex: 1,
     fontSize: responsiveFontSize(1.4),
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#065F46',
-    marginLeft: 8,
+    lineHeight: 19,
   },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: responsiveWidth(1),
+    marginBottom: responsiveHeight(1),
   },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: -8,
   },
   rememberText: {
-    color: '#333',
-    fontSize: responsiveFontSize(1.5),
+    color: '#4B5563',
+    fontSize: responsiveFontSize(1.45),
+    marginLeft: -4,
   },
   forgotText: {
-    color: 'gray',
-    fontSize: responsiveFontSize(1.5),
+    color: '#15613F',
+    fontWeight: '600',
+    fontSize: responsiveFontSize(1.45),
   },
   submitBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     backgroundColor: '#15613F',
-    paddingVertical: responsiveWidth(3.2),
-    borderRadius: responsiveWidth(3),
-    marginTop: responsiveWidth(2),
-    marginBottom: responsiveWidth(3),
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginTop: responsiveHeight(1.2),
+    marginBottom: responsiveHeight(2.6),
+    shadowColor: '#15613F',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   submitText: {
     color: '#fff',
     textAlign: 'center',
-    fontWeight: '600',
-    fontSize: responsiveFontSize(1.9),
+    fontWeight: '700',
+    fontSize: responsiveFontSize(1.85),
   },
   registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: responsiveWidth(3),
   },
   registerHint: {
-    color: '#555',
+    color: '#8A8F98',
     fontSize: responsiveFontSize(1.5),
   },
   registerLink: {

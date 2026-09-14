@@ -14,45 +14,29 @@ import {
 } from 'react-native-responsive-dimensions';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
-import moment from 'moment';
-import { useTokenStore } from '../../store/auth';
-import { getPengabdianOrangTua } from '../../services/pengabdian/index';
-import { getPengabdianSaya, getPembicaraSaya } from '../../services/triDharma/index';
+import {
+  getKualifikasiPendidikanSaya,
+  getKualifikasiRiwayatPekerjaanSaya,
+} from '../../services/triDharma/index';
 
-const PengabdianScreen = (props: any) => {
-  const { user } = useTokenStore();
-  const npm = user?.npm;
-  const isParent = user?.role === 'Parent';
-  const [activeTab, setActiveTab] = React.useState<'pengabdian' | 'pembicara'>('pengabdian');
+const KualifikasiScreen = (props: any) => {
+  const [activeTab, setActiveTab] = React.useState<'pendidikan' | 'pekerjaan'>('pendidikan');
 
-  const { data: pengabdianRes, isLoading: isLoadingParent, isError: isErrorParent } = useQuery({
-    queryKey: ['pengabdian-orang-tua', npm],
-    queryFn: () => getPengabdianOrangTua(npm as string),
-    enabled: isParent && !!npm,
+  const { data: pendidikanRes, isLoading: isLoadingPendidikan, isError: isErrorPendidikan } = useQuery({
+    queryKey: ['kualifikasi-pendidikan-saya'],
+    queryFn: getKualifikasiPendidikanSaya,
   });
 
-  const { data: pengabdianSayaRes, isLoading: isLoadingPengabdian, isError: isErrorPengabdian } = useQuery({
-    queryKey: ['pengabdian-saya'],
-    queryFn: getPengabdianSaya,
-    enabled: !isParent,
+  const { data: pekerjaanRes, isLoading: isLoadingPekerjaan, isError: isErrorPekerjaan } = useQuery({
+    queryKey: ['kualifikasi-riwayat-pekerjaan-saya'],
+    queryFn: getKualifikasiRiwayatPekerjaanSaya,
   });
 
-  const { data: pembicaraSayaRes, isLoading: isLoadingPembicara, isError: isErrorPembicara } = useQuery({
-    queryKey: ['pembicara-saya'],
-    queryFn: getPembicaraSaya,
-    enabled: !isParent,
-  });
-
-  const isLoading = isParent ? isLoadingParent : isLoadingPengabdian || isLoadingPembicara;
-  const isError = isParent ? isErrorParent : isErrorPengabdian || isErrorPembicara;
-
-  const pengabdianData: any[] = isParent
-    ? pengabdianRes?.data?.pengabdian || []
-    : pengabdianSayaRes?.data || [];
-  const pembicaraData: any[] = isParent
-    ? pengabdianRes?.data?.pembicara || []
-    : pembicaraSayaRes?.data || [];
-  const currentData = activeTab === 'pengabdian' ? pengabdianData : pembicaraData;
+  const pendidikanData: any[] = pendidikanRes?.data || [];
+  const pekerjaanData: any[] = pekerjaanRes?.data || [];
+  const isLoading = activeTab === 'pendidikan' ? isLoadingPendidikan : isLoadingPekerjaan;
+  const isError = activeTab === 'pendidikan' ? isErrorPendidikan : isErrorPekerjaan;
+  const currentData = activeTab === 'pendidikan' ? pendidikanData : pekerjaanData;
 
   return (
     <View style={styles.container}>
@@ -63,7 +47,7 @@ const PengabdianScreen = (props: any) => {
           onPress={() => props.navigation.goBack()}>
           <Icons name="arrow-left" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Pengabdian</Text>
+        <Text style={styles.headerTitle}>Kualifikasi</Text>
       </View>
 
       {/* ── Body Wrapper ── */}
@@ -71,17 +55,17 @@ const PengabdianScreen = (props: any) => {
         {/* Tabs */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'pengabdian' && styles.activeTabButton]}
-            onPress={() => setActiveTab('pengabdian')}>
-            <Text style={[styles.tabButtonText, activeTab === 'pengabdian' && styles.activeTabButtonText]}>
-              Pengabdian ({pengabdianData.length})
+            style={[styles.tabButton, activeTab === 'pendidikan' && styles.activeTabButton]}
+            onPress={() => setActiveTab('pendidikan')}>
+            <Text style={[styles.tabButtonText, activeTab === 'pendidikan' && styles.activeTabButtonText]}>
+              Pendidikan Formal ({pendidikanData.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'pembicara' && styles.activeTabButton]}
-            onPress={() => setActiveTab('pembicara')}>
-            <Text style={[styles.tabButtonText, activeTab === 'pembicara' && styles.activeTabButtonText]}>
-              Pembicara ({pembicaraData.length})
+            style={[styles.tabButton, activeTab === 'pekerjaan' && styles.activeTabButton]}
+            onPress={() => setActiveTab('pekerjaan')}>
+            <Text style={[styles.tabButtonText, activeTab === 'pekerjaan' && styles.activeTabButtonText]}>
+              Riwayat Pekerjaan ({pekerjaanData.length})
             </Text>
           </TouchableOpacity>
         </View>
@@ -91,12 +75,10 @@ const PengabdianScreen = (props: any) => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
 
-          {/* Info Banner */}
           <View style={styles.infoBanner}>
             <Icons name="information-outline" size={18} color="#1565C0" style={{ marginRight: 8 }} />
             <Text style={styles.infoBannerText}>
-              Data {activeTab === 'pengabdian' ? 'pengabdian masyarakat' : 'pembicara seminar'}
-              {isParent ? ` NPM ${npm || '-'}` : ' milik Anda'}
+              Data {activeTab === 'pendidikan' ? 'riwayat pendidikan formal' : 'riwayat pekerjaan'} milik Anda
             </Text>
           </View>
 
@@ -117,113 +99,69 @@ const PengabdianScreen = (props: any) => {
             </View>
           ) : (
             currentData.map((item: any, index: number) => {
-              if (activeTab === 'pengabdian') {
+              if (activeTab === 'pendidikan') {
                 return (
-                  <View key={item.pengabdian_id || index} style={styles.card}>
-                    {/* Card Header */}
+                  <View key={item.pend_id || index} style={styles.card}>
                     <View style={styles.cardHeader}>
                       <View style={styles.semesterBadge}>
-                        <Text style={styles.semesterText}>{item.kelompok_bidang || 'Pengabdian'}</Text>
-                      </View>
-                      <View style={styles.pointBadge}>
-                        <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
+                        <Text style={styles.semesterText}>{item.jenjang_studi || 'Pendidikan'}</Text>
                       </View>
                     </View>
 
-                    {/* Card Body */}
                     <View style={styles.cardBody}>
-                      {/* Judul Kegiatan */}
-                      <Text style={styles.judulLabel}>Judul Kegiatan:</Text>
-                      <Text style={styles.judulText}>{item.judul_kegiatan || '-'}</Text>
+                      <Text style={styles.judulLabel}>Asal Institusi:</Text>
+                      <Text style={styles.judulText}>{item.asal || '-'}</Text>
 
-                      {/* Kategori */}
-                      <View style={styles.detailRow}>
-                        <Icons name="bookmark-outline" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>{item.nama_kategori || '-'}</Text>
-                      </View>
-
-                      {/* Lokasi & Durasi */}
-                      <View style={styles.detailRow}>
-                        <Icons name="map-marker-outline" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>
-                          Lokasi: {item.lokasi_kegiatan || '-'} ({item.lama_kegiatan || '-'})
-                        </Text>
-                      </View>
-
-                      {/* SK Penugasan */}
-                      <View style={styles.detailRow}>
-                        <Icons name="file-document-outline" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>SK: {item.no_sk_penugasan || '-'}</Text>
-                      </View>
-
-                      {/* Tanggal SK */}
                       <View style={styles.detailRow}>
                         <Icons name="calendar-range" size={16} color="#6B7280" />
                         <Text style={styles.detailText}>
-                          Tanggal SK: {item.tgl_sk_penugasan ? moment(item.tgl_sk_penugasan).format('DD MMMM YYYY') : '-'}
+                          Tahun: {item.tahun_masuk || '-'} — {item.tahun_lulus || '-'}
                         </Text>
                       </View>
+
+                      <View style={styles.detailRow}>
+                        <Icons name="card-account-details-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>No. Induk: {item.nomor_induk || '-'}</Text>
+                      </View>
+
+                      {item.no_ijazah ? (
+                        <View style={styles.detailRow}>
+                          <Icons name="file-certificate-outline" size={16} color="#6B7280" />
+                          <Text style={styles.detailText}>No. Ijazah: {item.no_ijazah}</Text>
+                        </View>
+                      ) : null}
                     </View>
                   </View>
                 );
               } else {
                 return (
-                  <View key={item.pembicara_id || index} style={styles.card}>
-                    {/* Card Header */}
+                  <View key={item.rwyt_id || index} style={styles.card}>
                     <View style={styles.cardHeader}>
                       <View style={[styles.semesterBadge, { backgroundColor: '#E3F2FD' }]}>
                         <Text style={[styles.semesterText, { color: '#1565C0' }]}>
-                          {item.kategori_pembicara || 'Pembicara'}
+                          {item.jenis_pekerjaan || 'Pekerjaan'}
                         </Text>
-                      </View>
-                      <View style={styles.pointBadge}>
-                        <Text style={styles.pointText}>+{item.point || 0} Poin</Text>
                       </View>
                     </View>
 
-                    {/* Card Body */}
                     <View style={styles.cardBody}>
-                      {/* Judul Makalah */}
-                      <Text style={styles.judulLabel}>Judul Makalah / Materi:</Text>
-                      <Text style={styles.judulText}>{item.judul_makalah || '-'}</Text>
+                      <Text style={styles.judulLabel}>Jabatan:</Text>
+                      <Text style={styles.judulText}>{item.jabatan || '-'}</Text>
 
-                      {/* Kategori */}
-                      <View style={styles.detailRow}>
-                        <Icons name="bookmark-outline" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>{item.nama_kategori || '-'}</Text>
-                      </View>
-
-                      {/* Pertemuan */}
-                      <View style={styles.detailRow}>
-                        <Icons name="account-group-outline" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>
-                          Pertemuan: {item.nama_pertemuan || '-'} ({item.tingkat_pertemuan || '-'})
-                        </Text>
-                      </View>
-
-                      {/* Penyelenggara */}
                       <View style={styles.detailRow}>
                         <Icons name="office-building" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>Penyelenggara: {item.penyelenggara || '-'}</Text>
+                        <Text style={styles.detailText}>Instansi: {item.nama_instansi || '-'}</Text>
                       </View>
 
-                      {/* Bahasa */}
                       <View style={styles.detailRow}>
-                        <Icons name="translate" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>Bahasa: {item.bahasa || '-'}</Text>
+                        <Icons name="briefcase-outline" size={16} color="#6B7280" />
+                        <Text style={styles.detailText}>Bidang Usaha: {item.bidang_usaha || '-'}</Text>
                       </View>
 
-                      {/* SK Penugasan */}
-                      <View style={styles.detailRow}>
-                        <Icons name="file-document-outline" size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>SK: {item.no_sk_penugasan || '-'}</Text>
-                      </View>
-
-                      {/* Tanggal SK */}
                       <View style={styles.detailRow}>
                         <Icons name="calendar-range" size={16} color="#6B7280" />
                         <Text style={styles.detailText}>
-                          Tanggal SK: {item.tgl_sk_penugasan ? moment(item.tgl_sk_penugasan).format('DD MMMM YYYY') : '-'}
+                          Mulai Kerja: {item.mulai_kerja || '-'}{item.selesai_kerja ? ` — ${item.selesai_kerja}` : ' — Sekarang'}
                         </Text>
                       </View>
                     </View>
@@ -241,7 +179,6 @@ const PengabdianScreen = (props: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#15613F' },
 
-  // Header
   header: {
     backgroundColor: '#15613F',
     flexDirection: 'row',
@@ -263,7 +200,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
-  // Body wrapper
   bodyWrapper: {
     flex: 1,
     backgroundColor: '#F0F4F8',
@@ -272,7 +208,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Tabs style
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: '#fff',
@@ -290,7 +225,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E9',
   },
   tabButtonText: {
-    fontSize: responsiveFontSize(1.6),
+    fontSize: responsiveFontSize(1.5),
     fontWeight: '600',
     color: '#6B7280',
   },
@@ -299,14 +234,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
-  // ScrollView
   scrollView: { flex: 1 },
   scrollContent: {
     padding: responsiveWidth(4),
     paddingBottom: responsiveWidth(10),
   },
 
-  // Info Banner
   infoBanner: {
     backgroundColor: '#E3F2FD',
     borderRadius: 10,
@@ -322,7 +255,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Center states
   centerBox: {
     alignItems: 'center',
     paddingTop: responsiveWidth(15),
@@ -335,7 +267,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Card
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -368,17 +299,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#15613F',
   },
-  pointBadge: {
-    backgroundColor: '#FFF3E0',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  pointText: {
-    fontSize: responsiveFontSize(1.4),
-    fontWeight: 'bold',
-    color: '#E65100',
-  },
   cardBody: {
     padding: responsiveWidth(4),
   },
@@ -407,4 +327,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PengabdianScreen;
+export default KualifikasiScreen;
