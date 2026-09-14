@@ -1,5 +1,6 @@
 import axios from '../../config/axios-tias';
 import axiosOrangTua from '../../config/axios-orang-tua';
+import axiosEportal from '../../config/axios-eportal';
 
 export type LoginResponse = {
   message?: string;
@@ -12,19 +13,42 @@ export type LoginRequest = {
   password: string;
 };
 
-/** Login mahasiswa dengan email + password */
+/**
+ * Login mahasiswa/dosen dengan email + password.
+ *
+ * Dua langkah supaya akun di mobile ini selalu sama dengan akun di E-Portal
+ * (SSO), tapi tetap dapat token yang dikenali api-tias:
+ * 1. Autentikasi ke E-Portal (`auth/login`) — sumber kredensial tunggal.
+ * 2. Tukar `uika_sso_token` hasil langkah 1 ke tias-backend lewat
+ *    `GET /sso/callback` (sudah dipakai jalur SSO web UCL yang ada) untuk
+ *    dapat token TIAS asli. `role_id`/`appModule_id` di sini hanya placeholder
+ *    wajib-diisi — endpoint itu belum memvalidasi/menggunakan nilainya.
+ */
 export async function login(data: LoginRequest): Promise<any> {
-  try {
-    const response = await axios.post('auth/login', data, {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
-    return response.data;
-  } catch (error: any) {
-    throw error;
+  const eportalResponse = await axiosEportal.post('auth/login', data, {
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const ssoToken = eportalResponse.data?.data?.uika_sso_token;
+
+  if (!ssoToken) {
+    // Gagal di E-Portal (kredensial salah, belum verifikasi, dll) — biarkan
+    // response aslinya mengalir supaya pesan error di UI tetap relevan.
+    return eportalResponse.data;
   }
+
+  const tiasResponse = await axios.get('sso/callback', {
+    params: {
+      token: ssoToken,
+      role_id: 1,
+      appModule_id: 1,
+    },
+  });
+
+  return tiasResponse.data;
 }
 
 /** Login mahasiswa dengan verifikasi wajah (tanpa password), diidentifikasi lewat NPM */
