@@ -25,15 +25,12 @@ import { useTokenStore } from '../store/auth';
 import { DialogComponent } from '../component/dialog';
 
 type Role = 'mahasiswa' | 'orang_tua';
-type LoginMethod = 'password' | 'face';
 
 const Login = (props: any) => {
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>('password');
   const [role, setRole] = useState<Role>('mahasiswa');
   const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState({ value: '', secure: true });
-  const [npm, setNpm] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [modalQuery, setModalQuery] = useState({
     visible: false,
@@ -137,23 +134,7 @@ const Login = (props: any) => {
   };
 
   const submitFace = () => {
-    if (!npm.trim()) {
-      showDialog('Perhatian', 'NPM wajib diisi.');
-      return;
-    }
-
-    props.navigation.navigate('faceLoginVerification', {
-      npm: npm.trim(),
-      rememberMe,
-    });
-  };
-
-  const submit = () => {
-    if (loginMethod === 'password') {
-      submitPassword();
-    } else {
-      submitFace();
-    }
+    props.navigation.navigate('faceLoginVerification', { rememberMe });
   };
 
   return (
@@ -193,187 +174,107 @@ const Login = (props: any) => {
             />
           </View>
 
-          {/* Metode login — underline tabs */}
-          <View style={styles.methodTabs}>
+          {/* Role selector */}
+          <View style={styles.roleWrapper}>
             <TouchableOpacity
-              activeOpacity={0.75}
-              style={styles.methodTab}
-              onPress={() => setLoginMethod('password')}>
+              activeOpacity={0.8}
+              style={[styles.roleBtn, role === 'mahasiswa' && styles.roleBtnActive]}
+              onPress={() => setRole('mahasiswa')}>
               <Icon
-                name="lock-outline"
-                size={17}
-                color={loginMethod === 'password' ? '#15613F' : '#9CA3AF'}
+                name="school-outline"
+                size={16}
+                color={role === 'mahasiswa' ? '#fff' : '#15613F'}
               />
               <Text
                 style={[
-                  styles.methodTabText,
-                  loginMethod === 'password' && styles.methodTabTextActive,
+                  styles.roleBtnText,
+                  role === 'mahasiswa' && styles.roleBtnTextActive,
                 ]}>
-                Email & Password
+                Mahasiswa / Dosen
               </Text>
-              {loginMethod === 'password' && <View style={styles.methodTabIndicator} />}
             </TouchableOpacity>
 
             <TouchableOpacity
-              activeOpacity={0.75}
-              style={styles.methodTab}
-              onPress={() => setLoginMethod('face')}>
+              activeOpacity={0.8}
+              style={[styles.roleBtn, role === 'orang_tua' && styles.roleBtnActive]}
+              onPress={() => setRole('orang_tua')}>
               <Icon
-                name="face-recognition"
-                size={17}
-                color={loginMethod === 'face' ? '#15613F' : '#9CA3AF'}
+                name="account-supervisor-outline"
+                size={16}
+                color={role === 'orang_tua' ? '#fff' : '#15613F'}
               />
               <Text
                 style={[
-                  styles.methodTabText,
-                  loginMethod === 'face' && styles.methodTabTextActive,
+                  styles.roleBtnText,
+                  role === 'orang_tua' && styles.roleBtnTextActive,
                 ]}>
-                Verifikasi Wajah
+                Orang Tua
               </Text>
-              {loginMethod === 'face' && <View style={styles.methodTabIndicator} />}
             </TouchableOpacity>
           </View>
 
-          {loginMethod === 'password' ? (
-            <>
-              {/* Role selector */}
-              <View style={styles.roleWrapper}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={[styles.roleBtn, role === 'mahasiswa' && styles.roleBtnActive]}
-                  onPress={() => setRole('mahasiswa')}>
-                  <Icon
-                    name="school-outline"
-                    size={16}
-                    color={role === 'mahasiswa' ? '#fff' : '#15613F'}
-                  />
-                  <Text
-                    style={[
-                      styles.roleBtnText,
-                      role === 'mahasiswa' && styles.roleBtnTextActive,
-                    ]}>
-                    Mahasiswa / Dosen
-                  </Text>
-                </TouchableOpacity>
+          {/* Email */}
+          <View style={styles.fieldWrapper}>
+            <Text style={styles.label}>Email</Text>
+            <View
+              style={[
+                styles.inputRow,
+                focusedField === 'email' && styles.inputRowFocused,
+              ]}>
+              <Icon
+                name="email-outline"
+                size={20}
+                color={focusedField === 'email' ? '#15613F' : '#9CA3AF'}
+              />
+              <TextInput
+                placeholder="Masukkan email"
+                placeholderTextColor="#B0B4BB"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.input}
+              />
+            </View>
+          </View>
 
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={[styles.roleBtn, role === 'orang_tua' && styles.roleBtnActive]}
-                  onPress={() => setRole('orang_tua')}>
-                  <Icon
-                    name="account-supervisor-outline"
-                    size={16}
-                    color={role === 'orang_tua' ? '#fff' : '#15613F'}
-                  />
-                  <Text
-                    style={[
-                      styles.roleBtnText,
-                      role === 'orang_tua' && styles.roleBtnTextActive,
-                    ]}>
-                    Orang Tua
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Email */}
-              <View style={styles.fieldWrapper}>
-                <Text style={styles.label}>Email</Text>
-                <View
-                  style={[
-                    styles.inputRow,
-                    focusedField === 'email' && styles.inputRowFocused,
-                  ]}>
-                  <Icon
-                    name="email-outline"
-                    size={20}
-                    color={focusedField === 'email' ? '#15613F' : '#9CA3AF'}
-                  />
-                  <TextInput
-                    placeholder="Masukkan email"
-                    placeholderTextColor="#B0B4BB"
-                    value={email}
-                    onChangeText={setEmail}
-                    onFocus={() => setFocusedField('email')}
-                    onBlur={() => setFocusedField(null)}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    style={styles.input}
-                  />
-                </View>
-              </View>
-
-              {/* Password */}
-              <View style={styles.fieldWrapper}>
-                <Text style={styles.label}>Password</Text>
-                <View
-                  style={[
-                    styles.inputRow,
-                    focusedField === 'password' && styles.inputRowFocused,
-                  ]}>
-                  <Icon
-                    name="lock-outline"
-                    size={20}
-                    color={focusedField === 'password' ? '#15613F' : '#9CA3AF'}
-                  />
-                  <TextInput
-                    placeholder="Masukkan password"
-                    placeholderTextColor="#B0B4BB"
-                    secureTextEntry={password.secure}
-                    value={password.value}
-                    onChangeText={val => setPassword({ ...password, value: val })}
-                    onFocus={() => setFocusedField('password')}
-                    onBlur={() => setFocusedField(null)}
-                    style={styles.input}
-                  />
-                  <TouchableOpacity
-                    activeOpacity={0.6}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    onPress={() => setPassword({ ...password, secure: !password.secure })}>
-                    <Icon
-                      name={password.secure ? 'eye-outline' : 'eye-off-outline'}
-                      size={20}
-                      color="#9CA3AF"
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </>
-          ) : (
-            <>
-              <View style={styles.faceVerifyRow}>
-                <Icon name="information-outline" size={19} color="#15613F" />
-                <Text style={styles.faceVerifyLabel}>
-                  Login wajah hanya untuk Mahasiswa yang wajahnya sudah didaftarkan di menu Profil.
-                </Text>
-              </View>
-
-              {/* NPM */}
-              <View style={styles.fieldWrapper}>
-                <Text style={styles.label}>NPM</Text>
-                <View
-                  style={[
-                    styles.inputRow,
-                    focusedField === 'npm' && styles.inputRowFocused,
-                  ]}>
-                  <Icon
-                    name="card-account-details-outline"
-                    size={20}
-                    color={focusedField === 'npm' ? '#15613F' : '#9CA3AF'}
-                  />
-                  <TextInput
-                    placeholder="Masukkan NPM"
-                    placeholderTextColor="#B0B4BB"
-                    value={npm}
-                    onChangeText={setNpm}
-                    onFocus={() => setFocusedField('npm')}
-                    onBlur={() => setFocusedField(null)}
-                    keyboardType="number-pad"
-                    style={styles.input}
-                  />
-                </View>
-              </View>
-            </>
-          )}
+          {/* Password */}
+          <View style={styles.fieldWrapper}>
+            <Text style={styles.label}>Password</Text>
+            <View
+              style={[
+                styles.inputRow,
+                focusedField === 'password' && styles.inputRowFocused,
+              ]}>
+              <Icon
+                name="lock-outline"
+                size={20}
+                color={focusedField === 'password' ? '#15613F' : '#9CA3AF'}
+              />
+              <TextInput
+                placeholder="Masukkan password"
+                placeholderTextColor="#B0B4BB"
+                secureTextEntry={password.secure}
+                value={password.value}
+                onChangeText={val => setPassword({ ...password, value: val })}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
+                style={styles.input}
+              />
+              <TouchableOpacity
+                activeOpacity={0.6}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                onPress={() => setPassword({ ...password, secure: !password.secure })}>
+                <Icon
+                  name={password.secure ? 'eye-outline' : 'eye-off-outline'}
+                  size={20}
+                  color="#9CA3AF"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View style={styles.optionsRow}>
             <TouchableOpacity
@@ -388,20 +289,21 @@ const Login = (props: any) => {
               <Text style={styles.rememberText}>Ingat Saya</Text>
             </TouchableOpacity>
 
-            {loginMethod === 'password' && (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => props.navigation.navigate('forgotPassword')}>
-                <Text style={styles.forgotText}>Lupa Password?</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => props.navigation.navigate('forgotPassword')}>
+              <Text style={styles.forgotText}>Lupa Password?</Text>
+            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity activeOpacity={0.85} onPress={submit} style={styles.submitBtn}>
-            <Text style={styles.submitText}>
-              {loginMethod === 'password' ? 'Masuk' : 'Verifikasi Wajah & Masuk'}
-            </Text>
+          <TouchableOpacity activeOpacity={0.85} onPress={submitPassword} style={styles.submitBtn}>
+            <Text style={styles.submitText}>Masuk</Text>
             <Icon name="arrow-right" size={20} color="#fff" />
+          </TouchableOpacity>
+
+          <TouchableOpacity activeOpacity={0.75} onPress={submitFace} style={styles.faceLoginBtn}>
+            <Icon name="face-recognition" size={19} color="#15613F" />
+            <Text style={styles.faceLoginBtnText}>atau Login via Verifikasi Wajah</Text>
           </TouchableOpacity>
 
           <View style={styles.registerRow}>
@@ -476,37 +378,6 @@ const styles = StyleSheet.create({
     width: responsiveWidth(10),
     height: responsiveWidth(10),
   },
-  methodTabs: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF0F3',
-    marginBottom: responsiveHeight(2.4),
-  },
-  methodTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingBottom: 12,
-    marginRight: responsiveWidth(6),
-  },
-  methodTabText: {
-    color: '#9CA3AF',
-    fontWeight: '600',
-    fontSize: responsiveFontSize(1.55),
-  },
-  methodTabTextActive: {
-    color: '#15613F',
-  },
-  methodTabIndicator: {
-    position: 'absolute',
-    bottom: -1,
-    left: 0,
-    right: 0,
-    height: 2.5,
-    borderRadius: 2,
-    backgroundColor: '#15613F',
-  },
   roleWrapper: {
     flexDirection: 'row',
     backgroundColor: '#F5F6F9',
@@ -569,22 +440,22 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     padding: 0,
   },
-  faceVerifyRow: {
+  faceLoginBtn: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     backgroundColor: '#ECFDF5',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: responsiveHeight(2.2),
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    paddingVertical: 13,
+    borderRadius: 16,
+    marginBottom: responsiveHeight(2.6),
   },
-  faceVerifyLabel: {
-    flex: 1,
-    fontSize: responsiveFontSize(1.4),
-    fontWeight: '500',
-    color: '#065F46',
-    lineHeight: 19,
+  faceLoginBtnText: {
+    color: '#15613F',
+    fontWeight: '700',
+    fontSize: responsiveFontSize(1.6),
   },
   optionsRow: {
     flexDirection: 'row',

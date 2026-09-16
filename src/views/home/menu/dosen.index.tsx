@@ -108,6 +108,11 @@ const DosenMenuComponent = (props: any) => {
         />
       ),
     },
+    {
+      value: 'Ajuan \nPembimbing',
+      route: 'home.pembimbing',
+      icon: triDharmaIcon('file-account-outline', '#0EA5E9'),
+    },
   ];
 
   const { data } = useQuery<any>({

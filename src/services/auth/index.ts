@@ -51,11 +51,14 @@ export async function login(data: LoginRequest): Promise<any> {
   return tiasResponse.data;
 }
 
-/** Login mahasiswa dengan verifikasi wajah (tanpa password), diidentifikasi lewat NPM */
-export async function loginWithFace(npm: string, photoUri: string): Promise<any> {
+/**
+ * Login dengan verifikasi wajah (tanpa password, tanpa NPM/NIP) — identitas ditentukan
+ * sepenuhnya dari kecocokan wajah (1:N recognize) di backend, jadi berlaku untuk semua
+ * role yang sudah mendaftarkan wajahnya (Mahasiswa maupun Dosen).
+ */
+export async function loginWithFace(photoUri: string): Promise<any> {
   try {
     const formData = new FormData();
-    formData.append('npm', npm);
     formData.append('image', {
       uri: photoUri,
       name: 'login-face.jpg',

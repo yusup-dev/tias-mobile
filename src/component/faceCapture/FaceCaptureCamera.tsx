@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,11 @@ import {
   Camera,
   useCameraDevice,
   useCameraPermission,
+  useFrameProcessor,
 } from 'react-native-vision-camera';
+import { useFaceDetector } from 'react-native-vision-camera-face-detector';
+import { Worklets } from 'react-native-worklets-core';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRef } from 'react';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 
 const { width } = Dimensions.get('window');
@@ -22,18 +24,41 @@ const { width } = Dimensions.get('window');
 type FaceCaptureCameraProps = {
   onConfirm: (photoUri: string) => void;
   onCancel: () => void;
+  /** Deteksi wajah otomatis lalu langsung ambil & kirim foto tanpa perlu tap tombol
+   *  (dipakai untuk Login dengan Wajah). Default false: alur manual seperti Daftar Wajah. */
+  autoCapture?: boolean;
+  /** Saat true (mis. sedang menunggu hasil verifikasi dari server), deteksi otomatis
+   *  dijeda supaya tidak kirim foto dobel. Cuma dipakai kalau autoCapture aktif. */
+  isProcessing?: boolean;
 };
 
-const FaceCaptureCamera = ({ onConfirm, onCancel }: FaceCaptureCameraProps) => {
+const FaceCaptureCamera = ({
+  onConfirm,
+  onCancel,
+  autoCapture = false,
+  isProcessing = false,
+}: FaceCaptureCameraProps) => {
   const cameraRef = useRef<Camera>(null);
   const device = useCameraDevice('front');
   const { hasPermission, requestPermission } = useCameraPermission();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
+  const [hasFace, setHasFace] = useState(false);
+  const [captureProgress, setCaptureProgress] = useState(0);
+  const autoCaptureLockRef = useRef(false);
 
   useEffect(() => {
     if (!hasPermission) requestPermission();
   }, [hasPermission]);
+
+  // Selesai satu siklus verifikasi (sukses ataupun gagal) di layar pemanggil -> buka
+  // kunci lagi supaya deteksi wajah otomatis bisa mencoba ulang tanpa perlu tap apa pun.
+  useEffect(() => {
+    if (autoCapture && !isProcessing) {
+      autoCaptureLockRef.current = false;
+      setCaptureProgress(0);
+    }
+  }, [autoCapture, isProcessing]);
 
   const takePhoto = async () => {
     if (!cameraRef.current || capturing) return;
@@ -45,6 +70,52 @@ const FaceCaptureCamera = ({ onConfirm, onCancel }: FaceCaptureCameraProps) => {
       setCapturing(false);
     }
   };
+
+  const handleAutoCapture = async () => {
+    if (!cameraRef.current || autoCaptureLockRef.current) return;
+    autoCaptureLockRef.current = true;
+    try {
+      const photo = await cameraRef.current.takePhoto();
+      onConfirm(`file://${photo.path}`);
+    } catch (e) {
+      autoCaptureLockRef.current = false;
+      setCaptureProgress(0);
+    }
+  };
+
+  const { detectFaces } = useFaceDetector({
+    performanceMode: 'fast',
+    contourMode: 'none',
+    landmarkMode: 'none',
+  });
+
+  const onFaceDetected = Worklets.createRunOnJS((faceCount: number) => {
+    if (faceCount > 0) {
+      if (!hasFace) setHasFace(true);
+      if (!autoCaptureLockRef.current) {
+        setCaptureProgress(prev => {
+          if (prev >= 100) {
+            handleAutoCapture();
+            return 100;
+          }
+          return prev + 8;
+        });
+      }
+    } else {
+      if (hasFace) setHasFace(false);
+      if (!autoCaptureLockRef.current) setCaptureProgress(0);
+    }
+  });
+
+  const frameProcessor = useFrameProcessor(
+    frame => {
+      'worklet';
+      if (!autoCapture) return;
+      const faces = detectFaces(frame);
+      onFaceDetected(faces.length);
+    },
+    [autoCapture, detectFaces, onFaceDetected],
+  );
 
   // --- Guard: Izin kamera ---
   if (!hasPermission) {
@@ -114,6 +185,8 @@ const FaceCaptureCamera = ({ onConfirm, onCancel }: FaceCaptureCameraProps) => {
         isActive={true}
         photo={true}
         photoQualityBalance="speed"
+        frameProcessor={autoCapture ? frameProcessor : undefined}
+        pixelFormat={autoCapture ? 'yuv' : undefined}
       />
 
       <View style={styles.gradientOverlayTop} />
@@ -124,29 +197,54 @@ const FaceCaptureCamera = ({ onConfirm, onCancel }: FaceCaptureCameraProps) => {
           <TouchableOpacity onPress={onCancel} style={styles.backBtn}>
             <Icon name="close" size={22} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Ambil Foto Wajah</Text>
+          <Text style={styles.headerTitle}>
+            {autoCapture ? 'Verifikasi Wajah' : 'Ambil Foto Wajah'}
+          </Text>
           <View style={{ width: 38 }} />
         </View>
       </SafeAreaView>
 
       <View style={styles.ovalContainer}>
-        <View style={styles.ovalGuide} />
+        <View
+          style={[
+            styles.ovalGuide,
+            autoCapture && { borderStyle: 'solid', borderColor: hasFace ? '#4ADE80' : 'rgba(255,255,255,0.6)' },
+          ]}>
+          {autoCapture && hasFace && (
+            <View style={[styles.autoProgressFill, { height: `${captureProgress}%` }]} />
+          )}
+        </View>
       </View>
 
       <View style={styles.bottomPanel}>
-        <Text style={styles.hintText}>
-          Posisikan wajah Anda di dalam bingkai, lalu ambil foto
-        </Text>
-        <TouchableOpacity
-          style={[styles.captureBtn, capturing && styles.captureBtnDisabled]}
-          onPress={takePhoto}
-          disabled={capturing}
-          activeOpacity={0.85}>
-          <Icon name="camera" size={26} color="#FFFFFF" />
-          <Text style={styles.captureBtnText}>
-            {capturing ? 'Memproses...' : 'Ambil Foto'}
-          </Text>
-        </TouchableOpacity>
+        {autoCapture ? (
+          <>
+            <Text style={styles.hintText}>
+              {isProcessing
+                ? 'Memverifikasi wajah...'
+                : hasFace
+                ? 'Tahan sebentar, jangan bergerak...'
+                : 'Arahkan wajah Anda ke dalam bingkai'}
+            </Text>
+            {isProcessing && <View style={{ height: 4 }} />}
+          </>
+        ) : (
+          <>
+            <Text style={styles.hintText}>
+              Posisikan wajah Anda di dalam bingkai, lalu ambil foto
+            </Text>
+            <TouchableOpacity
+              style={[styles.captureBtn, capturing && styles.captureBtnDisabled]}
+              onPress={takePhoto}
+              disabled={capturing}
+              activeOpacity={0.85}>
+              <Icon name="camera" size={26} color="#FFFFFF" />
+              <Text style={styles.captureBtnText}>
+                {capturing ? 'Memproses...' : 'Ambil Foto'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
@@ -211,6 +309,12 @@ const styles = StyleSheet.create({
     borderRadius: width * 0.36,
     borderStyle: 'dashed',
     borderColor: 'rgba(255,255,255,0.6)',
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  autoProgressFill: {
+    width: '100%',
+    backgroundColor: 'rgba(74, 222, 128, 0.35)',
   },
   bottomPanel: {
     position: 'absolute',

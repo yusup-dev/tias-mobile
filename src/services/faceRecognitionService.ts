@@ -21,6 +21,12 @@ export class FaceServiceError extends Error {
 const FACE_API_URL = 'https://u-talent.uika-bogor.ac.id/face-api';
 const FACE_API_KEY = 'face-fts-absen';
 
+// Face-api menerima subject_id string apa saja (tidak mengharuskan NPM) —
+// mahasiswa pakai NPM, dosen tidak punya NPM jadi jatuh ke NIP/NIDN/user_id.
+export function getFaceSubjectId(user: any): string {
+  return user?.npm || user?.nip || user?.nidn || (user?.user_id ? String(user.user_id) : '') || '';
+}
+
 const api = axios.create({
   baseURL: FACE_API_URL,
   headers: {

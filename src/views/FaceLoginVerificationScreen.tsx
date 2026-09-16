@@ -17,7 +17,7 @@ import { loginWithFace } from '../services/auth/index';
 import { useTokenStore } from '../store/auth';
 
 const FaceLoginVerificationScreen = (props: any) => {
-  const { npm, rememberMe } = props.route?.params || {};
+  const { rememberMe } = props.route?.params || {};
 
   const [isVerifying, setIsVerifying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -30,7 +30,7 @@ const FaceLoginVerificationScreen = (props: any) => {
     setErrorMessage(null);
 
     try {
-      const result = await loginWithFace(npm, photoUri);
+      const result = await loginWithFace(photoUri);
       const token = result?.data?.token;
 
       if (token) {
@@ -55,6 +55,8 @@ const FaceLoginVerificationScreen = (props: any) => {
       <FaceCaptureCamera
         onConfirm={handleConfirmPhoto}
         onCancel={() => props.navigation.goBack()}
+        autoCapture
+        isProcessing={isVerifying}
       />
 
       {/* Info Card Header */}
@@ -63,7 +65,7 @@ const FaceLoginVerificationScreen = (props: any) => {
           <Icon name="face-recognition" size={24} color="#15613F" />
           <View style={styles.headerTextCol}>
             <Text style={styles.headerTitle}>Login dengan Wajah</Text>
-            <Text style={styles.headerSub}>NPM {npm}</Text>
+            <Text style={styles.headerSub}>Arahkan wajah Anda ke kamera</Text>
           </View>
         </View>
       </SafeAreaView>

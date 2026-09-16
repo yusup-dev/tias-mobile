@@ -21,6 +21,10 @@ import KompetensiScreen from '../../views/kompetensi/index';
 import PenunjangScreen from '../../views/penunjang/index';
 import KualifikasiScreen from '../../views/kualifikasi/index';
 
+// Ajuan Dosen Pembimbing
+import PembimbingListScreen from '../../features/pembimbing/screens/PembimbingListScreen';
+import PembimbingDetailScreen from '../../features/pembimbing/screens/PembimbingDetailScreen';
+
 const Stack = createStackNavigator();
 function DosenStack() {
   return (
@@ -137,6 +141,22 @@ function DosenStack() {
         component={KualifikasiScreen}
         options={{
           title: 'Kualifikasi',
+        }}
+      />
+
+      {/* Ajuan Dosen Pembimbing */}
+      <Stack.Screen
+        name="home.pembimbing"
+        component={PembimbingListScreen}
+        options={{
+          title: 'Ajuan Dosen Pembimbing',
+        }}
+      />
+      <Stack.Screen
+        name="home.pembimbing-detail"
+        component={PembimbingDetailScreen}
+        options={{
+          title: 'Detail Ajuan Pembimbing',
         }}
       />
     </Stack.Navigator>
