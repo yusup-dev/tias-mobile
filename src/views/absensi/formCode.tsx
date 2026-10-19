@@ -21,6 +21,7 @@ import DialogComponent from '../../component/dialog/DialogComponent';
 import {get_pembelajaran} from '../../services/absen/index';
 import {useTokenStore} from '../../store/auth';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {buildAttendanceParams, resolveAttendanceScreen} from '../../utils/attendanceNavigation';
 
 const FormCodeComponent = (props: any) => {
   const CELL_COUNT = 6;
@@ -37,16 +38,15 @@ const FormCodeComponent = (props: any) => {
       if (Array.isArray(succ?.data) && succ.data.length) {
         const item = succ.data[0];
 
-        // Langsung ke face recognition tanpa halaman konfirmasi
-        props?.navigation?.push('absensi.face', {
-          subjectId: user?.npm || '',
-          token: value,
-          meetingId: item?.id?.toString() || '',
-          subject: item?.matakuliah?.nama_matakuliah || item?.matkul?.name || '-',
-          lecturer: item?.dosen?.nama || item?.nik_dosen || '-',
-          className: item?.kelas?.toString() || '-',
-          authToken: useTokenStore.getState().token,
-        });
+        // Ikuti pilihan FR dosen saat generate presensi (default off -> absensi.checkin,
+        // tanpa kamera) -- lihat utils/attendanceNavigation.ts.
+        const params = buildAttendanceParams(
+          item,
+          value,
+          user?.npm || '',
+          useTokenStore.getState().token,
+        );
+        props?.navigation?.push(resolveAttendanceScreen(item), params);
         setValue('');
       } else {
         setModalQuery({
