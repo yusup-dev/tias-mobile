@@ -3,6 +3,7 @@ import AbsensiComponent from '../views/absensi/index';
 import FormCodeComponent from '../views/absensi/formCode';
 import AttendanceFaceScreen from '../views/absensi/AttendanceFaceScreen';
 import AttendanceFaceDevScreen from '../features/attendance-face/screens/AttendanceFaceScreen';
+import AttendanceCheckinScreen from '../views/absensi/validate';
 
 const Stack = createStackNavigator();
 function AbsensiStack() {
@@ -26,6 +27,8 @@ function AbsensiStack() {
         }}
       />
       <Stack.Screen name="absensi.face" component={AttendanceFaceScreen} />
+      {/* Checkin tanpa FR -- dipakai saat dosen generate presensi dgn FR off */}
+      <Stack.Screen name="absensi.checkin" component={AttendanceCheckinScreen} />
       {/* DEV ONLY: Face screen lengkap dengan enroll & face detector */}
       <Stack.Screen name="absensi.face.dev" component={AttendanceFaceDevScreen} />
     </Stack.Navigator>

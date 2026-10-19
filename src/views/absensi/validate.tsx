@@ -6,44 +6,63 @@ import {
   View,
   StatusBar,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {
   responsiveFontSize,
-  responsiveHeight,
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
+import {useRoute, useNavigation} from '@react-navigation/native';
 import {useTokenStore} from '../../store/auth';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useAttendanceCheckin} from '../../hooks/useAttendanceCheckin';
 
-const ValidateComponent = ({
-  props,
-  onPress,
-  dataMatkul,
-}: {
-  props?: any;
-  onPress: () => any;
-  dataMatkul: {
-    matkul: string;
-    pertemuan: string;
-    dosen: string;
-    kelas: string;
-    token: string;
-    meetingId?: string;
-  };
-}) => {
+// Layar check-in presensi TANPA face recognition -- dipakai saat dosen generate
+// presensi dgn FR off (lihat utils/attendanceNavigation.ts & AttendanceFaceScreen.tsx
+// utk versi FR-nya, pola UI sengaja disamakan). Sebelumnya file ini dead code (tidak
+// pernah di-import/dipakai), sekarang didaftarkan di navigation/absensiStack.tsx
+// sbg layar "absensi.checkin".
+const ValidateComponent = () => {
+  const route = useRoute<any>();
+  const navigation = useNavigation<any>();
+  const params = route.params || {};
   const {user} = useTokenStore();
 
-  const handleLanjutFace = () => {
-    props?.navigation?.push('absensi.face', {
-      subjectId: user?.npm || '',
-      token: dataMatkul.token,
-      meetingId: dataMatkul.meetingId || '',
-      subject: dataMatkul.matkul,
-      lecturer: dataMatkul.dosen,
-      className: dataMatkul.kelas,
-      authToken: useTokenStore.getState().token,
-    });
+  const {step, errorMessage, submitCheckin, retry} = useAttendanceCheckin({
+    token: params.token,
+  });
+
+  useEffect(() => {
+    if (step === 'success') {
+      Alert.alert(
+        '✅ Absensi Berhasil!',
+        `Kehadiran Anda untuk mata kuliah "${params.subject}" telah berhasil dicatat.`,
+        [
+          {
+            text: 'Selesai',
+            onPress: () =>
+              navigation.reset({index: 0, routes: [{name: 'Home'}]}),
+          },
+        ],
+      );
+    }
+  }, [step, navigation]);
+
+  const isLoading = step === 'getting_location' || step === 'submitting';
+
+  const renderButtonLabel = () => {
+    switch (step) {
+      case 'getting_location':
+        return 'Mengambil lokasi GPS...';
+      case 'submitting':
+        return 'Mengirim data absensi...';
+      case 'success':
+        return 'Absensi Tercatat!';
+      default:
+        return 'Checkin Sekarang';
+    }
   };
 
   return (
@@ -52,7 +71,9 @@ const ValidateComponent = ({
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onPress} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}>
           <Icon name="arrow-left" size={22} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Konfirmasi Absensi</Text>
@@ -62,14 +83,12 @@ const ValidateComponent = ({
       {/* Hero Section */}
       <View style={styles.heroSection}>
         <View style={styles.heroIconWrapper}>
-          <Icon name="calendar-check" size={48} color="#FFFFFF" />
+          <Icon name="map-marker-check" size={48} color="#FFFFFF" />
         </View>
-        <Text style={styles.heroPertemuan}>
-          Pertemuan ke-{dataMatkul.pertemuan}
-        </Text>
+        <Text style={styles.heroPertemuan}>Absensi Mata Kuliah</Text>
         <View style={styles.tokenBadge}>
           <Icon name="key-variant" size={12} color="#4ADE80" />
-          <Text style={styles.tokenBadgeText}>Token: {dataMatkul.token}</Text>
+          <Text style={styles.tokenBadgeText}>Token: {params.token || '-'}</Text>
         </View>
       </View>
 
@@ -102,7 +121,7 @@ const ValidateComponent = ({
             </View>
             <View style={styles.infoTextBox}>
               <Text style={styles.infoLabel}>Mata Kuliah</Text>
-              <Text style={styles.infoValue}>{dataMatkul.matkul || '-'}</Text>
+              <Text style={styles.infoValue}>{params.subject || '-'}</Text>
             </View>
           </View>
 
@@ -114,56 +133,76 @@ const ValidateComponent = ({
             </View>
             <View style={styles.infoTextBox}>
               <Text style={styles.infoLabel}>Dosen Pengampu</Text>
-              <Text style={styles.infoValue}>{dataMatkul.dosen || '-'}</Text>
+              <Text style={styles.infoValue}>{params.lecturer || '-'}</Text>
             </View>
           </View>
 
           <View style={styles.infoDivider} />
 
-          <View style={styles.infoRow}>
-            <View style={[styles.infoItem, {flex: 1}]}>
-              <View style={styles.infoIconBox}>
-                <Icon name="google-classroom" size={18} color="#15613F" />
-              </View>
-              <View style={styles.infoTextBox}>
-                <Text style={styles.infoLabel}>Kelas</Text>
-                <Text style={styles.infoValue}>{dataMatkul.kelas || '-'}</Text>
-              </View>
+          <View style={styles.infoItem}>
+            <View style={styles.infoIconBox}>
+              <Icon name="google-classroom" size={18} color="#15613F" />
             </View>
-
-            <View style={[styles.infoItem, {flex: 1}]}>
-              <View style={styles.infoIconBox}>
-                <Icon name="repeat" size={18} color="#15613F" />
-              </View>
-              <View style={styles.infoTextBox}>
-                <Text style={styles.infoLabel}>Pertemuan</Text>
-                <Text style={styles.infoValue}>Ke-{dataMatkul.pertemuan}</Text>
-              </View>
+            <View style={styles.infoTextBox}>
+              <Text style={styles.infoLabel}>Kelas</Text>
+              <Text style={styles.infoValue}>{params.className || '-'}</Text>
             </View>
           </View>
         </View>
 
         {/* Notice */}
         <View style={styles.noticeBox}>
-          <Icon name="face-recognition" size={20} color="#6A5BE2" />
+          <Icon name="map-marker-radius" size={20} color="#6A5BE2" />
           <Text style={styles.noticeText}>
-            Langkah selanjutnya: verifikasi wajah Anda untuk menyelesaikan proses absensi
+            Sesi ini tidak memerlukan verifikasi wajah. Pastikan GPS Anda aktif, lalu
+            tekan tombol di bawah untuk check-in.
           </Text>
         </View>
 
+        {step === 'error' && errorMessage && (
+          <View style={styles.errorBox}>
+            <Icon name="alert-circle-outline" size={16} color="#EF4444" />
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        )}
+
         {/* Action Buttons */}
         <TouchableOpacity
-          onPress={handleLanjutFace}
-          style={styles.primaryBtn}
+          onPress={step === 'error' ? retry : submitCheckin}
+          style={[
+            styles.primaryBtn,
+            isLoading && styles.primaryBtnDisabled,
+            step === 'success' && styles.primaryBtnSuccess,
+          ]}
+          disabled={isLoading || step === 'success'}
           activeOpacity={0.85}>
-          <Icon name="face-recognition" size={22} color="#FFFFFF" />
-          <Text style={styles.primaryBtnText}>Lanjut Verifikasi Wajah</Text>
-          <Icon name="arrow-right" size={18} color="rgba(255,255,255,0.7)" />
+          {isLoading ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <Icon
+              name={
+                step === 'success'
+                  ? 'check-bold'
+                  : step === 'error'
+                  ? 'refresh'
+                  : 'map-marker-check'
+              }
+              size={22}
+              color="#FFFFFF"
+            />
+          )}
+          <Text style={styles.primaryBtnText}>
+            {step === 'error' ? 'Coba Lagi' : renderButtonLabel()}
+          </Text>
+          {!isLoading && step === 'ready' && (
+            <Icon name="arrow-right" size={18} color="rgba(255,255,255,0.7)" />
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={onPress}
+          onPress={() => navigation.goBack()}
           style={styles.secondaryBtn}
+          disabled={isLoading}
           activeOpacity={0.7}>
           <Icon name="close-circle-outline" size={20} color="#EF4444" />
           <Text style={styles.secondaryBtnText}>Batal</Text>
@@ -318,10 +357,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  infoRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
   infoIconBox: {
     width: 38,
     height: 38,
@@ -369,6 +404,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 20,
   },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: 'rgba(239,68,68,0.1)',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.3)',
+  },
+  errorText: {
+    flex: 1,
+    color: '#B91C1C',
+    fontSize: responsiveFontSize(1.5),
+    fontWeight: '500',
+    lineHeight: 20,
+  },
   primaryBtn: {
     backgroundColor: '#15613F',
     flexDirection: 'row',
@@ -382,6 +435,14 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.35,
     shadowRadius: 10,
+  },
+  primaryBtnDisabled: {
+    backgroundColor: '#374151',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  primaryBtnSuccess: {
+    backgroundColor: '#065F46',
   },
   primaryBtnText: {
     color: '#FFFFFF',
