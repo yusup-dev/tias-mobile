@@ -23,8 +23,6 @@ import { useMutation } from '@tanstack/react-query';
 import { registerMahasiswa, registerOrangTua } from '../services/auth/register';
 import { DialogComponent } from '../component/dialog';
 import { LogoUika } from '../../assets/svg';
-import { faceRecognitionService } from '../services/faceRecognitionService';
-import FaceCaptureCamera from '../component/faceCapture/FaceCaptureCamera';
 
 type Role = 'mahasiswa' | 'orang_tua';
 
@@ -40,8 +38,6 @@ const Register = ({ navigation }: Props) => {
   const [emailMhs, setEmailMhs] = useState('');
   const [passwordMhs, setPasswordMhs] = useState({ value: '', secure: true });
   const [confirmPasswordMhs, setConfirmPasswordMhs] = useState({ value: '', secure: true });
-  const [faceUri, setFaceUri] = useState<string | null>(null);
-  const [showFaceCamera, setShowFaceCamera] = useState(false);
 
   // ── Orang Tua fields ──────────────────────────────────────────────────────
   const [namaOt, setNamaOt] = useState('');
@@ -78,19 +74,13 @@ const Register = ({ navigation }: Props) => {
     onSuccess: async (res: any) => {
       const isOk = res?.isSuccess || res?.message?.toLowerCase().includes('success') || res?.responseMessage?.toLowerCase().includes('success');
       if (isOk) {
-        if (faceUri) {
-          try {
-            await faceRecognitionService.enroll(npm.trim(), faceUri);
-            showDialog('Berhasil', 'Akun berhasil dibuat & wajah berhasil didaftarkan! Silakan cek email Anda untuk verifikasi.');
-          } catch (enrollError: any) {
-            showDialog(
-              'Berhasil (Sebagian)',
-              `Akun berhasil dibuat! Namun pendaftaran wajah gagal (${enrollError?.message || 'kesalahan tidak diketahui'}). Silakan coba lagi lewat menu Profil > Daftar Wajah setelah login.`,
-            );
-          }
-        } else {
-          showDialog('Berhasil', res?.responseMessage || 'Akun berhasil dibuat! Silakan cek email Anda untuk verifikasi.');
-        }
+        // Pendaftaran wajah tidak lagi dilakukan saat registrasi: butuh akun yang sudah login agar
+        // wajah terikat ke pemilik NPM/NIP yang sebenarnya (dikerjakan server UCL, bukan aplikasi).
+        showDialog(
+          'Berhasil',
+          (res?.responseMessage && !/^success$/i.test(res.responseMessage) ? res.responseMessage : 'Akun berhasil dibuat!') +
+            ' Silakan cek email Anda untuk verifikasi. Setelah login, daftarkan wajah lewat Profil > Daftar Wajah.',
+        );
       } else {
         const errorMsg = (res?.responseMessage && res?.responseMessage !== 'error' && res?.responseMessage !== 'Error')
           ? res.responseMessage
@@ -136,10 +126,6 @@ const Register = ({ navigation }: Props) => {
       }
       if (passwordMhs.value.length < 6) {
         showDialog('Perhatian', 'Password minimal 6 karakter.');
-        return false;
-      }
-      if (!faceUri) {
-        showDialog('Perhatian', 'Silakan ambil foto wajah Anda terlebih dahulu.');
         return false;
       }
     } else {
@@ -308,24 +294,6 @@ const Register = ({ navigation }: Props) => {
               {renderPasswordField('Password', passwordMhs, setPasswordMhs, 'Masukkan password')}
               {renderPasswordField('Konfirmasi Password', confirmPasswordMhs, setConfirmPasswordMhs, 'Ulangi password')}
 
-              <View style={styles.fieldWrapper}>
-                <Text style={styles.label}>Foto Wajah *</Text>
-                <TouchableOpacity
-                  style={styles.faceCaptureRow}
-                  onPress={() => setShowFaceCamera(true)}>
-                  <View style={styles.faceThumbWrapper}>
-                    {faceUri ? (
-                      <Image source={{ uri: faceUri }} style={styles.faceThumb} />
-                    ) : (
-                      <Icon name="face-recognition" size={26} color="#15613F" />
-                    )}
-                  </View>
-                  <Text style={styles.faceCaptureText}>
-                    {faceUri ? 'Ganti Foto Wajah' : 'Ambil Foto Wajah'}
-                  </Text>
-                  <Icon name="chevron-right" size={22} color="#9CA3AF" />
-                </TouchableOpacity>
-              </View>
             </>
           )}
 
@@ -381,16 +349,6 @@ const Register = ({ navigation }: Props) => {
         </View>
       )}
 
-      {/* Modal Kamera Foto Wajah */}
-      <Modal visible={showFaceCamera} animationType="slide" onRequestClose={() => setShowFaceCamera(false)}>
-        <FaceCaptureCamera
-          onConfirm={(uri) => {
-            setFaceUri(uri);
-            setShowFaceCamera(false);
-          }}
-          onCancel={() => setShowFaceCamera(false)}
-        />
-      </Modal>
     </KeyboardAvoidingView>
   );
 };

@@ -18,6 +18,7 @@ import {useTokenStore} from '../../../store/auth';
 import {getEvent, getTantangan} from '../../../services/home/index';
 import moment from 'moment';
 import LinearGradient from 'react-native-linear-gradient';
+import AkademikShortcuts from '../../../component/akademik/AkademikShortcuts';
 
 const triDharmaIcon = (name: string, backgroundColor: string) => () => (
   <View
@@ -181,6 +182,7 @@ const DosenMenuComponent = (props: any) => {
           </TouchableOpacity>
         </View>
       </LinearGradient>
+      <AkademikShortcuts navigation={props.navigation} />
 
       {/* Grid Menu */}
       <View

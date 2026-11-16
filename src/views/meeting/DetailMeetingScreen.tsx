@@ -31,15 +31,9 @@ const DetailMeetingScreen = (props: any) => {
     try {
       // Koordinat default kampus UIKA Bogor
       const koordinat = '-6.559770721152015, 106.79353328405361';
-      const npm = user?.npm || user?.nidn || user?.id || 'DOSEN';
-      const nama = user?.nama_lengkap || user?.name || 'Peserta Rapat';
-
       await submitMeetingPresensi({
-        token: meeting.token || 'MEETING-TOKEN',
-        npm: String(npm),
-        koordinat: koordinat,
-        status: 1,
-        nama_lengkap: nama,
+        token: meeting.token || '',
+        coordinate: koordinat,
       });
 
       setIsAttended(true);
@@ -48,8 +42,8 @@ const DetailMeetingScreen = (props: any) => {
         'Kehadiran Anda pada rapat ini telah berhasil tercatat dalam sistem absensi TIAS.',
         [{ text: 'OK' }]
       );
-    } catch (e) {
-      Alert.alert('Error', 'Gagal memproses absensi rapat. Silakan coba beberapa saat lagi.');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Gagal memproses absensi rapat. Silakan coba beberapa saat lagi.');
     } finally {
       setIsSubmitting(false);
     }

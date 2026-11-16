@@ -272,7 +272,9 @@ const AttendanceFaceScreen = () => {
         {/* Token Badge */}
         <View style={styles.tokenBadge}>
           <Icon name="key-variant" size={12} color="#4ADE80" />
-          <Text style={styles.tokenText}>{params.token || '-'}</Text>
+          <Text style={styles.tokenText}>
+            {/^U[QT]1\./.test(params.token || '') ? 'QR dinamis' : params.token || '-'}
+          </Text>
         </View>
 
         {/* Action Buttons */}

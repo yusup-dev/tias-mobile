@@ -25,12 +25,12 @@ const FaceLoginVerificationScreen = (props: any) => {
   const { setAuthentication, setToken, setUser, setRememberMe: storeSetRememberMe } =
     useTokenStore();
 
-  const handleConfirmPhoto = async (photoUri: string) => {
+  const handleConfirmPhoto = async (photoUri: string, secondPhotoUri?: string) => {
     setIsVerifying(true);
     setErrorMessage(null);
 
     try {
-      const result = await loginWithFace(photoUri);
+      const result = await loginWithFace(secondPhotoUri ? [photoUri, secondPhotoUri] : [photoUri]);
       const token = result?.data?.token;
 
       if (token) {

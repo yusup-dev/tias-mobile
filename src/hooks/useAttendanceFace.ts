@@ -33,15 +33,15 @@ export const useAttendanceFace = (params: AttendanceFaceParams) => {
   const checkEnrollment = useCallback(async () => {
     try {
       setStep('checking_enrollment');
-      const enrolled = await faceRecognitionService.isEnrolled(params.subjectId);
+      const enrolled = await faceRecognitionService.isEnrolled();
       if (enrolled) {
         setStep('ready');
       } else {
         setStep('not_enrolled');
       }
     } catch (error) {
-      // If service down, proceed to ready but expect error during verify
-      console.warn('Face API check enrollment failed, proceeding to ready:', error);
+      // Server wajah tidak terjangkau: tetap ke 'ready' — verifikasi akan ditolak (fail-closed) bila masih bermasalah.
+      console.warn('Cek status wajah gagal, lanjut ke ready:', error);
       setStep('ready');
     }
   }, [params.subjectId]);
@@ -54,27 +54,29 @@ export const useAttendanceFace = (params: AttendanceFaceParams) => {
     if (step !== 'ready' && step !== 'error') return;
     
     setErrorMessage(null);
+    let faceTicketRef = '';
     try {
-      // 1. Capture Photo
+      // 1. Ambil 2 foto berurutan (frame berbeda; server menolak foto identik / kurang dari minimum)
       setStep('capturing');
       if (!cameraRef.current) throw new Error('Kamera tidak siap.');
-      
-      const photo = await cameraRef.current.takePhoto({
-        flash: 'off',
-      });
 
-      // 2. Verify Face
+      const first = await cameraRef.current.takePhoto({ flash: 'off' });
+      await new Promise(resolve => setTimeout(resolve, 700));
+      const second = await cameraRef.current.takePhoto({ flash: 'off' });
+
+      // 2. Verifikasi di server UCL -> tiket FT1 (terikat akun ini + pertemuan ini, sekali pakai)
       setStep('verifying');
-      const { verified, similarity } = await faceRecognitionService.verify(
-        params.subjectId,
-        `file://${photo.path}`
+      const { verified, similarity, ticket } = await faceRecognitionService.verify(
+        [`file://${first.path}`, `file://${second.path}`],
+        { ref: params.meetingId, purpose: 'presensi' },
       );
 
-      if (!verified) {
+      if (!verified || !ticket) {
         throw new Error('Verifikasi wajah gagal. Pastikan ini adalah wajah Anda.');
       }
-      
+
       setVerifyResult({ similarity });
+      faceTicketRef = ticket;
 
       // 3. Get Secure Location (after face match to optimize)
       setStep('getting_location');
@@ -92,7 +94,8 @@ export const useAttendanceFace = (params: AttendanceFaceParams) => {
         token: params.token,
         coordinate: `${location.latitude},${location.longitude}`,
         npm: user.npm,
-        status_absen: '1', // Default hadir (hardcode)
+        status_absen: '1', // Default hadir (server tetap menentukan statusnya sendiri)
+        face_ticket: faceTicketRef,
       });
 
       // Tangkap pesan error dari respons Laravel

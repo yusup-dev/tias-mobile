@@ -88,7 +88,7 @@ const ValidateComponent = () => {
         <Text style={styles.heroPertemuan}>Absensi Mata Kuliah</Text>
         <View style={styles.tokenBadge}>
           <Icon name="key-variant" size={12} color="#4ADE80" />
-          <Text style={styles.tokenBadgeText}>Token: {params.token || '-'}</Text>
+          <Text style={styles.tokenBadgeText}>Token: {/^U[QT]1\./.test(params.token || '') ? 'QR dinamis' : params.token || '-'}</Text>
         </View>
       </View>
 

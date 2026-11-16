@@ -76,3 +76,11 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Rahasia & log build
+.env
+.env.*
+!.env.example
+*.log
+hs_err_pid*
+replay_pid*

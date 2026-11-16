@@ -38,7 +38,8 @@ const AbsensiComponent = (props: any) => {
     onSuccess: (succ: any, variables: any) => {
       if (Array.isArray(succ?.data) && succ.data.length) {
         const item = succ.data[0];
-        const tokenVal = variables?.token ?? value;
+        // QR dinamis: pakai tiket dari server (terikat NPM); QR/token lama: token apa adanya.
+        const tokenVal = succ?.ticket ?? variables?.token ?? value;
 
         // Ikuti pilihan FR dosen saat generate presensi (default off -> absensi.checkin,
         // tanpa kamera) -- lihat utils/attendanceNavigation.ts.

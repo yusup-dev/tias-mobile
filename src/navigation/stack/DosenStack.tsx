@@ -25,6 +25,8 @@ import KualifikasiScreen from '../../views/kualifikasi/index';
 import PembimbingListScreen from '../../features/pembimbing/screens/PembimbingListScreen';
 import PembimbingDetailScreen from '../../features/pembimbing/screens/PembimbingDetailScreen';
 
+import NotifikasiScreen from '../../views/akademik/NotifikasiScreen';
+
 const Stack = createStackNavigator();
 function DosenStack() {
   return (
@@ -159,6 +161,7 @@ function DosenStack() {
           title: 'Detail Ajuan Pembimbing',
         }}
       />
+      <Stack.Screen name="home.notifikasi" component={NotifikasiScreen} options={{ title: 'Notifikasi' }} />
     </Stack.Navigator>
   );
 }

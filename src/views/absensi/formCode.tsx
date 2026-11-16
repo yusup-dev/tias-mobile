@@ -42,7 +42,7 @@ const FormCodeComponent = (props: any) => {
         // tanpa kamera) -- lihat utils/attendanceNavigation.ts.
         const params = buildAttendanceParams(
           item,
-          value,
+          succ?.ticket ?? value,
           user?.npm || '',
           useTokenStore.getState().token,
         );

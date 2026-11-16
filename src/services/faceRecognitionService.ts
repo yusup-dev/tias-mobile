@@ -1,8 +1,18 @@
-import axios, { AxiosError } from 'axios';
+import axios from '../config/axios-tias';
+import { useTokenStore } from '../store/auth';
+
+/**
+ * Face recognition UCL Mobile — SEMUA lewat server UCL (`/face/*`). Aplikasi tidak lagi memegang
+ * URL/kunci face API; subject_id diturunkan server dari akun login (tidak bisa didaftarkan untuk
+ * NPM/NIP orang lain). Verifikasi berhasil menghasilkan tiket FT1 yang dikirim saat scan presensi.
+ */
 
 export type FaceServiceErrorCode =
   | 'SERVICE_UNAVAILABLE'
   | 'NOT_ENROLLED'
+  | 'ALREADY_ENROLLED'
+  | 'PENDING_APPROVAL'
+  | 'LOCKED'
   | 'FACE_NOT_DETECTED'
   | 'MATCH_FAILED'
   | 'VALIDATION_ERROR'
@@ -18,131 +28,105 @@ export class FaceServiceError extends Error {
   }
 }
 
-const FACE_API_URL = 'https://u-talent.uika-bogor.ac.id/face-api';
-const FACE_API_KEY = 'face-fts-absen';
+export type FaceStatus = {
+  enrolled: boolean;
+  status: 'none' | 'pending' | 'active' | 'revoked';
+  enroll_count?: number;
+  last_verified_at?: string | null;
+  require_approval?: boolean;
+  min_frames?: number;
+  enroll_min_images?: number;
+};
 
-// Face-api menerima subject_id string apa saja (tidak mengharuskan NPM) —
-// mahasiswa pakai NPM, dosen tidak punya NPM jadi jatuh ke NIP/NIDN/user_id.
+// Identitas untuk pengecekan UI saja (server menurunkan subject_id sendiri).
 export function getFaceSubjectId(user: any): string {
   return user?.npm || user?.nip || user?.nidn || (user?.user_id ? String(user.user_id) : '') || '';
 }
 
-const api = axios.create({
-  baseURL: FACE_API_URL,
-  headers: {
-    'X-API-Key': FACE_API_KEY,
-  },
-  timeout: 20000,
-});
+const CODE_MAP: Record<string, FaceServiceErrorCode> = {
+  NO_FACE: 'FACE_NOT_DETECTED',
+  MISMATCH: 'MATCH_FAILED',
+  POSE_MISMATCH: 'MATCH_FAILED',
+  NOT_ENROLLED: 'NOT_ENROLLED',
+  ALREADY_ENROLLED: 'ALREADY_ENROLLED',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  LOCKED: 'LOCKED',
+  SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+  TOO_FEW_IMAGES: 'VALIDATION_ERROR',
+  DUPLICATE_FRAMES: 'VALIDATION_ERROR',
+  BAD_IMAGE: 'VALIDATION_ERROR',
+};
+
+const authHeaders = () => ({ token: useTokenStore.getState().token });
+
+function toError(res: any): FaceServiceError {
+  const d = res?.data || {};
+  return new FaceServiceError(CODE_MAP[d.code] || 'UNKNOWN', d.responseMessage || d.message || 'Terjadi kesalahan pada verifikasi wajah.');
+}
+
+function networkError(error: any): FaceServiceError {
+  if (error instanceof FaceServiceError) return error;
+  if (error?.code === 'ECONNABORTED') {
+    return new FaceServiceError('SERVICE_UNAVAILABLE', 'Upload foto terlalu lama (koneksi lambat). Coba lagi di jaringan yang lebih stabil.');
+  }
+  return new FaceServiceError('SERVICE_UNAVAILABLE', 'Server tidak dapat dihubungi. Periksa koneksi internet Anda.');
+}
+
+function buildForm(imageUris: string[], fields: Record<string, string> = {}) {
+  const form = new FormData();
+  imageUris.forEach((uri, i) => {
+    form.append('image', { uri, name: `frame${i}.jpg`, type: 'image/jpeg' } as any);
+  });
+  Object.entries(fields).forEach(([k, v]) => form.append(k, v));
+  return form;
+}
 
 export const faceRecognitionService = {
-  async isEnrolled(subjectId: string): Promise<boolean> {
+  async status(): Promise<FaceStatus> {
     try {
-      await api.get(`/v1/faces/subjects/${subjectId}`);
-      return true;
+      const res = await axios.get('face/status', { headers: authHeaders() });
+      if (res.status >= 400) throw toError(res);
+      return res.data.data as FaceStatus;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        return false;
-      }
-      // If service is down, we don't throw NOT_ENROLLED, we let the hook handle it
-      throw this.handleError(error);
+      throw networkError(error);
     }
   },
 
-  async verify(subjectId: string, imageUri: string, threshold?: number): Promise<{ verified: boolean; similarity: number }> {
+  async isEnrolled(): Promise<boolean> {
+    return (await this.status()).enrolled;
+  },
+
+  /** Daftarkan wajah dari >=2 foto pose berbeda (foto pertama = referensi). */
+  async enroll(imageUris: string[]): Promise<FaceStatus> {
     try {
-      const formData = new FormData();
-      formData.append('subject_id', subjectId);
-      if (threshold !== undefined) {
-        formData.append('threshold', threshold.toString());
-      }
-      formData.append('image', {
-        uri: imageUri,
-        name: 'verify.jpg',
-        type: 'image/jpeg',
-      } as any);
-
-      console.log('[FACE-API] >> POST /v1/faces/verify subject_id:', subjectId);
-
-      const response = await api.post('/v1/faces/verify', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const res = await axios.post('face/enroll', buildForm(imageUris), {
+        headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' },
+        timeout: 40000,
       });
-
-      console.log('[FACE-API] << verify response:', JSON.stringify(response.data).substring(0, 300));
-
-      // Server merespons { subject_id, score, threshold, match } — bukan { verified, similarity }
-      const { match, score } = response.data;
-
-      if (!match) {
-        throw new FaceServiceError('MATCH_FAILED', 'Wajah tidak cocok. Silakan coba lagi.');
-      }
-
-      return { verified: match, similarity: score };
+      if (res.status >= 400) throw toError(res);
+      return res.data.data as FaceStatus;
     } catch (error) {
-      throw this.handleError(error);
+      throw networkError(error);
     }
   },
 
-  async enroll(subjectId: string, imageUri: string): Promise<void> {
+  /**
+   * Verifikasi wajah (>=2 frame berbeda). `ref` = id pertemuan presensi; hasilnya tiket `ticket`
+   * yang dikirim sebagai `face_ticket` pada scan presensi.
+   */
+  async verify(imageUris: string[], opts: { ref?: string; purpose?: string } = {}): Promise<{ verified: boolean; similarity: number; ticket: string }> {
     try {
-      const formData = new FormData();
-      formData.append('subject_id', subjectId);
-      formData.append('image', {
-        uri: imageUri,
-        name: 'enroll.jpg',
-        type: 'image/jpeg',
-      } as any);
-
-      console.log('[FACE-API] >> POST /v1/faces/enroll subject_id:', subjectId);
-
-      const response = await api.post('/v1/faces/enroll', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const fields: Record<string, string> = { purpose: opts.purpose || 'presensi' };
+      if (opts.ref) fields.ref = String(opts.ref);
+      const res = await axios.post('face/verify', buildForm(imageUris, fields), {
+        headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' },
+        timeout: 40000,
       });
-
-      console.log('[FACE-API] << enroll response:', response.status, JSON.stringify(response.data).substring(0, 300));
+      if (res.status >= 400) throw toError(res);
+      const d = res.data.data;
+      return { verified: !!d.verified, similarity: Number(d.score) || 0, ticket: d.ticket };
     } catch (error) {
-      throw this.handleError(error);
+      throw networkError(error);
     }
-  },
-
-  handleError(error: unknown): FaceServiceError {
-    if (error instanceof FaceServiceError) return error;
-
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<any>;
-      const status = axiosError.response?.status;
-      const data = axiosError.response?.data;
-
-      console.log('[FACE-API] error code:', axiosError.code, 'status:', status, 'data:', JSON.stringify(data));
-
-      if (!axiosError.response) {
-        if (axiosError.code === 'ECONNABORTED') {
-          return new FaceServiceError('SERVICE_UNAVAILABLE', 'Upload foto terlalu lama (koneksi lambat). Coba lagi di jaringan yang lebih stabil.');
-        }
-        return new FaceServiceError('SERVICE_UNAVAILABLE', 'Layanan verifikasi wajah tidak tersedia. Periksa koneksi internet Anda.');
-      }
-
-      const serverMessage: string | undefined = data?.message || data?.error || data?.detail;
-
-      switch (status) {
-        case 404:
-          return new FaceServiceError('NOT_ENROLLED', 'Wajah Anda belum terdaftar di sistem. Hubungi admin.');
-        case 400:
-          if (serverMessage?.toLowerCase().includes('no face')) {
-            return new FaceServiceError('FACE_NOT_DETECTED', 'Wajah tidak terdeteksi pada foto. Pastikan pencahayaan cukup.');
-          }
-          return new FaceServiceError('UNKNOWN', serverMessage || 'Terjadi kesalahan pada permintaan.');
-        case 422:
-          return new FaceServiceError('VALIDATION_ERROR', serverMessage || 'Data yang dikirim tidak valid.');
-        default:
-          return new FaceServiceError('UNKNOWN', serverMessage || 'Terjadi kesalahan sistem yang tidak diketahui.');
-      }
-    }
-
-    return new FaceServiceError('UNKNOWN', 'Terjadi kesalahan tak terduga.');
   },
 };

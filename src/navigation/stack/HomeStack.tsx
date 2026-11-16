@@ -19,6 +19,12 @@ import DisposisiScreen from '../../views/surat/DisposisiScreen';
 import MeetingScreen from '../../views/meeting/index';
 import DetailMeetingScreen from '../../views/meeting/DetailMeetingScreen';
 
+// Tagihan, transkrip, capaian OBE (CPL/CPMK) & notifikasi — mahasiswa dan orang tua
+import TagihanScreen from '../../views/akademik/TagihanScreen';
+import TranskripScreen from '../../views/akademik/TranskripScreen';
+import ObeScreen from '../../views/akademik/ObeScreen';
+import NotifikasiScreen from '../../views/akademik/NotifikasiScreen';
+
 const Stack = createStackNavigator();
 
 function HomeStack() {
@@ -136,6 +142,12 @@ function HomeStack() {
           title: 'Detail Rapat',
         }}
       />
+
+      {/* Tagihan, Transkrip, OBE, Notifikasi */}
+      <Stack.Screen name="home.tagihan" component={TagihanScreen} options={{ title: 'Tagihan & Pembayaran' }} />
+      <Stack.Screen name="home.transkrip" component={TranskripScreen} options={{ title: 'Transkrip Nilai' }} />
+      <Stack.Screen name="home.obe" component={ObeScreen} options={{ title: 'Pencapaian OBE' }} />
+      <Stack.Screen name="home.notifikasi" component={NotifikasiScreen} options={{ title: 'Notifikasi' }} />
     </Stack.Navigator>
   );
 }

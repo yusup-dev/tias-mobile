@@ -20,9 +20,9 @@ export type LoginRequest = {
  * (SSO), tapi tetap dapat token yang dikenali api-tias:
  * 1. Autentikasi ke E-Portal (`auth/login`) — sumber kredensial tunggal.
  * 2. Tukar `uika_sso_token` hasil langkah 1 ke tias-backend lewat
- *    `GET /sso/callback` (sudah dipakai jalur SSO web UCL yang ada) untuk
- *    dapat token TIAS asli. `role_id`/`appModule_id` di sini hanya placeholder
- *    wajib-diisi — endpoint itu belum memvalidasi/menggunakan nilainya.
+ *    `POST /sso/mobile-login` (token di body, bukan di URL) untuk dapat token
+ *    TIAS asli. Semua user E-Portal yang aktif bisa masuk; akun UCL dibuat
+ *    otomatis bila belum ada.
  */
 export async function login(data: LoginRequest): Promise<any> {
   const eportalResponse = await axiosEportal.post('auth/login', data, {
@@ -40,12 +40,8 @@ export async function login(data: LoginRequest): Promise<any> {
     return eportalResponse.data;
   }
 
-  const tiasResponse = await axios.get('sso/callback', {
-    params: {
-      token: ssoToken,
-      role_id: 1,
-      appModule_id: 1,
-    },
+  const tiasResponse = await axios.post('sso/mobile-login', {
+    token: ssoToken,
   });
 
   return tiasResponse.data;
@@ -56,14 +52,17 @@ export async function login(data: LoginRequest): Promise<any> {
  * sepenuhnya dari kecocokan wajah (1:N recognize) di backend, jadi berlaku untuk semua
  * role yang sudah mendaftarkan wajahnya (Mahasiswa maupun Dosen).
  */
-export async function loginWithFace(photoUri: string): Promise<any> {
+// Login wajah: server meminta >= 2 frame berbeda (lihat FACE_MIN_FRAMES di UCL BE).
+export async function loginWithFace(photoUris: string[]): Promise<any> {
   try {
     const formData = new FormData();
-    formData.append('image', {
-      uri: photoUri,
-      name: 'login-face.jpg',
-      type: 'image/jpeg',
-    } as any);
+    photoUris.forEach((uri, i) => {
+      formData.append('image', {
+        uri,
+        name: `login-face-${i}.jpg`,
+        type: 'image/jpeg',
+      } as any);
+    });
 
     const response = await axios.post('auth/login-face', formData, {
       headers: {

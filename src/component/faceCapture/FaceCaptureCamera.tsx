@@ -22,7 +22,8 @@ import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dim
 const { width } = Dimensions.get('window');
 
 type FaceCaptureCameraProps = {
-  onConfirm: (photoUri: string) => void;
+  /** Mode autoCapture mengirim 2 frame berbeda: (frame1, frame2). Mode manual hanya frame1. */
+  onConfirm: (photoUri: string, secondPhotoUri?: string) => void;
   onCancel: () => void;
   /** Deteksi wajah otomatis lalu langsung ambil & kirim foto tanpa perlu tap tombol
    *  (dipakai untuk Login dengan Wajah). Default false: alur manual seperti Daftar Wajah. */
@@ -75,8 +76,11 @@ const FaceCaptureCamera = ({
     if (!cameraRef.current || autoCaptureLockRef.current) return;
     autoCaptureLockRef.current = true;
     try {
-      const photo = await cameraRef.current.takePhoto();
-      onConfirm(`file://${photo.path}`);
+      // Dua frame berurutan (server menolak foto identik / kurang dari minimum frame).
+      const first = await cameraRef.current.takePhoto();
+      await new Promise(resolve => setTimeout(resolve, 700));
+      const second = await cameraRef.current.takePhoto();
+      onConfirm(`file://${first.path}`, `file://${second.path}`);
     } catch (e) {
       autoCaptureLockRef.current = false;
       setCaptureProgress(0);

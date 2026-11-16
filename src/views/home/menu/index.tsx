@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import AkademikShortcuts from '../../../component/akademik/AkademikShortcuts';
 import {
   Image,
   PermissionsAndroid,
@@ -307,6 +308,7 @@ const MenuComponent = (props: any) => {
           ))}
         </View>
       </View>
+      <AkademikShortcuts navigation={props.navigation} />
       {user?.role === 'Parent' ? (
         <>
           <View

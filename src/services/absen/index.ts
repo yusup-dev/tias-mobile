@@ -63,12 +63,37 @@ export type AbsenRequest = {
   coordinate: string;
   status_absen: string;
   npm: string;
+  // Tiket verifikasi wajah (FT1) dari POST /face/verify — wajib bila pertemuan memakai face recognition.
+  face_ticket?: string;
 };
 
-// 1. Fungsi untuk Submit Absen (Sudah Benar)
+// QR presensi DINAMIS (berganti tiap 5 menit): QR memuat kode bertanda tangan "UQ1.*",
+// hasil resolve berupa tiket "UT1.*" terikat NPM. Keduanya diproses server UCL (bukan
+// server presensi lama) -- token statis pertemuan tidak pernah sampai ke aplikasi.
+const isDynamicCredential = (v?: string) =>
+  typeof v === 'string' && (v.startsWith('UQ1.') || v.startsWith('UT1.'));
+
+// 1. Fungsi untuk Submit Absen
 export async function absensi(data: AbsenRequest): Promise<AbsenResponse> {
   const authToken = useTokenStore.getState().token;
-  // Langsung tembak ke fts-absen Laravel
+
+  if (isDynamicCredential(data.token)) {
+    const res = await axios.post('absensi/scan-qr', data, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        token: authToken,
+      },
+    });
+    if (res.status >= 400) {
+      throw new Error(
+        res.data?.message ||
+          'QR sudah kedaluwarsa atau tidak valid. Scan ulang QR di layar dosen.',
+      );
+    }
+    return res.data;
+  }
+
+  // Token statis (QR/kode lama): rute kompatibilitas /fts (dimatikan server secara default)
   const response = await axiosTi.post('absensi/scan-qr', data, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -79,12 +104,28 @@ export async function absensi(data: AbsenRequest): Promise<AbsenResponse> {
 }
 
 // 2. Fungsi untuk Mengambil Info Matkul dari Token
-// Proxy ke PHP server (172.16.18.162) yang menyimpan data QR
 export async function get_pembelajaran(data: {
   token: string;
-}): Promise<AbsenResponse> {
+}): Promise<AbsenResponse & {ticket?: string}> {
   const authToken = useTokenStore.getState().token;
-  // Langsung tembak ke fts-absen (axiosTi) tanpa lewat proxy
+
+  if (isDynamicCredential(data.token)) {
+    const res = await axios.post(
+      'absensi/qr/resolve',
+      {code: data.token},
+      {headers: {token: authToken}},
+    );
+    if (res.status >= 400) {
+      throw new Error(
+        res.data?.responseMessage ||
+          res.data?.message ||
+          'QR tidak valid. Scan ulang QR di layar dosen.',
+      );
+    }
+    return res.data; // {message, data:[pertemuan], ticket}
+  }
+
+  // Rute kompatibilitas /fts di server UCL
   const response = await axiosTi.get('pembelajaran', {
     params: {
       'filter[]': 'token',
