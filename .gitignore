@@ -84,3 +84,9 @@ yarn-error.log
 *.log
 hs_err_pid*
 replay_pid*
+
+# Kredensial Firebase - jangan pernah commit
+google-services.json
+GoogleService-Info.plist
+*firebase-adminsdk*.json
+*-adminsdk-*.json
