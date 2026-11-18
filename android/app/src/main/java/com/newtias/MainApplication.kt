@@ -1,6 +1,9 @@
 package com.UCLMobile
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -38,6 +41,23 @@ class MainApplication : Application(), ReactApplication {
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
       load()
+    }
+    createNotificationChannel()
+  }
+
+  // Backend (UCL BE) selalu kirim FCM dengan android.notification.channelId = "ucl-default".
+  // Kalau channel ini belum ada di perangkat, Android (API 26+) diam-diam TIDAK menampilkan
+  // notifikasinya sama sekali saat app di background/tertutup -- harus dibuat eksplisit di sini.
+  private fun createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel = NotificationChannel(
+        "ucl-default",
+        "Notifikasi UCL",
+        NotificationManager.IMPORTANCE_HIGH
+      )
+      channel.description = "Slip keuangan, undangan rapat/event, dan info UCL lainnya"
+      val manager = getSystemService(NotificationManager::class.java)
+      manager?.createNotificationChannel(channel)
     }
   }
 }
