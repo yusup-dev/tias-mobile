@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getNotifikasi, markRead } from '../../services/akademik';
 import { Header, Loading, Pesan, s } from '../../component/akademik/ui';
+
+const logoUika = require('../../../assets/logo/logo_uika.png');
 
 const ikon = (t: string) => ((t === 'tagihan' || t === 'slip_keuangan') ? 'cash-multiple' : t === 'jadwal_kuliah' ? 'school-outline' : t === 'event_invite' ? 'calendar-account' : 'bell');
 
@@ -62,25 +64,40 @@ export default function NotifikasiScreen(props: any) {
       </ScrollView>
 
       <Modal visible={!!detail} transparent animationType="fade" onRequestClose={() => setDetail(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 }}>
-          <View style={{ backgroundColor: '#fff', borderRadius: 14, padding: 20 }}>
-            <Text style={[s.h2, { fontSize: 17, marginBottom: 10 }]}>{detail?.title}</Text>
-            <Text style={[s.text, { marginBottom: 12 }]}>{detail?.data?.keterangan || detail?.body}</Text>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 14, maxHeight: '85%', overflow: 'hidden' }}>
+            <ScrollView contentContainerStyle={{ padding: 20 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <Image source={logoUika} style={{ width: 40, height: 40, marginRight: 10 }} resizeMode="contain" />
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.h2, { fontSize: 14 }]}>UNIVERSITAS IBN KHALDUN BOGOR</Text>
+                  <Text style={[s.muted, { fontSize: 11 }]}>Jl. KH. Sholeh Iskandar KM 2 Bogor 16164</Text>
+                </View>
+              </View>
+              <View style={{ height: 2, backgroundColor: '#15613F', marginBottom: 14 }} />
 
-            <View style={{ backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12 }}>
-              <Text style={s.muted}>Nominal</Text>
-              <Text style={[s.h2, { color: '#15613F', marginTop: 2 }]}>{rupiah(detail?.data?.nominal)}</Text>
-              {detail?.data?.nama_bank && detail?.data?.no_rekening ? (
+              {detail?.data?.pesan ? (
+                <Text style={[s.text, { lineHeight: 21 }]}>{detail.data.pesan}</Text>
+              ) : (
                 <>
-                  <Text style={[s.muted, { marginTop: 10 }]}>Rekening Tujuan</Text>
-                  <Text style={[s.text, { fontWeight: '600', marginTop: 2 }]}>{detail.data.nama_bank} {detail.data.no_rekening}</Text>
+                  <Text style={[s.h2, { fontSize: 16, marginBottom: 8 }]}>{detail?.title}</Text>
+                  <Text style={[s.text, { marginBottom: 12 }]}>{detail?.data?.keterangan || detail?.body}</Text>
+                  <View style={{ backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12 }}>
+                    <Text style={s.muted}>Nominal</Text>
+                    <Text style={[s.h2, { color: '#15613F', marginTop: 2 }]}>{rupiah(detail?.data?.nominal)}</Text>
+                    {detail?.data?.nama_bank && detail?.data?.no_rekening ? (
+                      <>
+                        <Text style={[s.muted, { marginTop: 10 }]}>Rekening Tujuan</Text>
+                        <Text style={[s.text, { fontWeight: '600', marginTop: 2 }]}>{detail.data.nama_bank} {detail.data.no_rekening}</Text>
+                      </>
+                    ) : null}
+                  </View>
                 </>
-              ) : null}
-            </View>
+              )}
 
-            <Text style={[s.muted, { marginTop: 12 }]}>{waktu(detail?.created_at)}</Text>
-
-            <TouchableOpacity onPress={() => setDetail(null)} style={{ marginTop: 16, alignSelf: 'flex-end' }}>
+              <Text style={[s.muted, { marginTop: 14 }]}>{waktu(detail?.created_at)}</Text>
+            </ScrollView>
+            <TouchableOpacity onPress={() => setDetail(null)} style={{ padding: 14, alignItems: 'center', borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
               <Text style={{ color: '#15613F', fontWeight: '700' }}>Tutup</Text>
             </TouchableOpacity>
           </View>
